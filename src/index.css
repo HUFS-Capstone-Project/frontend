@@ -5,10 +5,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-}
-
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -21,6 +17,16 @@ body {
 #root {
   min-height: 100dvh;
 }
+
+/* 모바일 퍼스트 / Capacitor 대비: 터치 권장 최소 크기(약 44×44px). 인터랙티브 요소에 병행. */
+@layer utilities {
+  .touch-target-min {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* 고정 position 하단 바는 모바일 키보드 열릴 때 가려질 수 있음 → 추후 visualViewport·레이아웃으로 보정 검토 */
 
 @theme inline {
   --font-heading: var(--font-sans);
