@@ -31,6 +31,30 @@ body {
     min-height: 2.75rem;
     min-width: 2.75rem;
   }
+
+  /** 브랜드명「어디더라」전용 그라데이션 (고정 브랜드 컬러) */
+  .text-brand-gradient {
+    background-image: linear-gradient(to right, #ff968e, #f68981);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /**
+   * 앱 전역 좌우 여백 (safe-area 반영).
+   * 모바일 16px(1rem)·md+ 24px(1.5rem) — 가독성·터치 기준에 맞는 권장 수준.
+   */
+  .px-page {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  @media (min-width: 768px) {
+    .px-page {
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+    }
+  }
 }
 
 /* 고정 position 하단 바는 모바일 키보드 열릴 때 가려질 수 있음 → 추후 visualViewport·레이아웃으로 보정 검토 */

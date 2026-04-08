@@ -1,6 +1,8 @@
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 
+import { useAuthStore } from "@/store/authStore";
+
 type GroupItem = {
   id: string;
   title: string;
@@ -16,12 +18,22 @@ const MOCK_GROUPS: GroupItem[] = [
 ];
 
 export function HomePage() {
+  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
   const [selectedId, setSelectedId] = useState<string | null>(MOCK_GROUPS[0]?.id ?? null);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="border-border shrink-0 border-b py-3 text-center">
-        <h1 className="text-lg font-semibold tracking-tight">어디더라</h1>
+      <header className="border-border relative shrink-0 border-b py-3">
+        <h1 className="text-center text-lg font-semibold tracking-tight">어디더라</h1>
+        {import.meta.env.DEV ? (
+          <button
+            type="button"
+            onClick={() => setLoggedIn(false)}
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-0 top-1/2 -translate-y-1/2 cursor-pointer touch-target-min rounded-md px-2 text-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            로그아웃
+          </button>
+        ) : null}
       </header>
 
       <ul className="divide-border divide-y" role="list">
@@ -32,7 +44,7 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setSelectedId(g.id)}
-                className={`touch-target-min flex w-full min-h-[4.25rem] items-center gap-3 px-1 py-2 text-left transition-colors ${
+                className={`cursor-pointer touch-target-min flex w-full min-h-[4.25rem] items-center gap-3 px-1 py-2 text-left transition-colors ${
                   selected ? "bg-accent/80" : "hover:bg-muted/60 active:bg-muted/80"
                 }`}
               >
