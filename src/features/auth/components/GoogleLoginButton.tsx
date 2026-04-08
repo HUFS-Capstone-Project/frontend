@@ -1,34 +1,24 @@
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { PillButton } from "@/components/ui/pill-button";
+import { cn } from "@/lib/utils";
 
-import { GoogleBrandLogo } from "./GoogleBrandLogo"
+import { GoogleBrandLogo } from "./GoogleBrandLogo";
 
 export type GoogleLoginButtonProps = {
-  isLoading: boolean
-  onContinue: () => void
-}
+  isLoading: boolean;
+  onContinue: () => void;
+};
 
 export function GoogleLoginButton({
   isLoading,
   onContinue,
 }: GoogleLoginButtonProps) {
   return (
-    <Button
+    <PillButton
       type="button"
       variant="outline"
-      size="lg"
-      className={cn(
-        /* layout · sizing */
-        "relative h-12 min-h-12 w-full rounded-full px-5",
-        "touch-target-min justify-center",
-        /* colors · type */
-        "border-border bg-background text-base font-medium text-foreground shadow-none",
-        /* interaction */
-        "hover:bg-muted/40 hover:text-foreground",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      )}
+      className={cn("relative justify-center")}
       disabled={isLoading}
       aria-busy={isLoading}
       aria-label="Google 계정으로 로그인"
@@ -50,6 +40,6 @@ export function GoogleLoginButton({
       <span className="block w-full ps-14 pe-4 text-center text-foreground">
         {isLoading ? "연결 중…" : "구글 계정으로 시작"}
       </span>
-    </Button>
-  )
+    </PillButton>
+  );
 }

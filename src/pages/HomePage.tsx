@@ -18,22 +18,30 @@ const MOCK_GROUPS: GroupItem[] = [
 ];
 
 export function HomePage() {
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const nickname = useAuthStore((s) => s.nickname);
+  const logout = useAuthStore((s) => s.logout);
   const [selectedId, setSelectedId] = useState<string | null>(MOCK_GROUPS[0]?.id ?? null);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="border-border relative shrink-0 border-b py-3">
-        <h1 className="text-center text-lg font-semibold tracking-tight">어디더라</h1>
-        {import.meta.env.DEV ? (
-          <button
-            type="button"
-            onClick={() => setLoggedIn(false)}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-0 top-1/2 -translate-y-1/2 cursor-pointer touch-target-min rounded-md px-2 text-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            로그아웃
-          </button>
-        ) : null}
+        <div className="px-1">
+          <h1 className="text-center text-lg font-semibold tracking-tight">
+            <span className="text-brand-gradient">어디더라</span>
+          </h1>
+          {nickname ? (
+            <p className="text-muted-foreground mt-0.5 text-center text-sm leading-tight">
+              {nickname}님, 환영합니다
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-0 top-1/2 -translate-y-1/2 cursor-pointer touch-target-min rounded-md px-2 text-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          로그아웃
+        </button>
       </header>
 
       <ul className="divide-border divide-y" role="list">
