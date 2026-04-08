@@ -5,10 +5,10 @@ import {
   AgreementList,
   OnboardingButton,
   OnboardingContent,
+  onboardingContentClassName,
   OnboardingFooter,
   OnboardingLayout,
   OnboardingTitle,
-  onboardingContentClassName,
 } from "@/components/onboarding";
 import { useTermsAgreement } from "@/features/onboarding/hooks/useTermsAgreement";
 import { useAuthStore } from "@/store/authStore";

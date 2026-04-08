@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
+  NicknameInputSection,
   OnboardingButton,
   OnboardingContent,
+  onboardingContentClassName,
   OnboardingFooter,
   OnboardingLayout,
   OnboardingTitle,
-  NicknameInputSection,
-  onboardingContentClassName,
 } from "@/components/onboarding";
 
 /**

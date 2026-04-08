@@ -1,10 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import { OnboardingGate } from "@/app/router/OnboardingGate";
 import { RootLayout } from "@/app/layouts/RootLayout";
-import { RootIndexPage } from "@/pages/RootIndexPage";
+import { OnboardingGate } from "@/app/router/OnboardingGate";
 import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
+import { RootIndexPage } from "@/pages/RootIndexPage";
 
 export const router = createBrowserRouter([
   {
