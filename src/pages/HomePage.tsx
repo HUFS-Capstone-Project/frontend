@@ -18,7 +18,6 @@ const MOCK_GROUPS: GroupItem[] = [
 ];
 
 export function HomePage() {
-  const nickname = useAuthStore((s) => s.nickname);
   const logout = useAuthStore((s) => s.logout);
   const [selectedId, setSelectedId] = useState<string | null>(MOCK_GROUPS[0]?.id ?? null);
 
@@ -29,11 +28,6 @@ export function HomePage() {
           <h1 className="text-center text-lg font-semibold tracking-tight">
             <span className="text-brand-gradient">어디더라</span>
           </h1>
-          {nickname ? (
-            <p className="text-muted-foreground mt-0.5 text-center text-sm leading-tight">
-              {nickname}님, 환영합니다
-            </p>
-          ) : null}
         </div>
         <button
           type="button"

@@ -59,7 +59,7 @@ export function LoginPage() {
           <LoginCopy variant={LOGIN_COPY_VARIANT} />
         </section>
 
-        <div className="mx-auto w-full max-w-md shrink-0">
+        <div className="mx-auto w-full max-w-md shrink-0 md:max-w-full">
           <GoogleLoginButton
             isLoading={isLoading}
             onContinue={handleGoogleContinue}
