@@ -59,7 +59,7 @@ export function LoginCopy({ variant }: LoginCopyProps) {
         id="login-marketing-heading"
         prefix="SNS에서 본 맛집과 카페,"
         texts={MARKETING_TEXTS}
-        interval={3800}
+        interval={2800}
         durationMs={650}
         slotChildren={MARKETING_SLOTS}
       />
