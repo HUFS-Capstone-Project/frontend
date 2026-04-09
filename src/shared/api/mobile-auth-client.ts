@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { getMobileAuthBaseURL } from "./baseURL";
+import { getMobileAuthBaseURL } from "./base-url";
 
 /** `/v1/auth/mobile/*` 전용. `withCredentials: false` — Bearer·body refresh. 보호 API는 공통 `api`. */
 export const mobileAuthClient = axios.create({

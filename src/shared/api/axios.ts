@@ -1,13 +1,13 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-import { mobileAuthApi } from "@/features/auth/api/mobileAuthApi";
-import { resolveMobileRefreshToken } from "@/features/auth/lib/mobileRefreshToken";
+import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import type { TokenResponse } from "@/features/auth/types";
-import type { CommonResponse } from "@/shared/types/api.types";
-import { useAuthStore } from "@/store/authStore";
+import type { CommonResponse } from "@/shared/types/api-types";
+import { useAuthStore } from "@/store/auth-store";
 
-import { getApiBaseURL } from "./baseURL";
-import { ensureCsrfCookie, webAuthClient } from "./webAuthClient";
+import { getApiBaseURL } from "./base-url";
+import { ensureCsrfCookie, webAuthClient } from "./web-auth-client";
 
 const hasProdApiEnv =
   Boolean(import.meta.env.VITE_WEB_API_BASE_URL?.trim()) ||

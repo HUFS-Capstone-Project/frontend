@@ -9,7 +9,7 @@
  * OAuth URL: `googleLogin.ts` — `VITE_WEB_GOOGLE_LOGIN_URL` / `VITE_MOBILE_GOOGLE_LOGIN_URL`.
  */
 
-import { getRuntimeAuthChannel } from "@/features/auth/lib/authChannel";
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 
 function resolveViteWebApiBaseURL(): string {
   const raw = import.meta.env.VITE_WEB_API_BASE_URL;

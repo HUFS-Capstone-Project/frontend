@@ -1,6 +1,6 @@
-import { authApi } from "@/features/auth/api/authApi";
-import { mobileAuthApi } from "@/features/auth/api/mobileAuthApi";
-import { useAuthStore } from "@/store/authStore";
+import { authApi } from "@/features/auth/api/auth-api";
+import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { useAuthStore } from "@/store/auth-store";
 
 /** Capacitor PKCE 콜백 후 호출 — `mobile/exchange` → `/me` → `signIn`(channel: mobile). */
 // TODO(모바일 OAuth): 딥링크/`App.addListener("appUrlOpen")`에서 code·codeVerifier 파싱 후 이 함수 연결. 호출처 미연결 상태.

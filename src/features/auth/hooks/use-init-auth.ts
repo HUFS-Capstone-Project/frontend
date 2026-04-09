@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
-import { authApi } from "@/features/auth/api/authApi";
-import { mobileAuthApi } from "@/features/auth/api/mobileAuthApi";
-import { webAuthApi } from "@/features/auth/api/webAuthApi";
-import { resolveMobileRefreshToken } from "@/features/auth/lib/mobileRefreshToken";
-import { useAuthStore } from "@/store/authStore";
+import { authApi } from "@/features/auth/api/auth-api";
+import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { webAuthApi } from "@/features/auth/api/web-auth-api";
+import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
+import { useAuthStore } from "@/store/auth-store";
 
 /** 로그인 상태 복원: 웹 ensureCsrfCookie→refresh→me, 모바일 mobile/refresh→me */
 // TODO(모바일 OAuth): `authChannel==="mobile"` 복원은 `mobileRefreshTokenStorage` 구현 후에만 동작. 딥링크 로그인과 연계.

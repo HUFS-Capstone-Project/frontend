@@ -10,9 +10,9 @@ import {
   OnboardingFooter,
   OnboardingLayout,
   OnboardingTitle,
-} from "@/components/onboarding";
-import { useTermsAgreement } from "@/features/onboarding/hooks/useTermsAgreement";
-import { useAuthStore } from "@/store/authStore";
+  useTermsAgreement,
+} from "@/features/onboarding";
+import { useAuthStore } from "@/store/auth-store";
 
 type TermsLocationState = {
   nickname?: string;

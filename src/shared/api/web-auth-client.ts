@@ -2,7 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 
 import { getCookie, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from "@/shared/lib/cookie";
 
-import { getWebAuthBaseURL } from "./baseURL";
+import { getWebAuthBaseURL } from "./base-url";
 
 /** 웹 인증: `withCredentials`, CSRF는 쿠키 `XSRF-TOKEN` ↔ 헤더 `X-XSRF-TOKEN` 동일 문자열. 값은 항상 `document.cookie`만 사용. */
 

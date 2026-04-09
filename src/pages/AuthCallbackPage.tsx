@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { BrandMarkerLoader } from "@/components/ui/brand-marker-loader";
-import { webAuthApi } from "@/features/auth/api/webAuthApi";
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
+import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import type { ApiError } from "@/shared/api/axios";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/auth-store";
 
 /** OAuth 콜백: ticket → ensureCsrfCookie → exchange-ticket(`data.token`·`data.me`) → 라우팅 — 웹 전용 흐름. */
 // TODO(모바일 OAuth): 네이티브 PKCE는 보통 이 페이지가 아니라 딥링크 URL 스킴으로 앱에 진입. 별도 처리·분기 검토.

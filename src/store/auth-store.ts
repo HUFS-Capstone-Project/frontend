@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import type { AuthChannel } from "@/features/auth/lib/authChannel";
+import type { AuthChannel } from "@/features/auth/lib/auth-channel";
 
 type SignInData = {
   nickname: string | null;

@@ -5,7 +5,7 @@ import {
   LoginCopy,
   type LoginCopyVariant,
 } from "@/features/auth/components/LoginCopy";
-import { handleGoogleLogin } from "@/features/auth/lib/googleLogin";
+import { handleGoogleLogin } from "@/features/auth/lib/google-login";
 import {
   loginPageInnerClassName,
   loginPageRootClassName,

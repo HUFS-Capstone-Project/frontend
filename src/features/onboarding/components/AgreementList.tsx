@@ -1,7 +1,7 @@
-import type { AgreementKey } from "@/features/onboarding/lib/termsAgreement";
-import { TERMS_AGREEMENT_ITEMS } from "@/features/onboarding/lib/termsAgreement";
+import type { AgreementKey } from "@/features/onboarding/lib/terms-agreement";
+import { TERMS_AGREEMENT_ITEMS } from "@/features/onboarding/lib/terms-agreement";
 
-import { AgreementItem } from "./agreement-item";
+import { AgreementItem } from "./AgreementItem";
 
 type AgreementListProps = {
   idPrefix: string;

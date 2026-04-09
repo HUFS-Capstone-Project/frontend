@@ -10,7 +10,7 @@ import {
   OnboardingFooter,
   OnboardingLayout,
   OnboardingTitle,
-} from "@/components/onboarding";
+} from "@/features/onboarding";
 
 /**
  * 온보딩 1단계: 닉네임 등록.

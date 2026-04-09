@@ -1,5 +1,5 @@
-import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobileRefreshTokenStorage";
-import { useAuthStore } from "@/store/authStore";
+import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobile-refresh-token-storage";
+import { useAuthStore } from "@/store/auth-store";
 
 /** 메모리(Zustand) → Secure Storage 순으로 모바일 refresh token 조회 */
 export async function resolveMobileRefreshToken(): Promise<string | null> {

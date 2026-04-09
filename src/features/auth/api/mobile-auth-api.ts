@@ -1,5 +1,5 @@
-import { mobileAuthClient } from "@/shared/api/mobileAuthClient";
-import type { CommonResponse } from "@/shared/types/api.types";
+import { mobileAuthClient } from "@/shared/api/mobile-auth-client";
+import type { CommonResponse } from "@/shared/types/api-types";
 
 import type { TokenResponse } from "../types";
 

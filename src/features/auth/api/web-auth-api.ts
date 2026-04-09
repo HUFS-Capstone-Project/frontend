@@ -3,9 +3,9 @@ import { isAxiosError } from "axios";
 import {
   ensureCsrfCookie,
   webAuthClient,
-} from "@/shared/api/webAuthClient";
+} from "@/shared/api/web-auth-client";
 import { getCookie, XSRF_COOKIE_NAME } from "@/shared/lib/cookie";
-import type { CommonResponse } from "@/shared/types/api.types";
+import type { CommonResponse } from "@/shared/types/api-types";
 
 import type { AuthTokenBootstrapResponse, TokenResponse } from "../types";
 

@@ -1,5 +1,5 @@
 import { api } from "@/shared/api/axios";
-import type { CommonResponse } from "@/shared/types/api.types";
+import type { CommonResponse } from "@/shared/types/api-types";
 
 import type { UserProfile } from "../types";
 

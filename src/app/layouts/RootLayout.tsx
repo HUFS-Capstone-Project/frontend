@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import { useInitAuth } from "@/features/auth/hooks/useInitAuth";
+import { useInitAuth } from "@/features/auth/hooks/use-init-auth";
 
 /**
  * 뷰포트별 콘텐츠 폭

@@ -1,13 +1,13 @@
 import { useCallback, useId } from "react";
 
-import { useControlledMaxLengthWarning } from "@/hooks/use-controlled-max-length-warning";
 import { cn } from "@/lib/utils";
 
 import {
   nicknameLimitExceededMessage,
   resolveNicknamePlaceholder,
-} from "./constants";
-import { UnderlineTextField } from "./underline-text-field";
+} from "../constants";
+import { useControlledMaxLengthWarning } from "../hooks/use-controlled-max-length-warning";
+import { UnderlineTextField } from "./UnderlineTextField";
 
 /** 주의 문구 영역: `invisible`로 가릴 때도 레이아웃 유지 */
 const HINT_SLOT_CLASS = "mt-2 min-h-11";

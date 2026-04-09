@@ -6,7 +6,7 @@ import {
   initialAgreementState,
   isAllChecked,
   isRequiredAgreed,
-} from "@/features/onboarding/lib/termsAgreement";
+} from "@/features/onboarding/lib/terms-agreement";
 
 export function useTermsAgreement() {
   const [agreed, setAgreed] = useState<AgreementState>(initialAgreementState);

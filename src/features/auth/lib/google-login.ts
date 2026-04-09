@@ -1,4 +1,4 @@
-import { getRuntimeAuthChannel } from "@/features/auth/lib/authChannel";
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 
 /** 웹: `VITE_WEB_GOOGLE_LOGIN_URL` — 모바일: `VITE_MOBILE_GOOGLE_LOGIN_URL` → 없으면 웹 URL 폴백. 완료 후 `/auth/callback?ticket=...` */
 // TODO(모바일 OAuth): 네이티브에서는 `window.location` 대신 `@capacitor/browser` 등으로 외부 브라우저 열고, 딥링크로 앱 복귀 + PKCE(`completeMobileLoginAfterExchange`) 처리.

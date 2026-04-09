@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 
-import { PillButton } from "@/components/ui/pill-button";
+import { PillButton } from "@/components/ui/PillButton";
 import { cn } from "@/lib/utils";
 
 import { GoogleBrandLogo } from "./GoogleBrandLogo";

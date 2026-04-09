@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 
-import { authApi } from "@/features/auth/api/authApi";
-import { mobileAuthApi } from "@/features/auth/api/mobileAuthApi";
-import { webAuthApi } from "@/features/auth/api/webAuthApi";
-import { resolveMobileRefreshToken } from "@/features/auth/lib/mobileRefreshToken";
-import { useAuthStore } from "@/store/authStore";
+import { authApi } from "@/features/auth/api/auth-api";
+import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { webAuthApi } from "@/features/auth/api/web-auth-api";
+import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
+import { useAuthStore } from "@/store/auth-store";
 
 export function useLogout() {
   const logout = useAuthStore((s) => s.logout);

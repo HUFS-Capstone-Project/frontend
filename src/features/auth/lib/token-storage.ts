@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/auth-store";
 
 /**
  * 액세스 토큰 접근 추상화 (현재는 Zustand).
