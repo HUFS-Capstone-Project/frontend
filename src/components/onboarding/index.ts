@@ -1,6 +1,12 @@
 export { AgreementItem } from "./agreement-item";
 export { AgreementList } from "./agreement-list";
-export { onboardingContentClassName } from "./constants";
+export {
+  NICKNAME_MAX_LENGTH,
+  nicknameInputPlaceholder,
+  nicknameLimitExceededMessage,
+  onboardingContentClassName,
+  resolveNicknamePlaceholder,
+} from "./constants";
 export { NicknameInputSection } from "./nickname-input-section";
 export { OnboardingButton } from "./onboarding-button";
 export {

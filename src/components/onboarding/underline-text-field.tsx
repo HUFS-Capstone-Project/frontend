@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
+import * as React from "react";
 
 import { appFormInputTextClassName } from "@/lib/app-typography";
+import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 
 const CLEAR_SLOT =
@@ -18,6 +20,12 @@ type UnderlineTextFieldProps = {
   inputClassName?: string;
   autoFocus?: boolean;
   autoComplete?: string;
+  maxLength?: number;
+  /** `maxLength`보다 길어지는 입력·붙여넣기 시도 시 */
+  onLimitAttempt?: () => void;
+  describedById?: string;
+  onCompositionStart?: () => void;
+  onCompositionEnd?: (e: React.CompositionEvent<HTMLInputElement>) => void;
 };
 
 /**
@@ -34,8 +42,48 @@ export function UnderlineTextField({
   inputClassName,
   autoFocus,
   autoComplete = "off",
+  maxLength,
+  onLimitAttempt,
+  describedById,
+  onCompositionStart,
+  onCompositionEnd,
 }: UnderlineTextFieldProps) {
   const hasValue = value.length > 0;
+
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (maxLength === undefined || !onLimitAttempt) return;
+      if ((e.nativeEvent as KeyboardEvent).isComposing) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key.length !== 1) return;
+      const el = e.currentTarget;
+      const nextLen = lengthAfterInsertAtSelection(
+        value,
+        el.selectionStart,
+        el.selectionEnd,
+        1,
+      );
+      if (nextLen > maxLength) onLimitAttempt();
+    },
+    [maxLength, onLimitAttempt, value],
+  );
+
+  const handlePaste = React.useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      if (maxLength === undefined || !onLimitAttempt) return;
+      const text = e.clipboardData.getData("text");
+      if (!text) return;
+      const el = e.currentTarget;
+      const nextLen = lengthAfterInsertAtSelection(
+        value,
+        el.selectionStart,
+        el.selectionEnd,
+        text.length,
+      );
+      if (nextLen > maxLength) onLimitAttempt();
+    },
+    [maxLength, onLimitAttempt, value],
+  );
 
   const clear = () => {
     if (onClear) onClear();
@@ -57,7 +105,13 @@ export function UnderlineTextField({
           autoCorrect="off"
           spellCheck={false}
           autoFocus={autoFocus}
+          maxLength={maxLength}
+          aria-describedby={describedById}
           onChange={(e) => onChange(e.target.value)}
+          onCompositionStart={onCompositionStart}
+          onCompositionEnd={onCompositionEnd}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder={placeholder}
           className={cn(
             "min-h-0 min-w-0 flex-1 bg-transparent py-1 placeholder:text-zinc-400 focus:outline-none",

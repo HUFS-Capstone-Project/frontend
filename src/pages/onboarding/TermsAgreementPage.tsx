@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   AgreementList,
+  NICKNAME_MAX_LENGTH,
   OnboardingButton,
   OnboardingContent,
   onboardingContentClassName,
@@ -29,11 +30,15 @@ export function TermsAgreementPage() {
   const nicknameFromPrev =
     (location.state as TermsLocationState | null)?.nickname?.trim() ?? "";
 
+  const nicknameOk =
+    nicknameFromPrev.length > 0 &&
+    nicknameFromPrev.length <= NICKNAME_MAX_LENGTH;
+
   useEffect(() => {
-    if (!nicknameFromPrev) {
+    if (!nicknameOk) {
       void navigate("/onboarding/nickname", { replace: true });
     }
-  }, [nicknameFromPrev, navigate]);
+  }, [nicknameOk, navigate]);
 
   const {
     agreed,
@@ -43,7 +48,7 @@ export function TermsAgreementPage() {
     handleToggleItem,
   } = useTermsAgreement();
 
-  if (!nicknameFromPrev) {
+  if (!nicknameOk) {
     return null;
   }
 
@@ -51,7 +56,7 @@ export function TermsAgreementPage() {
     <OnboardingLayout>
       <OnboardingContent className={onboardingContentClassName.terms}>
         <OnboardingTitle
-          firstLineRest=" 에 필요한"
+          firstLineRest="에 필요한"
           secondLine="약관에 동의해주세요"
         />
         <AgreementList

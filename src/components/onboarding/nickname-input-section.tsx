@@ -1,8 +1,16 @@
-import * as React from "react";
+import { useCallback, useId } from "react";
 
+import { useControlledMaxLengthWarning } from "@/hooks/use-controlled-max-length-warning";
 import { cn } from "@/lib/utils";
 
+import {
+  nicknameLimitExceededMessage,
+  resolveNicknamePlaceholder,
+} from "./constants";
 import { UnderlineTextField } from "./underline-text-field";
+
+/** 주의 문구 영역: `invisible`로 가릴 때도 레이아웃 유지 */
+const HINT_SLOT_CLASS = "mt-2 min-h-11";
 
 type NicknameInputSectionProps = {
   /** 접근성 라벨 · clear 버튼 문구에 사용 */
@@ -13,6 +21,7 @@ type NicknameInputSectionProps = {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  maxLength?: number;
 };
 
 /**
@@ -23,11 +32,33 @@ export function NicknameInputSection({
   value,
   onChange,
   onClear,
-  placeholder = "닉네임 입력",
+  placeholder,
   className,
   autoFocus,
+  maxLength,
 }: NicknameInputSectionProps) {
-  const id = React.useId();
+  const id = useId();
+  const hintId = `${id}-hint`;
+
+  const {
+    limitWarning,
+    notifyLimitAttempt,
+    applyChange,
+    handleCompositionStart,
+    handleCompositionEnd,
+  } = useControlledMaxLengthWarning(maxLength, value);
+
+  const handleFieldChange = useCallback(
+    (next: string) => {
+      applyChange(next, onChange);
+    },
+    [applyChange, onChange],
+  );
+
+  const resolvedPlaceholder = resolveNicknamePlaceholder(
+    placeholder,
+    maxLength,
+  );
 
   return (
     <section
@@ -38,12 +69,34 @@ export function NicknameInputSection({
         id={id}
         label={label}
         value={value}
-        onChange={onChange}
+        onChange={handleFieldChange}
         onClear={onClear}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         autoComplete="nickname"
         autoFocus={autoFocus}
+        maxLength={maxLength}
+        onLimitAttempt={maxLength !== undefined ? notifyLimitAttempt : undefined}
+        describedById={
+          maxLength !== undefined && limitWarning ? hintId : undefined
+        }
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
       />
+      {maxLength !== undefined ? (
+        <div className={HINT_SLOT_CLASS}>
+          <p
+            id={hintId}
+            className={cn(
+              "text-sm text-destructive",
+              !limitWarning && "invisible",
+            )}
+            aria-hidden={!limitWarning}
+            aria-live={limitWarning ? "polite" : undefined}
+          >
+            {nicknameLimitExceededMessage(maxLength)}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }
