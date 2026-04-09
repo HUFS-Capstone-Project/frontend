@@ -5,7 +5,8 @@ import { webAuthApi } from "@/features/auth/api/webAuthApi";
 import type { ApiError } from "@/shared/api/axios";
 import { useAuthStore } from "@/store/authStore";
 
-/** OAuth 콜백: ticket → getCsrf → exchange-ticket(`data.token`·`data.me`) → 라우팅 */
+/** OAuth 콜백: ticket → getCsrf → exchange-ticket(`data.token`·`data.me`) → 라우팅 — 웹 전용 흐름. */
+// TODO(모바일 OAuth): 네이티브 PKCE는 보통 이 페이지가 아니라 딥링크 URL 스킴으로 앱에 진입. 별도 처리·분기 검토.
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

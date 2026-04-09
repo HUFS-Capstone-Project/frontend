@@ -9,8 +9,14 @@ import { useAuthStore } from "@/store/authStore";
 import { getApiBaseURL } from "./baseURL";
 import { ensureCsrfToken, webAuthClient } from "./webAuthClient";
 
-if (!import.meta.env.VITE_API_BASE_URL && import.meta.env.PROD) {
-  console.warn("[udidura] VITE_API_BASE_URL is not set in production build.");
+const hasProdApiEnv =
+  Boolean(import.meta.env.VITE_WEB_API_BASE_URL?.trim()) ||
+  Boolean(import.meta.env.VITE_MOBILE_API_BASE_URL?.trim());
+
+if (import.meta.env.PROD && !hasProdApiEnv) {
+  console.warn(
+    "[udidura] 프로덕션 빌드에 API base가 없습니다. VITE_WEB_API_BASE_URL 또는 VITE_MOBILE_API_BASE_URL을 설정하세요.",
+  );
 }
 
 /** Bearer 주입, 401 시 웹·모바일 채널별 refresh 후 재시도. */

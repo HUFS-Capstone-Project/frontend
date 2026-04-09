@@ -28,7 +28,7 @@ export function LoginPage() {
     setIsLoading(true);
     const redirected = handleGoogleLogin();
     if (!redirected) {
-      // VITE_GOOGLE_LOGIN_URL 미설정 시 (개발 환경 임시 처리)
+      // VITE_WEB_GOOGLE_LOGIN_URL 미설정 시 (개발 환경 임시 처리)
       setIsLoading(false);
     }
     // 리다이렉트 성공 시 페이지가 이동하므로 추가 처리 불필요
