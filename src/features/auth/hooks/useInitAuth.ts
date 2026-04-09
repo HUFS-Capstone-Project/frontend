@@ -6,7 +6,7 @@ import { webAuthApi } from "@/features/auth/api/webAuthApi";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobileRefreshToken";
 import { useAuthStore } from "@/store/authStore";
 
-/** 로그인 상태 복원: 웹 csrf→refresh→me, 모바일 mobile/refresh→me */
+/** 로그인 상태 복원: 웹 ensureCsrfCookie→refresh→me, 모바일 mobile/refresh→me */
 // TODO(모바일 OAuth): `authChannel==="mobile"` 복원은 `mobileRefreshTokenStorage` 구현 후에만 동작. 딥링크 로그인과 연계.
 export function useInitAuth(): void {
   useEffect(() => {
@@ -49,7 +49,7 @@ export function useInitAuth(): void {
         return;
       }
 
-      await webAuthApi.getCsrf();
+      await webAuthApi.ensureCsrfCookie();
       if (cancelled) return;
 
       const tokenRes = await webAuthApi.refresh();

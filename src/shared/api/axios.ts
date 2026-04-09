@@ -7,7 +7,7 @@ import type { CommonResponse } from "@/shared/types/api.types";
 import { useAuthStore } from "@/store/authStore";
 
 import { getApiBaseURL } from "./baseURL";
-import { ensureCsrfToken, webAuthClient } from "./webAuthClient";
+import { ensureCsrfCookie, webAuthClient } from "./webAuthClient";
 
 const hasProdApiEnv =
   Boolean(import.meta.env.VITE_WEB_API_BASE_URL?.trim()) ||
@@ -107,7 +107,7 @@ api.interceptors.response.use(
 );
 
 async function refreshWebAccessToken(): Promise<string> {
-  await ensureCsrfToken();
+  await ensureCsrfCookie();
   const res = await webAuthClient.post<CommonResponse<TokenResponse>>("/v1/auth/refresh");
   return res.data.data.accessToken;
 }
