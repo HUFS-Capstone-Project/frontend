@@ -1,40 +1,123 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import { mobileAuthApi } from "@/features/auth/api/mobileAuthApi";
+import { resolveMobileRefreshToken } from "@/features/auth/lib/mobileRefreshToken";
+import type { TokenResponse } from "@/features/auth/types";
+import type { CommonResponse } from "@/shared/types/api.types";
+import { useAuthStore } from "@/store/authStore";
 
-if (!baseURL && import.meta.env.PROD) {
+import { getApiBaseURL } from "./baseURL";
+import { ensureCsrfToken, webAuthClient } from "./webAuthClient";
+
+if (!import.meta.env.VITE_API_BASE_URL && import.meta.env.PROD) {
   console.warn("[udidura] VITE_API_BASE_URL is not set in production build.");
 }
 
+/** Bearer 주입, 401 시 웹·모바일 채널별 refresh 후 재시도. */
 export const api = axios.create({
-  baseURL: baseURL || "/api",
+  baseURL: getApiBaseURL(),
   timeout: 25_000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
+
+type RefreshQueueItem = {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+};
+
+let isRefreshing = false;
+let refreshQueue: RefreshQueueItem[] = [];
+
+function resolveRefreshQueue(token: string) {
+  refreshQueue.forEach(({ resolve }) => resolve(token));
+  refreshQueue = [];
+}
+
+function rejectRefreshQueue(error: unknown) {
+  refreshQueue.forEach(({ reject }) => reject(error));
+  refreshQueue = [];
+}
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // TODO: 액세스 토큰이 생기면 여기서 Authorization 헤더 주입
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
     return config;
   },
   (error) => Promise.reject(error),
 );
 
+type RetryableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ message?: string; code?: string }>) => {
+  async (error: AxiosError<{ message?: string; code?: string }>) => {
     const status = error.response?.status;
+    const originalConfig = error.config as RetryableConfig | undefined;
 
-    if (status === 401) {
-      // TODO: 로그인/리프레시 플로우 연동 시 리다이렉트 또는 토큰 갱신
+    if (status !== 401 || !originalConfig || originalConfig._retried) {
+      return Promise.reject(normalizeAxiosError(error));
     }
 
-    return Promise.reject(normalizeAxiosError(error));
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        refreshQueue.push({
+          resolve: (token) => {
+            originalConfig.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalConfig));
+          },
+          reject,
+        });
+      });
+    }
+
+    isRefreshing = true;
+    originalConfig._retried = true;
+
+    try {
+      const channel = useAuthStore.getState().authChannel ?? "web";
+      const newToken =
+        channel === "mobile"
+          ? await refreshMobileAccessToken()
+          : await refreshWebAccessToken();
+
+      useAuthStore.getState().setAccessToken(newToken);
+      resolveRefreshQueue(newToken);
+
+      originalConfig.headers.Authorization = `Bearer ${newToken}`;
+      return api(originalConfig);
+    } catch {
+      useAuthStore.getState().logout();
+      rejectRefreshQueue(new Error("refresh failed"));
+      return Promise.reject(normalizeAxiosError(error));
+    } finally {
+      isRefreshing = false;
+    }
   },
 );
+
+async function refreshWebAccessToken(): Promise<string> {
+  await ensureCsrfToken();
+  const res = await webAuthClient.post<CommonResponse<TokenResponse>>("/v1/auth/refresh");
+  return res.data.data.accessToken;
+}
+
+async function refreshMobileAccessToken(): Promise<string> {
+  const rt = await resolveMobileRefreshToken();
+  if (!rt) {
+    throw new Error("no mobile refresh token");
+  }
+  const wrapper = await mobileAuthApi.refresh({ refreshToken: rt });
+  const tr = wrapper.data;
+  if (tr.refreshToken) {
+    useAuthStore.getState().setRefreshToken(tr.refreshToken);
+  }
+  return tr.accessToken;
+}
 
 export type ApiError = {
   status?: number;
@@ -43,7 +126,9 @@ export type ApiError = {
   original: unknown;
 };
 
-function normalizeAxiosError(error: AxiosError<{ message?: string; code?: string }>): ApiError {
+function normalizeAxiosError(
+  error: AxiosError<{ message?: string; code?: string }>,
+): ApiError {
   const data = error.response?.data;
   const message =
     (typeof data?.message === "string" && data.message) ||

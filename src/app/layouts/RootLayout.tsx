@@ -1,5 +1,7 @@
 import { Outlet } from "react-router-dom";
 
+import { useInitAuth } from "@/features/auth/hooks/useInitAuth";
+
 /**
  * 뷰포트별 콘텐츠 폭
  * - 모바일(md 미만): 모바일 규격 (max-w-lg)
@@ -8,6 +10,8 @@ import { Outlet } from "react-router-dom";
  * - 좌우 여백: 전역 `px-page` (index.css)
  */
 export function RootLayout() {
+  useInitAuth();
+
   return (
     <div className="bg-background text-foreground">
       <div

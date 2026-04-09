@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-import { useAuthStore } from "@/store/authStore";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 
 type GroupItem = {
   id: string;
@@ -18,7 +18,7 @@ const MOCK_GROUPS: GroupItem[] = [
 ];
 
 export function HomePage() {
-  const logout = useAuthStore((s) => s.logout);
+  const { handleLogout } = useLogout();
   const [selectedId, setSelectedId] = useState<string | null>(MOCK_GROUPS[0]?.id ?? null);
 
   return (
@@ -31,7 +31,7 @@ export function HomePage() {
         </div>
         <button
           type="button"
-          onClick={() => logout()}
+          onClick={() => void handleLogout()}
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-0 top-1/2 -translate-y-1/2 cursor-pointer touch-target-min rounded-md px-2 text-sm underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           로그아웃

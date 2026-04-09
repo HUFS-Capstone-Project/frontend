@@ -16,10 +16,8 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 
-# Env (로컬·배포 비밀값)
-.env
-.env.local
-.env.*.local
+# Env
+.env.*
 
 # OS
 .DS_Store
