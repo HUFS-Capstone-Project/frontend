@@ -75,6 +75,65 @@ body {
   }
 }
 
+/**
+ * 지도 마커 로더
+ */
+@layer components {
+  .brand-marker-loader {
+    width: 48px;
+    height: 48px;
+    display: block;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .brand-marker-loader__shadow {
+    box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 150%;
+    width: 24px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    transform-origin: center;
+  }
+
+  .brand-marker-loader__marker {
+    width: 48px;
+    height: 48px;
+    left: 0;
+    bottom: 0;
+    position: absolute;
+    border-radius: 50% 50% 0;
+    background-color: var(--brand-coral-solid);
+    box-sizing: border-box;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .brand-marker-loader__heart-wrap {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: transform;
+  }
+
+  .brand-marker-loader__heart-icon {
+    width: 22px;
+    height: 22px;
+    display: block;
+  }
+}
+
 /* 고정 position 하단 바는 모바일 키보드 열릴 때 가려질 수 있음 → 추후 visualViewport·레이아웃으로 보정 검토 */
 
 @theme inline {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+import { BrandMarkerLoader } from "@/components/ui/brand-marker-loader";
 import { webAuthApi } from "@/features/auth/api/webAuthApi";
 import type { ApiError } from "@/shared/api/axios";
 import { useAuthStore } from "@/store/authStore";
@@ -86,12 +87,9 @@ export function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center" aria-label="로그인 처리 중">
-      <div
-        className="border-primary size-8 animate-spin rounded-full border-2 border-t-transparent"
-        role="status"
-        aria-label="로딩 중"
-      />
+    <div className="flex flex-1 flex-col items-center justify-center gap-3">
+      <span className="sr-only">로그인 처리 중</span>
+      <BrandMarkerLoader />
     </div>
   );
 }

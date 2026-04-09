@@ -38,7 +38,7 @@ export function GoogleLoginButton({
         )}
       </span>
       <span className="block w-full ps-14 pe-4 text-center text-foreground">
-        {isLoading ? "연결 중…" : "구글 계정으로 시작"}
+        {isLoading ? "구글로 이동 중…" : "구글 계정으로 시작"}
       </span>
     </PillButton>
   );
