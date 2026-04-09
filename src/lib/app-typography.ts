@@ -1,6 +1,6 @@
 /** 헤드라인 크기·굵기만. 색은 `text-foreground` 등과 조합 */
 export const appHeadlineSizeClassName =
-  "text-[1.375rem] font-bold leading-snug tracking-tight";
+  "text-[1.5rem] font-bold leading-snug tracking-tight";
 
 export const appHeadlineClassName = `${appHeadlineSizeClassName} text-foreground`;
 

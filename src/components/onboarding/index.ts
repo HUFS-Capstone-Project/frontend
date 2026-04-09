@@ -9,6 +9,4 @@ export {
   OnboardingLayout,
 } from "./onboarding-layout";
 export { OnboardingTitle } from "./onboarding-title";
-export { PageIndicator } from "./page-indicator";
-export { ProfilePlaceholder } from "./profile-placeholder";
 export { UnderlineTextField } from "./underline-text-field";
