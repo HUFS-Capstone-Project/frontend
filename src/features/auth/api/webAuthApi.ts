@@ -54,6 +54,10 @@ export const webAuthApi = {
       throw new Error("CSRF token unavailable");
     }
 
+    /** logout은 axios 인터셉터/transform 영향을 피하고,
+     * Spring Security가 기대하는 form-urlencoded + _csrf 형태를
+     * 정확히 보장하기 위해 fetch로 직접 전송한다.
+     */
     const url = resolveAbsoluteApiUrl("/v1/auth/logout");
     const res = await fetch(url, {
       method: "POST",
@@ -62,7 +66,6 @@ export const webAuthApi = {
         Accept: "application/json, text/plain, */*",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-XSRF-TOKEN": token,
-        "X-CSRF-TOKEN": token,
       },
       body: new URLSearchParams({ _csrf: token }).toString(),
     });
