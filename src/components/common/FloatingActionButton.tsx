@@ -1,4 +1,4 @@
-import { MessageSquarePlus } from "lucide-react";
+import { HousePlus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ export function FloatingActionButton({ label, className }: FloatingActionButtonP
         className,
       )}
     >
-      <MessageSquarePlus className="size-6" strokeWidth={2} aria-hidden />
+      <HousePlus className="size-6" strokeWidth={2} aria-hidden />
     </button>
   );
 }

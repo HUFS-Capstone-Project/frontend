@@ -9,7 +9,7 @@ export function RoomMainPage() {
   return (
     <RoomMainShell
       header={<RoomMainHeader title="홍길동님의 데이트 지도" />}
-      fab={<FloatingActionButton label="새 메시지" />}
+      fab={<FloatingActionButton label="방 생성" />}
       bottomNav={<BottomNavigationBar activeId="room" />}
     >
       <FriendRoomList rows={FRIEND_ROOM_MOCK_ROWS} />
