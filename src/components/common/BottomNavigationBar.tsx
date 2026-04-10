@@ -32,10 +32,15 @@ export function BottomNavigationBar({ activeId, className }: BottomNavigationBar
           const active = id === activeId;
           return (
             <li key={id} className="min-w-0 flex-1">
-              <div className="flex flex-col items-center justify-center gap-1 py-1 text-center text-[0.6rem] font-medium leading-tight">
+              <div
+                className={cn(
+                  "transition-interaction-nav-transform flex flex-col items-center justify-center gap-1 py-1 text-center text-[0.6rem] font-medium leading-tight",
+                  active ? "scale-[1.03]" : "scale-100",
+                )}
+              >
                 <Icon
                   className={cn(
-                    "size-5 shrink-0",
+                    "transition-interaction-nav-color size-5 shrink-0",
                     active ? "text-brand-coral" : "text-muted-foreground/45",
                   )}
                   strokeWidth={active ? 2.25 : 2}
@@ -43,7 +48,7 @@ export function BottomNavigationBar({ activeId, className }: BottomNavigationBar
                 />
                 <span
                   className={cn(
-                    "max-w-full truncate px-0.5",
+                    "transition-interaction-nav-color max-w-full truncate px-0.5",
                     active ? "text-brand-coral" : "text-muted-foreground/85",
                   )}
                 >

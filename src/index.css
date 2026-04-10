@@ -48,6 +48,10 @@ body {
   --room-scroll-pb-safe-add: 5.75rem;
   --room-row-title-size: 0.9375rem;
   --room-row-meta-size: 0.6875rem;
+
+  /* 인터랙션 마이크로 애니메이션 (컴포넌트에서 동일 변수 참조) */
+  --interaction-duration-row: 140ms;
+  --interaction-duration-nav: 200ms;
 }
 
 /* 모바일 퍼스트 / Capacitor 대비: 터치 권장 최소 크기(약 44×44px). 인터랙티브 요소에 병행. */
@@ -149,6 +153,36 @@ body {
     font-size: var(--room-row-meta-size);
     font-weight: 500;
     line-height: 1.25;
+  }
+
+  /**
+   * 리스트 행 탭: transform + 배경만 (layout shift 없음)
+   * @see --interaction-duration-row
+   */
+  .transition-interaction-row {
+    transition-property: transform, background-color;
+    transition-duration: var(--interaction-duration-row);
+    transition-timing-function: ease-out;
+  }
+
+  /**
+   * 하단 탭: active 시 scale (래퍼)
+   * @see --interaction-duration-nav
+   */
+  .transition-interaction-nav-transform {
+    transition-property: transform;
+    transition-duration: var(--interaction-duration-nav);
+    transition-timing-function: ease-out;
+  }
+
+  /**
+   * 하단 탭: 아이콘·라벨 색 전환
+   * @see --interaction-duration-nav
+   */
+  .transition-interaction-nav-color {
+    transition-property: color;
+    transition-duration: var(--interaction-duration-nav);
+    transition-timing-function: ease-out;
   }
 }
 
