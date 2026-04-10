@@ -3,23 +3,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-/** 방 헤더 검색창 기본 placeholder */
-export const ROOM_SEARCH_DEFAULT_PLACEHOLDER = "친구 이름 또는 장소 검색";
+export const SEARCH_FIELD_DEFAULT_PLACEHOLDER = "검색";
 
-export type RoomSearchFieldProps = Omit<React.ComponentProps<"input">, "type"> & {
+export type SearchFieldProps = Omit<React.ComponentProps<"input">, "type"> & {
   inputClassName?: string;
 };
 
-/**
- * 방 메인 헤더용 pill 검색 입력
- */
-export const RoomSearchField = React.forwardRef<HTMLInputElement, RoomSearchFieldProps>(
-  function RoomSearchField(
+export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
+  function SearchField(
     {
       className,
       inputClassName,
       id,
-      placeholder = ROOM_SEARCH_DEFAULT_PLACEHOLDER,
+      placeholder = SEARCH_FIELD_DEFAULT_PLACEHOLDER,
       "aria-label": ariaLabel,
       ...inputProps
     },
@@ -37,7 +33,7 @@ export const RoomSearchField = React.forwardRef<HTMLInputElement, RoomSearchFiel
           autoComplete="off"
           aria-label={ariaLabel ?? placeholder}
           className={cn(
-            "border-input placeholder:text-muted-foreground h-10 w-full rounded-full border bg-background px-3.5 pe-10 text-sm text-foreground shadow-sm outline-none focus-visible:ring-0",
+            "border-input placeholder:text-muted-foreground bg-background text-foreground h-10 w-full rounded-full border px-3.5 pe-10 text-sm outline-none focus-visible:ring-0",
             inputClassName,
           )}
           {...inputProps}
@@ -51,4 +47,4 @@ export const RoomSearchField = React.forwardRef<HTMLInputElement, RoomSearchFiel
   },
 );
 
-RoomSearchField.displayName = "RoomSearchField";
+SearchField.displayName = "SearchField";

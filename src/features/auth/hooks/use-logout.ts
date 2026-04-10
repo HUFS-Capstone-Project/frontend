@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { authApi } from "@/features/auth/api/auth-api";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
@@ -7,6 +8,7 @@ import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-to
 import { useAuthStore } from "@/store/auth-store";
 
 export function useLogout() {
+  const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
 
   const handleLogout = useCallback(async () => {
@@ -22,8 +24,9 @@ export function useLogout() {
       // ignore
     } finally {
       logout();
+      navigate("/", { replace: true });
     }
-  }, [logout]);
+  }, [logout, navigate]);
 
   const handleLogoutAll = useCallback(async () => {
     try {
@@ -32,8 +35,9 @@ export function useLogout() {
       // ignore
     } finally {
       logout();
+      navigate("/", { replace: true });
     }
-  }, [logout]);
+  }, [logout, navigate]);
 
   return { handleLogout, handleLogoutAll };
 }

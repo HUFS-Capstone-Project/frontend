@@ -17,6 +17,9 @@ interface ImportMetaEnv {
 
   /** 모바일 플로우 로컬 테스트 등 — `getRuntimeAuthChannel()`와 함께 사용 */
   readonly VITE_AUTH_CHANNEL?: "web" | "mobile";
+
+  /** Kakao Maps JavaScript SDK app key */
+  readonly VITE_KAKAO_MAP_APP_KEY?: string;
 }
 
 interface ImportMeta {

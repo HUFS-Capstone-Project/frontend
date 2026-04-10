@@ -1,27 +1,32 @@
-import { Flag, Home, Map, Menu, User } from "lucide-react";
+import { Flag, Map, MapPinned, Menu, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-export type BottomNavId = "list" | "room" | "home" | "course" | "mypage";
+export type BottomNavId = "list" | "room" | "map" | "course" | "mypage";
 
 export type BottomNavigationBarProps = {
   activeId: BottomNavId;
+  onSelect: (id: BottomNavId) => void;
   className?: string;
 };
 
-const items: { id: BottomNavId; label: string; Icon: typeof Home }[] = [
+const items: {
+  id: BottomNavId;
+  label: string;
+  Icon: typeof MapPinned;
+}[] = [
   { id: "list", label: "목록", Icon: Menu },
   { id: "room", label: "방", Icon: Flag },
-  { id: "home", label: "홈", Icon: Home },
+  { id: "map", label: "지도", Icon: MapPinned },
   { id: "course", label: "코스 짜기", Icon: Map },
   { id: "mypage", label: "마이페이지", Icon: User },
 ];
 
-export function BottomNavigationBar({ activeId, className }: BottomNavigationBarProps) {
+export function BottomNavigationBar({ activeId, onSelect, className }: BottomNavigationBarProps) {
   return (
     <nav
       className={cn(
-        "border-border/60 bg-background overflow-hidden rounded-t-lg pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2",
+        "border-border/60 bg-background overflow-hidden rounded-t-3xl pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]",
         "border-t shadow-[0_-1px_10px_rgb(0_0_0_/_0.05)]",
         className,
       )}
@@ -32,9 +37,12 @@ export function BottomNavigationBar({ activeId, className }: BottomNavigationBar
           const active = id === activeId;
           return (
             <li key={id} className="min-w-0 flex-1">
-              <div
+              <button
+                type="button"
+                onClick={() => onSelect(id)}
                 className={cn(
-                  "transition-interaction-nav-transform flex flex-col items-center justify-center gap-1 py-1 text-center text-[0.6rem] font-medium leading-tight",
+                  "transition-interaction-nav-transform touch-target-min flex w-full flex-col items-center justify-center gap-1 py-1 text-center text-[0.6rem] leading-tight font-medium outline-none",
+                  "focus-visible:ring-ring focus-visible:ring-2",
                   active ? "scale-[1.03]" : "scale-100",
                 )}
               >
@@ -54,7 +62,7 @@ export function BottomNavigationBar({ activeId, className }: BottomNavigationBar
                 >
                   {label}
                 </span>
-              </div>
+              </button>
             </li>
           );
         })}

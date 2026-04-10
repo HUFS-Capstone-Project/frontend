@@ -72,7 +72,6 @@ export function NicknameInputSection({
         onChange={handleFieldChange}
         onClear={onClear}
         placeholder={resolvedPlaceholder}
-        autoComplete="nickname"
         autoFocus={autoFocus}
         maxLength={maxLength}
         onLimitAttempt={maxLength !== undefined ? notifyLimitAttempt : undefined}
