@@ -37,6 +37,17 @@ body {
   --brand-coral-solid: #fa8f87;
   --brand-coral-soft: #fdecea;
   --brand-coral-muted: #d48278;
+
+  /* 방 메인 헤더: 좌상 → 우하 대각선 그라데이션 */
+  --room-header-gradient-from: #ff968e;
+  --room-header-gradient-to: #f68981;
+
+  /* 방 메인 리스트·셸 (레이아웃·타이포 한곳에서 조정) */
+  --room-fab-gap-above-nav: 1rem;
+  --room-scroll-pb-min: 6.5rem;
+  --room-scroll-pb-safe-add: 5.75rem;
+  --room-row-title-size: 0.9375rem;
+  --room-row-meta-size: 0.6875rem;
 }
 
 /* 모바일 퍼스트 / Capacitor 대비: 터치 권장 최소 크기(약 44×44px). 인터랙티브 요소에 병행. */
@@ -44,6 +55,15 @@ body {
   .touch-target-min {
     min-height: 2.75rem;
     min-width: 2.75rem;
+  }
+
+  /** 스크롤은 유지하고 스크롤바만 숨김 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
   /** 브랜드명「어디더라」— `var(--brand-coral-gradient-*)` 와 동일 */
@@ -72,6 +92,63 @@ body {
       padding-left: max(1.5rem, env(safe-area-inset-left));
       padding-right: max(1.5rem, env(safe-area-inset-right));
     }
+  }
+
+  /**
+   * RootLayout의 `px-page` + 상하 safe 패딩을 이 페이지에서 상쇄해 가로·세로 엣지 투 엣지로 쓸 때 사용.
+   */
+  .-m-page {
+    margin-top: calc(-1 * max(0.75rem, env(safe-area-inset-top)));
+    margin-bottom: calc(-1 * max(0.75rem, env(safe-area-inset-bottom)));
+    margin-left: calc(-1 * max(1rem, env(safe-area-inset-left)));
+    margin-right: calc(-1 * max(1rem, env(safe-area-inset-right)));
+  }
+
+  @media (min-width: 768px) {
+    .-m-page {
+      margin-left: calc(-1 * max(1.5rem, env(safe-area-inset-left)));
+      margin-right: calc(-1 * max(1.5rem, env(safe-area-inset-right)));
+    }
+  }
+
+  /** 방 메인: 스크롤 본문 하단 여백 (FAB·탭·safe area) */
+  .pb-room-main-scroll {
+    padding-bottom: max(
+      var(--room-scroll-pb-min),
+      calc(env(safe-area-inset-bottom) + var(--room-scroll-pb-safe-add))
+    );
+  }
+
+  /** FAB를 하단 네비 바로 위에 띄울 때 (부모는 `relative shrink-0`) */
+  .bottom-fab-above-nav {
+    bottom: calc(100% + var(--room-fab-gap-above-nav));
+  }
+
+  /** 페이지 수평 패딩과 맞춘 우측(또는 RTL 시 시작) safe inset */
+  .end-page-safe {
+    inset-inline-end: max(1rem, env(safe-area-inset-right));
+  }
+
+  /** 방 메인 헤더 배경 (좌상 FF968E → 우하 F68981) */
+  .bg-room-header-gradient {
+    background-image: linear-gradient(
+      to bottom right,
+      var(--room-header-gradient-from),
+      var(--room-header-gradient-to)
+    );
+  }
+
+  /** 방 목록 행: 제목 / 멤버·장소 수 공통 글자 크기 */
+  .text-room-title {
+    font-size: var(--room-row-title-size);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .text-room-meta {
+    font-size: var(--room-row-meta-size);
+    font-weight: 500;
+    line-height: 1.25;
   }
 }
 

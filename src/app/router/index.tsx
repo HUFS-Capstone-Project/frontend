@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RootLayout } from "@/app/layouts/RootLayout";
 import { OnboardingGate } from "@/app/router/OnboardingGate";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
+import { RoomUiPreviewPage } from "@/pages/dev/RoomUiPreviewPage";
 import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
 import { RootIndexPage } from "@/pages/RootIndexPage";
@@ -12,6 +13,7 @@ export const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     children: [
+      { path: "dev/room-ui", element: <RoomUiPreviewPage /> },
       { index: true, element: <RootIndexPage /> },
       { path: "login", element: <Navigate to="/" replace /> },
       {

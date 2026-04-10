@@ -25,7 +25,7 @@ export function resolveNicknamePlaceholder(
  */
 export const onboardingContentClassName = {
   nickname:
-    "flex min-h-0 flex-1 flex-col justify-center gap-10 overflow-y-auto overscroll-contain py-6",
+    "scrollbar-hide flex min-h-0 flex-1 flex-col justify-center gap-10 overflow-y-auto overscroll-contain py-6",
   terms:
-    "flex min-h-0 flex-1 flex-col justify-center gap-8 overflow-y-auto overscroll-contain py-6",
+    "scrollbar-hide flex min-h-0 flex-1 flex-col justify-center gap-8 overflow-y-auto overscroll-contain py-6",
 } as const;
