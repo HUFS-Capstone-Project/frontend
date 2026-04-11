@@ -5,6 +5,10 @@ export type FriendRoomRow = {
   /** 방 멤버 수 */
   memberCount: number;
   placeCount: number;
-  /** 즐겨찾기 초기값 */
-  liked: boolean;
+  /** 상단 고정 여부 (서버 필드와 동일 의미로 유지) */
+  isPinned?: boolean;
+  /** 고정 시각 (ms). 고정 그룹 내 정렬에 사용 */
+  pinnedAt?: number;
+  /** 초대코드 (숫자 5자리 등). API 연동 시 서버 값 사용 */
+  inviteCode?: string;
 };

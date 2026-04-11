@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 
 import { useFriendRoomRowInteractions } from "@/features/room/hooks";
 import type { FriendRoomRow } from "@/shared/types/room";
@@ -7,8 +7,6 @@ import { FriendRoomItemView } from "./FriendRoomItemView";
 
 export type FriendRoomItemProps = {
   row: FriendRoomRow;
-  liked: boolean;
-  onToggleFavorite: (roomId: string) => void;
   onNavigate: (roomId: string) => void;
   onOpenActionMenu: (roomId: string) => void;
 };
@@ -18,8 +16,6 @@ export type FriendRoomItemProps = {
  */
 export const FriendRoomItem = memo(function FriendRoomItem({
   row,
-  liked,
-  onToggleFavorite,
   onNavigate,
   onOpenActionMenu,
 }: FriendRoomItemProps) {
@@ -29,22 +25,9 @@ export const FriendRoomItem = memo(function FriendRoomItem({
     onOpenActionMenu,
   });
 
-  const onFavoriteClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onToggleFavorite(row.id);
-    },
-    [row.id, onToggleFavorite],
-  );
-
-  const onFavoriteTouchStart = useCallback((e: React.TouchEvent) => {
-    e.stopPropagation();
-  }, []);
-
   return (
     <FriendRoomItemView
       row={row}
-      liked={liked}
       onOuterClick={interactions.handleOuterClick}
       onContextMenu={interactions.handleContextMenu}
       onTouchStart={interactions.handleTouchStart}
@@ -52,8 +35,6 @@ export const FriendRoomItem = memo(function FriendRoomItem({
       onTouchEnd={interactions.handleTouchEnd}
       onTouchCancel={interactions.handleTouchCancel}
       onKeyDown={interactions.handleKeyDown}
-      onFavoriteClick={onFavoriteClick}
-      onFavoriteTouchStart={onFavoriteTouchStart}
     />
   );
 });

@@ -1,29 +1,38 @@
-import { useCallback, memo } from "react";
+import { memo, useCallback } from "react";
 
-import { cn } from "@/lib/utils";
 import { useEscapeKey, useRoomActionModalPresence } from "@/features/room/hooks";
+import type { RoomActionType } from "@/features/room/roomActionTypes";
+import { cn } from "@/lib/utils";
 import type { FriendRoomRow } from "@/shared/types/room";
 
-export type RoomActionType = "edit-info" | "mute-notifications" | "invite-code" | "leave";
+import { RoomModalShell } from "./RoomModalShell";
+
+export type { RoomActionType };
 
 export type RoomActionModalProps = {
   room: FriendRoomRow | null;
   onClose: () => void;
-  onAction: (action: RoomActionType) => void;
+  /** 모달에서 선택한 액션과 대상 방. 이후 API 연동 시 동일 시그니처로 교체하기 좋습니다. */
+  onAction: (action: RoomActionType, room: FriendRoomRow) => void;
 };
 
-const ACTIONS: { type: RoomActionType; label: string; danger?: boolean }[] = [
-  { type: "edit-info", label: "방 정보 변경" },
-  { type: "mute-notifications", label: "채팅방 알림 끄기" },
-  { type: "invite-code", label: "초대코드 확인" },
-  { type: "leave", label: "나가기", danger: true },
-];
+type ActionItem = { type: RoomActionType; label: string; danger?: boolean };
+
+function getRoomActions(room: FriendRoomRow): ActionItem[] {
+  return [
+    { type: "edit-info", label: "방 이름 변경" },
+    { type: "toggle-pin", label: room.isPinned ? "상단 고정 해제" : "상단에 고정하기" },
+    { type: "add-direct-link", label: "직접 링크 추가하기" },
+    { type: "invite-code", label: "초대코드 확인" },
+    { type: "leave", label: "나가기", danger: true },
+  ];
+}
 
 type RoomActionModalPanelProps = {
   displayRoom: FriendRoomRow;
   visible: boolean;
   onClose: () => void;
-  onSelectAction: (type: RoomActionType) => void;
+  onSelectAction: (type: RoomActionType, room: FriendRoomRow) => void;
 };
 
 const RoomActionModalPanel = memo(function RoomActionModalPanel({
@@ -32,48 +41,31 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
   onClose,
   onSelectAction,
 }: RoomActionModalPanelProps) {
+  const actions = getRoomActions(displayRoom);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6" aria-modal="true" role="dialog">
-      <button
-        type="button"
-        className={cn(
-          "absolute inset-0 cursor-default border-0 bg-black/45 transition-opacity duration-180 ease-out",
-          visible ? "opacity-100" : "opacity-0",
-        )}
-        aria-label="닫기"
-        onClick={onClose}
-      />
-
-      <div
-        className={cn(
-          "relative z-10 w-full max-w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-xl bg-white shadow-lg transition-[opacity,transform] duration-180 ease-out",
-          visible ? "scale-100 opacity-100" : "scale-[0.98] opacity-0",
-        )}
-        style={{ transformOrigin: "center" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-7 pb-2 pt-7">
-          <h2 className="text-foreground text-base font-bold leading-tight">{displayRoom.displayName}</h2>
-        </div>
-
-        <div className="flex flex-col px-2 pb-3 pt-1">
-          {ACTIONS.map(({ type, label, danger }) => (
-            <button
-              key={type}
-              type="button"
-              className={cn(
-                "flex h-12 w-full items-center rounded-xl px-5 text-left text-sm transition-colors duration-150",
-                "hover:bg-muted/30 active:bg-muted/40",
-                danger ? "text-destructive font-medium" : "text-foreground",
-              )}
-              onClick={() => onSelectAction(type)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+    <RoomModalShell visible={visible} onOverlayClick={onClose}>
+      <div className="px-7 pb-2 pt-7">
+        <h2 className="text-foreground text-base font-bold leading-tight">{displayRoom.displayName}</h2>
       </div>
-    </div>
+
+      <div className="flex flex-col px-2 pb-3 pt-1">
+        {actions.map(({ type, label, danger }) => (
+          <button
+            key={type}
+            type="button"
+            className={cn(
+              "flex h-12 w-full items-center rounded-xl px-5 text-left text-sm transition-colors duration-150",
+              "hover:bg-muted/30 active:bg-muted/40",
+              danger ? "text-destructive font-medium" : "text-foreground",
+            )}
+            onClick={() => onSelectAction(type, displayRoom)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </RoomModalShell>
   );
 });
 
@@ -87,8 +79,8 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
   useEscapeKey(onClose, displayRoom != null);
 
   const handleSelectAction = useCallback(
-    (type: RoomActionType) => {
-      onAction(type);
+    (type: RoomActionType, targetRoom: FriendRoomRow) => {
+      onAction(type, targetRoom);
       onClose();
     },
     [onAction, onClose],

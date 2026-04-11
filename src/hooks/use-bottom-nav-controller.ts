@@ -40,8 +40,13 @@ export function useBottomNavController() {
     [navigate, selectedRoom],
   );
 
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+  }, []);
+
   return {
     toastMessage,
     handleSelectBottomNav,
+    showToast,
   };
 }

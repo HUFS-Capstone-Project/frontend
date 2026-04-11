@@ -1,4 +1,4 @@
-import { Heart, User } from "lucide-react";
+import { Pin, User } from "lucide-react";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
@@ -6,7 +6,6 @@ import type { FriendRoomRow } from "@/shared/types/room";
 
 export type FriendRoomItemViewProps = {
   row: FriendRoomRow;
-  liked: boolean;
   onOuterClick: (e: React.MouseEvent) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onTouchStart: () => void;
@@ -14,8 +13,6 @@ export type FriendRoomItemViewProps = {
   onTouchEnd: () => void;
   onTouchCancel: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
-  onFavoriteClick: (e: React.MouseEvent) => void;
-  onFavoriteTouchStart: (e: React.TouchEvent) => void;
 };
 
 /**
@@ -23,7 +20,6 @@ export type FriendRoomItemViewProps = {
  */
 export const FriendRoomItemView = memo(function FriendRoomItemView({
   row,
-  liked,
   onOuterClick,
   onContextMenu,
   onTouchStart,
@@ -31,9 +27,9 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
   onTouchEnd,
   onTouchCancel,
   onKeyDown,
-  onFavoriteClick,
-  onFavoriteTouchStart,
 }: FriendRoomItemViewProps) {
+  const pinned = Boolean(row.isPinned);
+
   return (
     <div
       role="button"
@@ -58,33 +54,26 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
         <User className="size-5" strokeWidth={2} />
       </span>
 
-      <p className="text-room-title col-start-2 row-start-1 min-w-0 truncate text-foreground">
-        {row.displayName}
-      </p>
+      <div className="text-room-title col-start-2 row-start-1 min-w-0 text-foreground">
+        <span className="inline-flex max-w-full min-w-0 items-center gap-1">
+          <span className="min-w-0 truncate">{row.displayName}</span>
+          {pinned ? (
+            <span className="inline-flex shrink-0 text-muted-foreground" title="상단 고정됨" aria-label="상단 고정됨">
+              <Pin
+                className="size-3.5 fill-muted-foreground stroke-muted-foreground"
+                strokeWidth={2}
+                aria-hidden
+              />
+            </span>
+          ) : null}
+        </span>
+      </div>
       <p className="text-room-meta text-muted-foreground/75 col-start-2 row-start-2 min-w-0 truncate">
         멤버 {row.memberCount}명
       </p>
 
-      <div className="col-start-3 row-span-2 row-start-1 flex shrink-0 flex-col items-center justify-center gap-1.5 self-center">
-        <button
-          type="button"
-          onClick={onFavoriteClick}
-          onTouchStart={onFavoriteTouchStart}
-          className="inline-flex size-8 items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          aria-label={liked ? "즐겨찾기 해제" : "즐겨찾기"}
-          aria-pressed={liked}
-        >
-          <Heart
-            className={cn(
-              "size-[1.125rem] shrink-0 text-brand-coral",
-              liked ? "fill-brand-coral" : "fill-none",
-            )}
-            aria-hidden
-          />
-        </button>
-        <span className="text-room-meta cursor-pointer text-center text-brand-coral">
-          {row.placeCount}개 장소
-        </span>
+      <div className="col-start-3 row-span-2 row-start-1 flex shrink-0 flex-col items-center justify-center self-center">
+        <span className="text-room-meta cursor-pointer text-center text-brand-coral">{row.placeCount}개 장소</span>
       </div>
     </div>
   );

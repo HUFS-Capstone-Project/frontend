@@ -5,3 +5,4 @@ export {
 } from "./useFriendRoomRowInteractions";
 export { useRoomActionModalHistory } from "./useRoomActionModalHistory";
 export { useRoomActionModalPresence } from "./useRoomActionModalPresence";
+export { useRoomMainModals } from "./useRoomMainModals";

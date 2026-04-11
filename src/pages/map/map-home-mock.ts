@@ -1,9 +1,4 @@
-import type {
-  MapCoordinate,
-  MapPlaceCategory,
-  RoomFriend,
-  SavedPlace,
-} from "@/shared/types/map-home";
+import type { MapCoordinate, MapPlaceCategory, SavedPlace } from "@/shared/types/map-home";
 
 export const MAP_HOME_TITLE = "친구1 님과의 데이트 지도";
 export const MAP_SEARCH_PLACEHOLDER = "저장해놓은 장소를 검색해보세요";
@@ -63,10 +58,4 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.05786,
     address: "서울 동대문구 한천로 44",
   },
-];
-
-export const ROOM_FRIEND_MOCKS: RoomFriend[] = [
-  { id: "friend-1", name: "친구1" },
-  { id: "friend-2", name: "홍길동" },
-  { id: "friend-3", name: "김민수" },
 ];

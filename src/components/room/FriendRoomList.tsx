@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 import type { FriendRoomRow } from "@/shared/types/room";
 
@@ -11,48 +11,40 @@ export type FriendRoomListProps = {
 };
 
 /**
- * 목록 컨테이너: 즐겨찾기 로컬 상태 + 행별 콜백은 roomId 기준으로 안정화해 자식 memo와 맞춤.
+ * 방 목록 컨테이너. 정렬·고정 상태는 상위에서 합쳐진 `rows`를 그대로 표시합니다.
  */
 export const FriendRoomList = memo(function FriendRoomList({
   rows,
   onRoomNavigate,
   onOpenRoomActions,
 }: FriendRoomListProps) {
-  const [likes, setLikes] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(rows.map((r) => [r.id, r.liked])),
-  );
+  const rowById = useMemo(() => {
+    const m = new Map<string, FriendRoomRow>();
+    for (const r of rows) m.set(r.id, r);
+    return m;
+  }, [rows]);
 
   const navigateById = useCallback(
     (id: string) => {
-      const row = rows.find((r) => r.id === id);
+      const row = rowById.get(id);
       if (row) onRoomNavigate(row);
     },
-    [rows, onRoomNavigate],
+    [rowById, onRoomNavigate],
   );
 
   const openMenuById = useCallback(
     (id: string) => {
-      const row = rows.find((r) => r.id === id);
+      const row = rowById.get(id);
       if (row) onOpenRoomActions(row);
     },
-    [rows, onOpenRoomActions],
+    [rowById, onOpenRoomActions],
   );
-
-  const toggleFavoriteById = useCallback((id: string) => {
-    setLikes((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
 
   return (
     <ul className="divide-y divide-border/35" role="list">
       {rows.map((row) => (
         <li key={row.id}>
-          <FriendRoomItem
-            row={row}
-            liked={likes[row.id] ?? false}
-            onToggleFavorite={toggleFavoriteById}
-            onNavigate={navigateById}
-            onOpenActionMenu={openMenuById}
-          />
+          <FriendRoomItem row={row} onNavigate={navigateById} onOpenActionMenu={openMenuById} />
         </li>
       ))}
     </ul>
