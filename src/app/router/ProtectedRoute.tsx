@@ -1,22 +1,22 @@
-import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+﻿import type { ReactNode } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 
 import { useAuthStore } from "@/store/auth-store";
 
 type ProtectedRouteProps = {
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 /**
- * 로그인이 필요한 하위 라우트용 (예: `/settings` 추가 시).
- * 현재 홈은 `RootIndexPage`에서 분기합니다.
+ * 인증이 필요한 하위 라우트를 보호.
+ * children이 없으면 <Outlet />을 렌더링해 레이아웃 라우트에서도 사용 가능.
  */
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return children ?? <Outlet />;
 }

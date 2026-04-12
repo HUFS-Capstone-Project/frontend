@@ -1,13 +1,15 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+﻿import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 
 import { RootLayout } from "@/app/layouts/RootLayout";
 import { OnboardingGate } from "@/app/router/OnboardingGate";
+import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
+import { EntryPage } from "@/pages/EntryPage";
+import { LoginPage } from "@/pages/LoginPage";
 import { MapHomePage } from "@/pages/map/MapHomePage";
 import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
 import { RoomMainPage } from "@/pages/room/RoomMainPage";
-import { RootIndexPage } from "@/pages/RootIndexPage";
 import { SplashScreenPage } from "@/pages/SplashScreenPage";
 import { CoursePlannerPage } from "@/pages/tabs/CoursePlannerPage";
 import { MyPage } from "@/pages/tabs/MyPage";
@@ -18,14 +20,10 @@ export const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     children: [
-      { index: true, element: <RootIndexPage /> },
-      { path: "room", element: <RoomMainPage /> },
+      { index: true, element: <EntryPage /> },
       { path: "dev/splash", element: <SplashScreenPage /> },
-      { path: "map", element: <MapHomePage /> },
-      { path: "list", element: <PlaceListPage /> },
-      { path: "course", element: <CoursePlannerPage /> },
-      { path: "mypage", element: <MyPage /> },
-      { path: "login", element: <Navigate to="/" replace /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "app", element: <Navigate to="/" replace /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,
@@ -45,6 +43,20 @@ export const router = createBrowserRouter([
             <TermsAgreementPage />
           </OnboardingGate>
         ),
+      },
+      {
+        element: (
+          <ProtectedRoute>
+            <Outlet />
+          </ProtectedRoute>
+        ),
+        children: [
+          { path: "room", element: <RoomMainPage /> },
+          { path: "map", element: <MapHomePage /> },
+          { path: "list", element: <PlaceListPage /> },
+          { path: "course", element: <CoursePlannerPage /> },
+          { path: "mypage", element: <MyPage /> },
+        ],
       },
     ],
   },
