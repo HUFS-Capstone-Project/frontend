@@ -3,10 +3,7 @@ import * as React from "react";
 import { PillButton } from "@/components/ui/PillButton";
 import { cn } from "@/lib/utils";
 
-type OnboardingButtonProps = Omit<
-  React.ComponentProps<typeof PillButton>,
-  "variant"
-> & {
+type OnboardingButtonProps = Omit<React.ComponentProps<typeof PillButton>, "variant"> & {
   children?: React.ReactNode;
   /** false면 연한 스타일(비활성 느낌) */
   active?: boolean;

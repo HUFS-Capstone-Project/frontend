@@ -37,7 +37,7 @@ export function AgreementItem({
         aria-checked={checked}
         aria-labelledby={labelId}
         onClick={onToggle}
-        className="flex w-full cursor-pointer items-start gap-3 rounded-xl py-2.5 text-left text-[0.98rem] leading-snug text-foreground active:bg-black/[0.02]"
+        className="text-foreground flex w-full cursor-pointer items-start gap-3 rounded-xl py-2.5 text-left text-[0.98rem] leading-snug active:bg-black/[0.02]"
       >
         <span
           className={cn(
@@ -48,9 +48,7 @@ export function AgreementItem({
           )}
           aria-hidden
         >
-          {checked ? (
-            <Check className="h-3.5 w-3.5" strokeWidth={3} />
-          ) : null}
+          {checked ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
         </span>
         <span id={labelId} className="min-w-0 flex-1 pt-0.5">
           {label}
@@ -58,9 +56,7 @@ export function AgreementItem({
             <>
               {" "}
               {required ? (
-                <span className="font-medium text-onboarding-point">
-                  (필수)
-                </span>
+                <span className="text-onboarding-point font-medium">(필수)</span>
               ) : (
                 <span className="text-zinc-400">(선택)</span>
               )}

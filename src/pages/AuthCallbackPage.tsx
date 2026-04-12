@@ -42,10 +42,7 @@ export function AuthCallbackPage() {
         { channel: "web" },
       );
 
-      void navigate(
-        me.hasCompletedOnboarding ? "/" : "/onboarding/nickname",
-        { replace: true },
-      );
+      void navigate(me.hasCompletedOnboarding ? "/" : "/onboarding/nickname", { replace: true });
     };
 
     processCallback().catch((err: unknown) => {
@@ -57,9 +54,7 @@ export function AuthCallbackPage() {
   if (!ticket) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-destructive text-sm">
-          인증 정보가 없습니다. 다시 로그인해주세요.
-        </p>
+        <p className="text-destructive text-sm">인증 정보가 없습니다. 다시 로그인해주세요.</p>
         <button
           type="button"
           onClick={() => void navigate("/", { replace: true })}

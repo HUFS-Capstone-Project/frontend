@@ -1,9 +1,6 @@
 import { isAxiosError } from "axios";
 
-import {
-  ensureCsrfCookie,
-  webAuthClient,
-} from "@/shared/api/web-auth-client";
+import { ensureCsrfCookie, webAuthClient } from "@/shared/api/web-auth-client";
 import { getCookie, XSRF_COOKIE_NAME } from "@/shared/lib/cookie";
 import type { CommonResponse } from "@/shared/types/api-types";
 
@@ -17,9 +14,7 @@ export const webAuthApi = {
   },
 
   /** OAuth 콜백: ticket → `data.token.accessToken`, `data.me` */
-  exchangeTicket: async (
-    ticket: string,
-  ): Promise<CommonResponse<AuthTokenBootstrapResponse>> => {
+  exchangeTicket: async (ticket: string): Promise<CommonResponse<AuthTokenBootstrapResponse>> => {
     const res = await webAuthClient.post<CommonResponse<AuthTokenBootstrapResponse>>(
       "/v1/auth/web/exchange-ticket",
       { ticket },

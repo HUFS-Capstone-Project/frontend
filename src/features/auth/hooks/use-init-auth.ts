@@ -10,8 +10,7 @@ import { useAuthStore } from "@/store/auth-store";
 // TODO(모바일 OAuth): `authChannel==="mobile"` 복원은 `mobileRefreshTokenStorage` 구현 후에만 동작. 딥링크 로그인과 연계.
 export function useInitAuth(): void {
   useEffect(() => {
-    const { isLoggedIn, signIn, logout, authChannel: persistedChannel } =
-      useAuthStore.getState();
+    const { isLoggedIn, signIn, logout, authChannel: persistedChannel } = useAuthStore.getState();
 
     if (!isLoggedIn) return;
 

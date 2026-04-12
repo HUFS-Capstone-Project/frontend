@@ -10,18 +10,13 @@ type CommitValue = (value: string) => void;
  * `value.length`만으로 경고를 끄면 깜빡인다. 조합 중에는 경고를 유지하고,
  * 조합 종료·일반 입력에서만 플래그를 내린다.
  */
-export function useControlledMaxLengthWarning(
-  maxLength: number | undefined,
-  value: string,
-) {
+export function useControlledMaxLengthWarning(maxLength: number | undefined, value: string) {
   const [limitAttempted, setLimitAttempted] = useState(false);
   const isComposingRef = useRef(false);
   const [isComposing, setIsComposing] = useState(false);
 
   const limitWarning =
-    limitAttempted &&
-    maxLength !== undefined &&
-    (value.length >= maxLength || isComposing);
+    limitAttempted && maxLength !== undefined && (value.length >= maxLength || isComposing);
 
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;

@@ -16,9 +16,7 @@ export const mobileAuthApi = {
     return res.data;
   },
 
-  refresh: async (params: {
-    refreshToken: string;
-  }): Promise<CommonResponse<TokenResponse>> => {
+  refresh: async (params: { refreshToken: string }): Promise<CommonResponse<TokenResponse>> => {
     const res = await mobileAuthClient.post<CommonResponse<TokenResponse>>(
       "/v1/auth/mobile/refresh",
       params,

@@ -22,8 +22,7 @@ const MARKETING_ANIMATED_LINES: { label: string; slot: ReactNode }[] = [
     label: "코스로 만들어요",
     slot: (
       <>
-        <span className="text-brand-gradient">코스</span>
-        로 만들어요
+        <span className="text-brand-gradient">코스</span>로 만들어요
       </>
     ),
   },

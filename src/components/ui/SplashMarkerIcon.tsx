@@ -9,12 +9,7 @@ type SplashMarkerIconProps = SVGProps<SVGSVGElement>;
  */
 export function SplashMarkerIcon(props: SplashMarkerIconProps) {
   return (
-    <svg
-      viewBox="0 0 406 549"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
+    <svg viewBox="0 0 406 549" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
         d="M405.927 212.945C405.927 333.513 229.924 520.946 205.712 546.16C204.163 547.774 201.764 547.774 200.215 546.16C176.003 520.946 0 333.513 0 212.945C0 83.4726 90.8698 0 202.964 0C315.057 0 405.927 83.4726 405.927 212.945Z"
         fill="currentColor"

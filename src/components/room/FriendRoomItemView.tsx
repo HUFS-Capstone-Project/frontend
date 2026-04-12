@@ -35,9 +35,9 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
       role="button"
       tabIndex={0}
       className={cn(
-        "transition-interaction-row grid origin-center grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3.5 gap-y-px rounded-xl px-page py-3",
-        "cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "hover:bg-muted/30 active:scale-[0.995] active:bg-muted/40",
+        "transition-interaction-row px-page grid origin-center grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3.5 gap-y-px rounded-xl py-3",
+        "focus-visible:ring-ring focus-visible:ring-offset-background cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "hover:bg-muted/30 active:bg-muted/40 active:scale-[0.995]",
       )}
       onClick={onOuterClick}
       onContextMenu={onContextMenu}
@@ -54,13 +54,17 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
         <User className="size-5" strokeWidth={2} />
       </span>
 
-      <div className="text-room-title col-start-2 row-start-1 min-w-0 text-foreground">
+      <div className="text-room-title text-foreground col-start-2 row-start-1 min-w-0">
         <span className="inline-flex max-w-full min-w-0 items-center gap-1">
           <span className="min-w-0 truncate">{row.displayName}</span>
           {pinned ? (
-            <span className="inline-flex shrink-0 text-muted-foreground" title="상단 고정됨" aria-label="상단 고정됨">
+            <span
+              className="text-muted-foreground inline-flex shrink-0"
+              title="상단 고정됨"
+              aria-label="상단 고정됨"
+            >
               <Pin
-                className="size-3.5 fill-muted-foreground stroke-muted-foreground"
+                className="fill-muted-foreground stroke-muted-foreground size-3.5"
                 strokeWidth={2}
                 aria-hidden
               />
@@ -73,7 +77,9 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
       </p>
 
       <div className="col-start-3 row-span-2 row-start-1 flex shrink-0 flex-col items-center justify-center self-center">
-        <span className="text-room-meta cursor-pointer text-center text-brand-coral">{row.placeCount}개 장소</span>
+        <span className="text-room-meta text-brand-coral cursor-pointer text-center">
+          {row.placeCount}개 장소
+        </span>
       </div>
     </div>
   );

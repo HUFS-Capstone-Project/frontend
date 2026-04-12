@@ -1,15 +1,9 @@
 import { useCallback, useState } from "react";
 
 import { GoogleLoginButton } from "@/features/auth/components/GoogleLoginButton";
-import {
-  LoginCopy,
-  type LoginCopyVariant,
-} from "@/features/auth/components/LoginCopy";
+import { LoginCopy, type LoginCopyVariant } from "@/features/auth/components/LoginCopy";
 import { handleGoogleLogin } from "@/features/auth/lib/google-login";
-import {
-  loginPageInnerClassName,
-  loginPageRootClassName,
-} from "@/lib/login-layout";
+import { loginPageInnerClassName, loginPageRootClassName } from "@/lib/login-layout";
 
 const LOGIN_COPY_VARIANT: LoginCopyVariant = "marketing";
 
@@ -44,10 +38,7 @@ export function LoginPage() {
         </section>
 
         <div className="mx-auto w-full max-w-md shrink-0 md:max-w-full">
-          <GoogleLoginButton
-            isLoading={isLoading}
-            onContinue={handleGoogleContinue}
-          />
+          <GoogleLoginButton isLoading={isLoading} onContinue={handleGoogleContinue} />
         </div>
       </div>
     </div>

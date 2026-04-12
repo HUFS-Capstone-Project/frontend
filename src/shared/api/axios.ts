@@ -87,9 +87,7 @@ api.interceptors.response.use(
     try {
       const channel = useAuthStore.getState().authChannel ?? "web";
       const newToken =
-        channel === "mobile"
-          ? await refreshMobileAccessToken()
-          : await refreshWebAccessToken();
+        channel === "mobile" ? await refreshMobileAccessToken() : await refreshWebAccessToken();
 
       useAuthStore.getState().setAccessToken(newToken);
       resolveRefreshQueue(newToken);
@@ -132,9 +130,7 @@ export type ApiError = {
   original: unknown;
 };
 
-function normalizeAxiosError(
-  error: AxiosError<{ message?: string; code?: string }>,
-): ApiError {
+function normalizeAxiosError(error: AxiosError<{ message?: string; code?: string }>): ApiError {
   const data = error.response?.data;
   const message =
     (typeof data?.message === "string" && data.message) ||

@@ -2,10 +2,7 @@ import { useCallback, useId } from "react";
 
 import { cn } from "@/lib/utils";
 
-import {
-  nicknameLimitExceededMessage,
-  resolveNicknamePlaceholder,
-} from "../constants";
+import { nicknameLimitExceededMessage, resolveNicknamePlaceholder } from "../constants";
 import { useControlledMaxLengthWarning } from "../hooks/use-controlled-max-length-warning";
 import { UnderlineTextField } from "./UnderlineTextField";
 
@@ -55,16 +52,10 @@ export function NicknameInputSection({
     [applyChange, onChange],
   );
 
-  const resolvedPlaceholder = resolveNicknamePlaceholder(
-    placeholder,
-    maxLength,
-  );
+  const resolvedPlaceholder = resolveNicknamePlaceholder(placeholder, maxLength);
 
   return (
-    <section
-      className={cn("w-full", className)}
-      aria-label={label}
-    >
+    <section className={cn("w-full", className)} aria-label={label}>
       <UnderlineTextField
         id={id}
         label={label}
@@ -75,9 +66,7 @@ export function NicknameInputSection({
         autoFocus={autoFocus}
         maxLength={maxLength}
         onLimitAttempt={maxLength !== undefined ? notifyLimitAttempt : undefined}
-        describedById={
-          maxLength !== undefined && limitWarning ? hintId : undefined
-        }
+        describedById={maxLength !== undefined && limitWarning ? hintId : undefined}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
       />
@@ -85,10 +74,7 @@ export function NicknameInputSection({
         <div className={HINT_SLOT_CLASS}>
           <p
             id={hintId}
-            className={cn(
-              "text-sm text-destructive",
-              !limitWarning && "invisible",
-            )}
+            className={cn("text-destructive text-sm", !limitWarning && "invisible")}
             aria-hidden={!limitWarning}
             aria-live={limitWarning ? "polite" : undefined}
           >

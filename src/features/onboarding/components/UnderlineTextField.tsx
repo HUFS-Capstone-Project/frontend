@@ -5,8 +5,7 @@ import { appFormInputTextClassName } from "@/lib/app-typography";
 import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 
-const CLEAR_SLOT =
-  "flex h-8 w-8 shrink-0 items-center justify-center";
+const CLEAR_SLOT = "flex h-8 w-8 shrink-0 items-center justify-center";
 
 type UnderlineTextFieldProps = {
   id: string;
@@ -57,12 +56,7 @@ export function UnderlineTextField({
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key.length !== 1) return;
       const el = e.currentTarget;
-      const nextLen = lengthAfterInsertAtSelection(
-        value,
-        el.selectionStart,
-        el.selectionEnd,
-        1,
-      );
+      const nextLen = lengthAfterInsertAtSelection(value, el.selectionStart, el.selectionEnd, 1);
       if (nextLen > maxLength) onLimitAttempt();
     },
     [maxLength, onLimitAttempt, value],
@@ -95,7 +89,7 @@ export function UnderlineTextField({
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
-      <div className="flex min-h-11 items-center gap-2 border-b border-zinc-200 pb-2 transition-colors focus-within:border-onboarding-point/70">
+      <div className="focus-within:border-onboarding-point/70 flex min-h-11 items-center gap-2 border-b border-zinc-200 pb-2 transition-colors">
         <input
           id={id}
           type="text"

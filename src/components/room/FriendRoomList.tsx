@@ -41,7 +41,7 @@ export const FriendRoomList = memo(function FriendRoomList({
   );
 
   return (
-    <ul className="divide-y divide-border/35" role="list">
+    <ul className="divide-border/35 divide-y" role="list">
       {rows.map((row) => (
         <li key={row.id}>
           <FriendRoomItem row={row} onNavigate={navigateById} onOpenActionMenu={openMenuById} />

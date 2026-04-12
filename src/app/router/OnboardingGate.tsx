@@ -13,9 +13,7 @@ type OnboardingGateProps = {
  */
 export function OnboardingGate({ children }: OnboardingGateProps) {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const hasCompletedOnboarding = useAuthStore(
-    (s) => s.hasCompletedOnboarding,
-  );
+  const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);
 
   if (isLoggedIn && hasCompletedOnboarding) {
     return <Navigate to="/" replace />;

@@ -6,7 +6,9 @@ export function getInviteCodeDigits(room: FriendRoomRow): string {
   if (raw.length >= 5) return raw.slice(0, 5);
   if (raw.length > 0) return raw.padStart(5, "0").slice(0, 5);
   const n = Number.parseInt(room.id, 10);
-  const base = Number.isFinite(n) ? n : room.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const base = Number.isFinite(n)
+    ? n
+    : room.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return String(10000 + (base % 90000)).slice(0, 5);
 }
 

@@ -55,7 +55,11 @@ export function RoomMainPage() {
         </>
       }
     >
-      <FriendRoomList rows={sortedRows} onRoomNavigate={handleRoomNavigate} onOpenRoomActions={openRoomActions} />
+      <FriendRoomList
+        rows={sortedRows}
+        onRoomNavigate={handleRoomNavigate}
+        onOpenRoomActions={openRoomActions}
+      />
       <RoomActionModal room={actionRoom} onClose={closeRoomActions} onAction={handleRoomAction} />
       <InviteCodeModal room={inviteCodeRoom} onClose={closeInviteCodeModal} showToast={showToast} />
       <LeaveRoomConfirmModal

@@ -13,7 +13,12 @@ export type RoomModalShellProps = {
 /**
  * RoomActionModal 등과 동일한 오버레이 + 흰 패널 래퍼 (transition 포함).
  */
-export function RoomModalShell({ visible, onOverlayClick, children, className }: RoomModalShellProps) {
+export function RoomModalShell({
+  visible,
+  onOverlayClick,
+  children,
+  className,
+}: RoomModalShellProps) {
   return (
     <div
       className={cn("fixed inset-0 z-50 flex items-center justify-center p-6", className)}

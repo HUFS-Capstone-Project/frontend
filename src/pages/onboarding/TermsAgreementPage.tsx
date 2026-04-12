@@ -27,12 +27,9 @@ export function TermsAgreementPage() {
   const idPrefix = useId();
   const completeOnboardingFlow = useAuthStore((s) => s.completeOnboardingFlow);
 
-  const nicknameFromPrev =
-    (location.state as TermsLocationState | null)?.nickname?.trim() ?? "";
+  const nicknameFromPrev = (location.state as TermsLocationState | null)?.nickname?.trim() ?? "";
 
-  const nicknameOk =
-    nicknameFromPrev.length > 0 &&
-    nicknameFromPrev.length <= NICKNAME_MAX_LENGTH;
+  const nicknameOk = nicknameFromPrev.length > 0 && nicknameFromPrev.length <= NICKNAME_MAX_LENGTH;
 
   useEffect(() => {
     if (!nicknameOk) {
@@ -40,13 +37,8 @@ export function TermsAgreementPage() {
     }
   }, [nicknameOk, navigate]);
 
-  const {
-    agreed,
-    allChecked,
-    requiredAgreed,
-    handleToggleAll,
-    handleToggleItem,
-  } = useTermsAgreement();
+  const { agreed, allChecked, requiredAgreed, handleToggleAll, handleToggleItem } =
+    useTermsAgreement();
 
   if (!nicknameOk) {
     return null;
@@ -55,10 +47,7 @@ export function TermsAgreementPage() {
   return (
     <OnboardingLayout>
       <OnboardingContent className={onboardingContentClassName.terms}>
-        <OnboardingTitle
-          firstLineRest="에 필요한"
-          secondLine="약관에 동의해주세요"
-        />
+        <OnboardingTitle firstLineRest="에 필요한" secondLine="약관에 동의해주세요" />
         <AgreementList
           idPrefix={idPrefix}
           agreed={agreed}
