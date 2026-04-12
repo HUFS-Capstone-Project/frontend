@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/auth-store";
 
 import { SplashScreenPage } from "./SplashScreenPage";
 
-const SPLASH_DEFAULT_DURATION_MS = 1800;
+const SPLASH_DEFAULT_DURATION_MS = 2200;
 const SPLASH_REDUCED_MOTION_DURATION_MS = 500;
 
 export function EntryPage() {

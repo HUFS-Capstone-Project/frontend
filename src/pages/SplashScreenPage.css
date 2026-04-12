@@ -1,6 +1,19 @@
-﻿.splash-screen-page {
+﻿@font-face {
+  font-family: "ONE Mobile Title";
+  src: url("/fonts/one-mobile-title.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.splash-screen-page {
   position: relative;
-  background: var(--brand-coral-solid);
+  background: linear-gradient(
+    155deg,
+    var(--brand-coral-gradient-from) 0%,
+    var(--brand-coral-gradient-to) 50%,
+    var(--brand-coral-solid) 100%
+  );
   isolation: isolate;
 }
 
@@ -22,16 +35,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.95rem;
+  gap: 1.2rem;
   transform: translateY(-2%);
 }
 
 .splash-screen-page__symbol-motion {
   width: 6.75rem;
-  transform: translateY(0.95rem);
+  transform: translateY(1.45rem);
   animation:
-    splash-symbol-motion-enter 860ms cubic-bezier(0.22, 1, 0.36, 1) 70ms forwards,
-    splash-symbol-motion-settle 620ms cubic-bezier(0.2, 0.9, 0.25, 1) 940ms both;
+    splash-symbol-motion-enter 1000ms cubic-bezier(0.18, 1, 0.32, 1) 60ms forwards,
+    splash-symbol-motion-settle 780ms cubic-bezier(0.22, 0.95, 0.28, 1) 1040ms both;
 }
 
 .splash-screen-page__symbol {
@@ -39,9 +52,9 @@
   width: 100%;
   will-change: transform, opacity, filter;
   opacity: 0;
-  transform: scale(0.94);
-  filter: drop-shadow(0 0.36rem 0.58rem rgba(0, 0, 0, 0.055));
-  animation: splash-symbol-appearance 900ms cubic-bezier(0.22, 1, 0.36, 1) 110ms forwards;
+  transform: scale(0.84);
+  filter: drop-shadow(0 0.28rem 0.45rem rgba(0, 0, 0, 0.04));
+  animation: splash-symbol-appearance 1080ms cubic-bezier(0.2, 1, 0.34, 1) 100ms forwards;
 }
 
 .splash-screen-page__marker {
@@ -55,19 +68,23 @@
 .splash-screen-page__title {
   margin: 0;
   color: #ffffff;
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-family: "ONE Mobile Title", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: -0.02em;
   opacity: 0;
-  transform: translateY(0.72rem);
-  filter: blur(2px);
-  animation: splash-title-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 560ms forwards;
+  transform: translateY(1.15rem) scale(0.94);
+  filter: blur(3px);
+  animation: splash-title-enter 880ms cubic-bezier(0.14, 1, 0.28, 1) 620ms forwards;
 }
 
 @keyframes splash-symbol-motion-enter {
   0% {
-    transform: translateY(0.95rem);
+    transform: translateY(1.45rem);
+  }
+  72% {
+    transform: translateY(-0.06rem);
   }
   100% {
     transform: translateY(0);
@@ -78,14 +95,14 @@
   0% {
     transform: translateY(0);
   }
-  40% {
-    transform: translateY(-0.1rem);
+  32% {
+    transform: translateY(-0.28rem);
   }
-  68% {
-    transform: translateY(0.04rem);
+  58% {
+    transform: translateY(0.1rem);
   }
-  84% {
-    transform: translateY(-0.015rem);
+  78% {
+    transform: translateY(-0.06rem);
   }
   100% {
     transform: translateY(0);
@@ -95,39 +112,40 @@
 @keyframes splash-symbol-appearance {
   0% {
     opacity: 0;
-    transform: scale(0.94);
-    filter: drop-shadow(0 0.28rem 0.5rem rgba(0, 0, 0, 0.045));
+    transform: scale(0.84);
+    filter: drop-shadow(0 0.22rem 0.4rem rgba(0, 0, 0, 0.035));
   }
-  52% {
+  48% {
     opacity: 1;
-    transform: scale(1.02);
-    filter: drop-shadow(0 0.62rem 0.84rem rgba(0, 0, 0, 0.085));
+    transform: scale(1.08);
+    filter: drop-shadow(0 0.75rem 1.05rem rgba(0, 0, 0, 0.11));
   }
-  76% {
+  74% {
     opacity: 1;
-    transform: scale(0.996);
+    transform: scale(0.988);
+    filter: drop-shadow(0 0.52rem 0.78rem rgba(0, 0, 0, 0.08));
   }
   100% {
     opacity: 1;
     transform: scale(1);
-    filter: drop-shadow(0 0.5rem 0.76rem rgba(0, 0, 0, 0.075));
+    filter: drop-shadow(0 0.55rem 0.82rem rgba(0, 0, 0, 0.085));
   }
 }
 
 @keyframes splash-title-enter {
   0% {
     opacity: 0;
-    transform: translateY(0.72rem);
-    filter: blur(2px);
+    transform: translateY(1.15rem) scale(0.94);
+    filter: blur(3px);
   }
-  62% {
+  58% {
     opacity: 1;
-    transform: translateY(-0.03rem);
+    transform: translateY(-0.08rem) scale(1.02);
     filter: blur(0);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     letter-spacing: -0.02em;
     filter: blur(0);
   }
