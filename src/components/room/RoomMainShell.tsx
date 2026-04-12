@@ -16,10 +16,10 @@ export type RoomMainShellProps = {
  */
 export function RoomMainShell({ header, children, bottomNav, fab, className }: RoomMainShellProps) {
   return (
-    <div className={cn("relative flex min-h-0 flex-1 flex-col -m-page", className)}>
+    <div className={cn("-m-page relative flex min-h-0 flex-1 flex-col", className)}>
       {header}
 
-      <div className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto pb-room-main-scroll">
+      <div className="scrollbar-hide bg-background pb-room-main-scroll min-h-0 flex-1 overflow-y-auto">
         {children}
       </div>
 

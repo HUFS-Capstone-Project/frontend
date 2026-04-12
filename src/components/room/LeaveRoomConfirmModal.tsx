@@ -33,19 +33,17 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
-      <div className="px-6 pb-5 pt-8 text-center">
-        <h2 className="text-foreground text-lg font-bold leading-snug">
-          방 나가기
-        </h2>
-        <p className="mt-4 text-sm leading-relaxed text-foreground">{LEAVE_WARNING}</p>
+      <div className="px-6 pt-8 pb-5 text-center">
+        <h2 className="text-foreground text-lg leading-snug font-bold">방 나가기</h2>
+        <p className="text-foreground mt-4 text-sm leading-relaxed">{LEAVE_WARNING}</p>
       </div>
 
-      <div className="flex border-t border-border/50">
+      <div className="border-border/50 flex border-t">
         <button
           type="button"
           className={cn(
             "flex-1 py-4 text-sm font-medium transition-colors",
-            "border-r border-border/50 text-brand-coral hover:bg-muted/25 active:bg-muted/35",
+            "border-border/50 text-brand-coral hover:bg-muted/25 active:bg-muted/35 border-r",
           )}
           onClick={onClose}
         >
@@ -53,7 +51,7 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
         </button>
         <button
           type="button"
-          className="flex-1 py-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/25 active:bg-muted/35"
+          className="text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors"
           onClick={handleConfirm}
         >
           나가기
@@ -66,7 +64,11 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
 /**
  * 방 나가기 확인. RoomModalShell·presence 훅 패턴은 InviteCodeModal과 동일.
  */
-export function LeaveRoomConfirmModal({ room, onClose, onConfirmLeave }: LeaveRoomConfirmModalProps) {
+export function LeaveRoomConfirmModal({
+  room,
+  onClose,
+  onConfirmLeave,
+}: LeaveRoomConfirmModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
 
   useEscapeKey(onClose, displayRoom != null);

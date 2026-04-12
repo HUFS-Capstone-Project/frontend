@@ -5,7 +5,7 @@ import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 function resolveGoogleLoginUrl(): string | undefined {
   const mobile = getRuntimeAuthChannel() === "mobile";
   const raw = mobile
-    ? import.meta.env.VITE_MOBILE_GOOGLE_LOGIN_URL ?? import.meta.env.VITE_WEB_GOOGLE_LOGIN_URL
+    ? (import.meta.env.VITE_MOBILE_GOOGLE_LOGIN_URL ?? import.meta.env.VITE_WEB_GOOGLE_LOGIN_URL)
     : import.meta.env.VITE_WEB_GOOGLE_LOGIN_URL;
   if (typeof raw !== "string") return undefined;
   const trimmed = raw.trim();

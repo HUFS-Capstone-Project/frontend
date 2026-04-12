@@ -1,10 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  type ReactNode,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import { useDocumentVisible } from "@/hooks/use-document-visible";
 import { appHeadlineSizeClassName } from "@/lib/app-typography";
@@ -57,24 +52,16 @@ export function AnimatedText({
   textsClassName,
   slotChildren,
 }: AnimatedTextProps) {
-  const safeTexts = useMemo(
-    () => (texts.length > 0 ? texts : [""]),
-    [texts],
-  );
+  const safeTexts = useMemo(() => (texts.length > 0 ? texts : [""]), [texts]);
   const [index, setIndex] = useState(0);
   const documentVisible = useDocumentVisible();
   const prefersReducedMotion = useReducedMotion();
 
-  const safeIndex =
-    safeTexts.length > 0
-      ? Math.min(index, safeTexts.length - 1)
-      : 0;
+  const safeIndex = safeTexts.length > 0 ? Math.min(index, safeTexts.length - 1) : 0;
 
   useEffect(() => {
     if (import.meta.env.DEV && slotChildren && slotChildren.length !== safeTexts.length) {
-      console.warn(
-        "AnimatedText: `slotChildren.length` must match `texts.length`.",
-      );
+      console.warn("AnimatedText: `slotChildren.length` must match `texts.length`.");
     }
   }, [slotChildren, safeTexts.length]);
 
@@ -90,9 +77,7 @@ export function AnimatedText({
 
   const useFadeOnly = prefersReducedMotion === true;
   const motionPreset = useFadeOnly ? fadeMotion : slideMotion;
-  const durationSec = useFadeOnly
-    ? REDUCED_MOTION_DURATION_SEC
-    : durationMs / 1000;
+  const durationSec = useFadeOnly ? REDUCED_MOTION_DURATION_SEC : durationMs / 1000;
   const transition = useMemo(
     () => ({
       duration: durationSec,
@@ -115,9 +100,7 @@ export function AnimatedText({
     return (
       <div id={id} className={cn("w-full text-left", className)}>
         {prefixLine}
-        <p className={lineClass}>
-          {rich0 !== undefined ? rich0 : safeTexts[0]}
-        </p>
+        <p className={lineClass}>{rich0 !== undefined ? rich0 : safeTexts[0]}</p>
       </div>
     );
   }
@@ -127,11 +110,7 @@ export function AnimatedText({
       {prefixLine}
 
       <div
-        className={cn(
-          "relative w-full overflow-hidden",
-          SLOT_CLASS,
-          slotClassName,
-        )}
+        className={cn("relative w-full overflow-hidden", SLOT_CLASS, slotClassName)}
         aria-live="polite"
         aria-atomic="true"
       >

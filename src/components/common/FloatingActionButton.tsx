@@ -15,7 +15,7 @@ export function FloatingActionButton({ label, className }: FloatingActionButtonP
       className={cn(
         "bg-brand-coral text-primary-foreground shadow-md",
         "focus-visible:ring-ring flex size-12 items-center justify-center rounded-full outline-none",
-        "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2",
         "active:bg-brand-coral/90",
         className,
       )}

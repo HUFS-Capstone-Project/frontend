@@ -45,11 +45,13 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose}>
-      <div className="px-7 pb-2 pt-7">
-        <h2 className="text-foreground text-base font-bold leading-tight">{displayRoom.displayName}</h2>
+      <div className="px-7 pt-7 pb-2">
+        <h2 className="text-foreground text-base leading-tight font-bold">
+          {displayRoom.displayName}
+        </h2>
       </div>
 
-      <div className="flex flex-col px-2 pb-3 pt-1">
+      <div className="flex flex-col px-2 pt-1 pb-3">
         {actions.map(({ type, label, danger }) => (
           <button
             key={type}

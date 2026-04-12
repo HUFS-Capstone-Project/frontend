@@ -60,10 +60,7 @@ export const useAuthStore = create<AuthState>()(
           nickname,
           hasCompletedOnboarding,
           authChannel: options?.channel ?? "web",
-          refreshToken:
-            options?.channel === "mobile"
-              ? (options.refreshToken ?? null)
-              : null,
+          refreshToken: options?.channel === "mobile" ? (options.refreshToken ?? null) : null,
         }),
 
       completeOnboardingFlow: (raw) => {

@@ -15,9 +15,7 @@ export function RootLayout() {
 
   return (
     <div className="bg-background text-foreground">
-      <div
-        className="mx-auto flex h-dvh max-h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden px-page pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:max-w-3xl xl:max-w-lg"
-      >
+      <div className="px-page mx-auto flex h-dvh max-h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:max-w-3xl xl:max-w-lg">
         <Outlet />
       </div>
     </div>

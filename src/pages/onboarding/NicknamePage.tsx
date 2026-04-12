@@ -28,10 +28,7 @@ export function NicknamePage() {
   return (
     <OnboardingLayout>
       <OnboardingContent className={onboardingContentClassName.nickname}>
-        <OnboardingTitle
-          firstLineRest="에서 사용할"
-          secondLine="닉네임을 등록하세요"
-        />
+        <OnboardingTitle firstLineRest="에서 사용할" secondLine="닉네임을 등록하세요" />
         <NicknameInputSection
           label="닉네임"
           value={nickname}

@@ -1,15 +1,11 @@
-import { useCallback, useState } from "react";
+﻿import { useCallback, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 import { GoogleLoginButton } from "@/features/auth/components/GoogleLoginButton";
-import {
-  LoginCopy,
-  type LoginCopyVariant,
-} from "@/features/auth/components/LoginCopy";
+import { LoginCopy, type LoginCopyVariant } from "@/features/auth/components/LoginCopy";
 import { handleGoogleLogin } from "@/features/auth/lib/google-login";
-import {
-  loginPageInnerClassName,
-  loginPageRootClassName,
-} from "@/lib/login-layout";
+import { loginPageInnerClassName, loginPageRootClassName } from "@/lib/login-layout";
+import { useAuthStore } from "@/store/auth-store";
 
 const LOGIN_COPY_VARIANT: LoginCopyVariant = "marketing";
 
@@ -22,19 +18,27 @@ const SECTION_ACCESSIBILITY: Record<
 };
 
 export function LoginPage() {
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleContinue = useCallback(() => {
     setIsLoading(true);
     const redirected = handleGoogleLogin();
+
+    // Local dev fallback: when no redirect URL is configured.
     if (!redirected) {
-      // VITE_WEB_GOOGLE_LOGIN_URL 미설정 시 (개발 환경 임시 처리)
       setIsLoading(false);
     }
-    // 리다이렉트 성공 시 페이지가 이동하므로 추가 처리 불필요
   }, []);
 
   const sectionA11y = SECTION_ACCESSIBILITY[LOGIN_COPY_VARIANT];
+
+  if (isLoggedIn && accessToken) {
+    return <Navigate to={hasCompletedOnboarding ? "/room" : "/onboarding/nickname"} replace />;
+  }
 
   return (
     <div className={loginPageRootClassName}>
@@ -44,10 +48,7 @@ export function LoginPage() {
         </section>
 
         <div className="mx-auto w-full max-w-md shrink-0 md:max-w-full">
-          <GoogleLoginButton
-            isLoading={isLoading}
-            onContinue={handleGoogleContinue}
-          />
+          <GoogleLoginButton isLoading={isLoading} onContinue={handleGoogleContinue} />
         </div>
       </div>
     </div>

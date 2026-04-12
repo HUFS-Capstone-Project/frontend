@@ -10,10 +10,7 @@ export type GoogleLoginButtonProps = {
   onContinue: () => void;
 };
 
-export function GoogleLoginButton({
-  isLoading,
-  onContinue,
-}: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ isLoading, onContinue }: GoogleLoginButtonProps) {
   return (
     <PillButton
       type="button"
@@ -29,15 +26,12 @@ export function GoogleLoginButton({
         aria-hidden
       >
         {isLoading ? (
-          <Loader2
-            aria-hidden
-            className="size-[1.125rem] animate-spin text-muted-foreground"
-          />
+          <Loader2 aria-hidden className="text-muted-foreground size-[1.125rem] animate-spin" />
         ) : (
           <GoogleBrandLogo className="size-[1.125rem]" />
         )}
       </span>
-      <span className="block w-full ps-14 pe-4 text-center text-foreground">
+      <span className="text-foreground block w-full ps-14 pe-4 text-center">
         {isLoading ? "구글로 이동 중…" : "구글 계정으로 시작"}
       </span>
     </PillButton>

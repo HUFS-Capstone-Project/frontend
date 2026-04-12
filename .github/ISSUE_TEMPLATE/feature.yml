@@ -35,7 +35,7 @@ body:
     id: considerations
     attributes:
       label: "⚠️ 고려사항"
-      description: "성능, 접근성, 보안, 기존 사용자 영향 등 신경 쓸 점이 있으면 적어 주세요. 없으면 \"없음\"으로 두셔도 됩니다."
+      description: '성능, 접근성, 보안, 기존 사용자 영향 등 신경 쓸 점이 있으면 적어 주세요. 없으면 "없음"으로 두셔도 됩니다.'
     validations:
       required: false
 
@@ -43,7 +43,7 @@ body:
     id: done
     attributes:
       label: "✅ 완료 조건"
-      description: "이 이슈를 닫아도 될 만큼 \"무엇이 되면 끝인지\" 적어 주세요."
+      description: '이 이슈를 닫아도 될 만큼 "무엇이 되면 끝인지" 적어 주세요.'
       placeholder: "예) OO 시나리오에서 XX가 동작하고, 관련 테스트가 통과함."
     validations:
       required: true

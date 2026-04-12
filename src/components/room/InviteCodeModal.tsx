@@ -42,22 +42,24 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
-      <div className="px-7 pb-4 pt-7">
-        <h2 className="text-foreground text-base font-bold leading-tight">{displayRoom.displayName}</h2>
+      <div className="px-7 pt-7 pb-4">
+        <h2 className="text-foreground text-base leading-tight font-bold">
+          {displayRoom.displayName}
+        </h2>
       </div>
 
-      <div className="px-6 pb-4 pt-2">
+      <div className="px-6 pt-2 pb-4">
         <div
           className={cn(
-            "flex flex-col items-center gap-3 rounded-xl border border-border/60 bg-muted/15 px-4 py-8",
+            "border-border/60 bg-muted/15 flex flex-col items-center gap-3 rounded-xl border px-4 py-8",
           )}
         >
-          <p className="text-center text-2xl font-semibold tabular-nums tracking-[0.35em] text-foreground">
+          <p className="text-foreground text-center text-2xl font-semibold tracking-[0.35em] tabular-nums">
             {display}
           </p>
           <button
             type="button"
-            className="rounded-full bg-muted px-4 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+            className="bg-muted text-foreground hover:bg-muted/80 rounded-full px-4 py-1.5 text-xs font-medium transition-colors"
             onClick={handleCopy}
           >
             복사

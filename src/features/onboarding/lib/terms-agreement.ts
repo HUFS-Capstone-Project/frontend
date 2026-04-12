@@ -32,9 +32,7 @@ export const TERMS_AGREEMENT_ITEMS = [
 }>;
 
 export function isAllChecked(state: AgreementState): boolean {
-  return (
-    state.serviceTerms && state.privacyTerms && state.marketingEmail
-  );
+  return state.serviceTerms && state.privacyTerms && state.marketingEmail;
 }
 
 export function isRequiredAgreed(state: AgreementState): boolean {
