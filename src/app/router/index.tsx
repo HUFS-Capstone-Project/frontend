@@ -8,6 +8,7 @@ import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
 import { RoomMainPage } from "@/pages/room/RoomMainPage";
 import { RootIndexPage } from "@/pages/RootIndexPage";
+import { SplashScreenPage } from "@/pages/SplashScreenPage";
 import { CoursePlannerPage } from "@/pages/tabs/CoursePlannerPage";
 import { MyPage } from "@/pages/tabs/MyPage";
 import { PlaceListPage } from "@/pages/tabs/PlaceListPage";
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <RootIndexPage /> },
       { path: "room", element: <RoomMainPage /> },
+      { path: "dev/splash", element: <SplashScreenPage /> },
       { path: "map", element: <MapHomePage /> },
       { path: "list", element: <PlaceListPage /> },
       { path: "course", element: <CoursePlannerPage /> },
