@@ -1,9 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** 웹: API base (미설정 시 `/api` + Vite 프록시) */
-  readonly VITE_WEB_API_BASE_URL?: string;
-
   /** 모바일: API base — `getRuntimeAuthChannel()==='mobile'`일 때 `getApiBaseURL()` 우선 */
   readonly VITE_MOBILE_API_BASE_URL?: string;
 

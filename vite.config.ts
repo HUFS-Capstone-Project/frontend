@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    // 로컬: `VITE_WEB_API_BASE_URL` 비우고 `/api` → 프록시(크로스 오리진 시 CSRF 쿠키 미노출 방지)
+    // 로컬: `/api` → 백엔드 프록시 (same-origin CSRF)
     proxy: {
       "/api": {
         target: "http://localhost:8080",
