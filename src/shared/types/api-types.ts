@@ -1,16 +1,27 @@
 /**
- * 백엔드 공통 응답 래퍼. 실제 payload는 항상 `data`.
- *
- * @example
- * const res = await api.get<CommonResponse<UserProfile>>("/v1/auth/me");
- * const user = res.data.data;
- *
- * GET /v1/auth/csrf 는 `CommonResponse<string>` — 토큰 문자열이 `data` 그 자체.
+ * 백엔드 공통 성공 응답 래퍼
+ * - 일부 엔드포인트는 `code`를 생략할 수 있음
+ * - `message`는 null일 수 있음
  */
 export type CommonResponse<T = undefined> = {
   success: boolean;
-  code: string;
-  message: string;
+  code?: string | null;
+  message?: string | null;
   data: T;
   timestamp: string;
+};
+
+export type ApiFieldError = {
+  field: string;
+  message: string;
+  rejectedValue?: string | null;
+};
+
+export type ApiErrorResponse = {
+  title?: string;
+  status?: number;
+  detail?: string;
+  message?: string;
+  code?: string;
+  fieldErrors?: ApiFieldError[];
 };

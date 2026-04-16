@@ -17,4 +17,20 @@ export {
   resolveNicknamePlaceholder,
 } from "./constants";
 export { useControlledMaxLengthWarning } from "./hooks/use-controlled-max-length-warning";
+export { useSubmitOnboardingMutation } from "./hooks/use-submit-onboarding-mutation";
 export { useTermsAgreement } from "./hooks/use-terms-agreement";
+export {
+  mapOnboardingFieldErrors,
+  pickFirstOnboardingFieldError,
+} from "./lib/map-onboarding-field-errors";
+export {
+  hasClientValidationErrors,
+  normalizeNickname,
+  sanitizeOnboardingRequest,
+  validateOnboardingRequest,
+} from "./lib/validate-onboarding-request";
+export type {
+  OnboardingFieldErrorMap,
+  OnboardingFieldName,
+  OnboardingRequest,
+} from "./types/onboarding";

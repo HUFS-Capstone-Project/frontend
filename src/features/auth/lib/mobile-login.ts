@@ -1,9 +1,11 @@
-import { authApi } from "@/features/auth/api/auth-api";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { usersApi } from "@/features/users";
 import { useAuthStore } from "@/store/auth-store";
 
-/** Capacitor PKCE 콜백 후 호출 — `mobile/exchange` → `/me` → `signIn`(channel: mobile). */
-// TODO(모바일 OAuth): 딥링크/`App.addListener("appUrlOpen")`에서 code·codeVerifier 파싱 후 이 함수 연결. 호출처 미연결 상태.
+/**
+ * 모바일 OAuth 교환을 완료한 뒤 /users/me를 조회해 온보딩 상태를 확인한다.
+ */
+// TODO(모바일 OAuth): App.addListener("appUrlOpen") 딥링크 콜백 연결
 export async function completeMobileLoginAfterExchange(params: {
   code: string;
   codeVerifier: string;
@@ -16,14 +18,13 @@ export async function completeMobileLoginAfterExchange(params: {
     useAuthStore.getState().setRefreshToken(tr.refreshToken);
   }
 
-  const meRes = await authApi.getMe();
-  const me = meRes.data;
+  const me = await usersApi.getMe();
 
   useAuthStore.getState().signIn(
     tr.accessToken,
     {
       nickname: me.nickname,
-      hasCompletedOnboarding: me.hasCompletedOnboarding,
+      hasCompletedOnboarding: me.onboardingCompleted,
     },
     { channel: "mobile", refreshToken: tr.refreshToken ?? null },
   );

@@ -1,8 +1,10 @@
-﻿import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
+import { userQueryKeys, usersApi } from "@/features/users";
 import type { ApiError } from "@/shared/api/axios";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -33,12 +35,12 @@ function AuthCallbackFallback({ message, onBackToLogin }: AuthCallbackFallbackPr
 
 /**
  * 웹 OAuth 콜백 처리 전용 페이지.
- * ticket 파라미터를 교환해 access token과 사용자 정보를 복구한다.
+ * exchange-ticket 이후에도 온보딩 분기는 반드시 /users/me 기준으로 판단한다.
  */
-// TODO(모바일 OAuth): Capacitor appUrlOpen + PKCE 콜백 경로에서 모바일 전용 처리 분기 추가.
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const signIn = useAuthStore((s) => s.signIn);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -58,21 +60,23 @@ export function AuthCallbackPage() {
       await webAuthApi.ensureCsrfCookie();
 
       const res = await webAuthApi.exchangeTicket(ticket);
-      const { token, me } = res.data;
+      const accessToken = res.data.token.accessToken;
 
-      const accessToken = token.accessToken;
       useAuthStore.getState().setAccessToken(accessToken);
+
+      const me = await usersApi.getMe();
+      queryClient.setQueryData(userQueryKeys.me(), me);
 
       signIn(
         accessToken,
         {
           nickname: me.nickname,
-          hasCompletedOnboarding: me.hasCompletedOnboarding,
+          hasCompletedOnboarding: me.onboardingCompleted,
         },
         { channel: "web" },
       );
 
-      void navigate(me.hasCompletedOnboarding ? "/room" : "/onboarding/nickname", {
+      void navigate(me.onboardingCompleted ? "/room" : "/onboarding/nickname", {
         replace: true,
       });
     };
@@ -81,7 +85,7 @@ export function AuthCallbackPage() {
       const apiError = err as Partial<ApiError>;
       setErrorMessage(apiError.message ?? FALLBACK_ERROR_MESSAGE);
     });
-  }, [ticket, signIn, navigate]);
+  }, [ticket, signIn, navigate, queryClient]);
 
   if (!ticket) {
     return (

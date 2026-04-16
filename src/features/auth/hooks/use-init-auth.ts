@@ -1,14 +1,17 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { authApi } from "@/features/auth/api/auth-api";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
+import { userQueryKeys, usersApi } from "@/features/users";
 import { useAuthStore } from "@/store/auth-store";
 
-/** 로그인 상태 복원: 웹 ensureCsrfCookie→refresh→me, 모바일 mobile/refresh→me */
-// TODO(모바일 OAuth): `authChannel==="mobile"` 복원은 `mobileRefreshTokenStorage` 구현 후에만 동작. 딥링크 로그인과 연계.
+/** 로그인 복원 흐름: 웹은 ensureCsrfCookie → refresh → me, 모바일은 mobile/refresh → me */
+// TODO(모바일 OAuth): `authChannel==="mobile"`일 때는 `mobileRefreshTokenStorage`에서 직접 읽음. 딥링크 로그인과 병합 필요.
 export function useInitAuth(): void {
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     const { isLoggedIn, signIn, logout, authChannel: persistedChannel } = useAuthStore.getState();
 
@@ -31,14 +34,15 @@ export function useInitAuth(): void {
         useAuthStore.getState().setAccessToken(tr.accessToken);
         if (tr.refreshToken) useAuthStore.getState().setRefreshToken(tr.refreshToken);
 
-        const meRes = await authApi.getMe();
+        const me = await usersApi.getMe();
         if (cancelled) return;
+        queryClient.setQueryData(userQueryKeys.me(), me);
 
         signIn(
           tr.accessToken,
           {
-            nickname: meRes.data.nickname,
-            hasCompletedOnboarding: meRes.data.hasCompletedOnboarding,
+            nickname: me.nickname,
+            hasCompletedOnboarding: me.onboardingCompleted,
           },
           {
             channel: "mobile",
@@ -55,14 +59,15 @@ export function useInitAuth(): void {
       if (cancelled) return;
 
       useAuthStore.getState().setAccessToken(tokenRes.data.accessToken);
-      const meRes = await authApi.getMe();
+      const me = await usersApi.getMe();
       if (cancelled) return;
+      queryClient.setQueryData(userQueryKeys.me(), me);
 
       signIn(
         tokenRes.data.accessToken,
         {
-          nickname: meRes.data.nickname,
-          hasCompletedOnboarding: meRes.data.hasCompletedOnboarding,
+          nickname: me.nickname,
+          hasCompletedOnboarding: me.onboardingCompleted,
         },
         { channel: "web" },
       );
@@ -75,5 +80,5 @@ export function useInitAuth(): void {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [queryClient]);
 }

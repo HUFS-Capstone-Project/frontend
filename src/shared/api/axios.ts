@@ -3,7 +3,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import type { TokenResponse } from "@/features/auth/types";
-import type { CommonResponse } from "@/shared/types/api-types";
+import type { ApiErrorResponse, ApiFieldError, CommonResponse } from "@/shared/types/api-types";
 import { useAuthStore } from "@/store/auth-store";
 
 import { getApiBaseURL } from "./base-url";
@@ -19,7 +19,7 @@ if (import.meta.env.PROD && !hasProdApiEnv) {
   );
 }
 
-/** Bearer 주입, 401 시 웹·모바일 채널별 refresh 후 재시도. */
+/** Bearer 주입, 401 발생 시 채널별 refresh 후 1회 재시도 */
 export const api = axios.create({
   baseURL: getApiBaseURL(),
   timeout: 25_000,
@@ -61,7 +61,7 @@ type RetryableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError<{ message?: string; code?: string }>) => {
+  async (error: AxiosError<ApiErrorResponse>) => {
     const status = error.response?.status;
     const originalConfig = error.config as RetryableConfig | undefined;
 
@@ -73,7 +73,8 @@ api.interceptors.response.use(
       return new Promise((resolve, reject) => {
         refreshQueue.push({
           resolve: (token) => {
-            originalConfig.headers.Authorization = `Bearer ${token}`;
+            originalConfig.headers = originalConfig.headers ?? {};
+            (originalConfig.headers as Record<string, string>).Authorization = `Bearer ${token}`;
             resolve(api(originalConfig));
           },
           reject,
@@ -92,7 +93,8 @@ api.interceptors.response.use(
       useAuthStore.getState().setAccessToken(newToken);
       resolveRefreshQueue(newToken);
 
-      originalConfig.headers.Authorization = `Bearer ${newToken}`;
+      originalConfig.headers = originalConfig.headers ?? {};
+      (originalConfig.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
       return api(originalConfig);
     } catch {
       useAuthStore.getState().logout();
@@ -127,20 +129,75 @@ export type ApiError = {
   status?: number;
   code?: string;
   message: string;
+  detail?: string;
+  fieldErrors?: ApiFieldError[];
   original: unknown;
 };
 
-function normalizeAxiosError(error: AxiosError<{ message?: string; code?: string }>): ApiError {
+export function isApiError(error: unknown): error is ApiError {
+  return Boolean(
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    "original" in error &&
+    "status" in error,
+  );
+}
+
+function normalizeAxiosError(error: AxiosError<ApiErrorResponse>): ApiError {
   const data = error.response?.data;
+  const detail =
+    typeof data?.detail === "string" && data.detail.length > 0 ? data.detail : undefined;
+  const fallbackMessage = "요청 처리 중 오류가 발생했습니다.";
   const message =
+    detail ||
     (typeof data?.message === "string" && data.message) ||
     error.message ||
-    "요청 처리 중 오류가 발생했습니다.";
+    fallbackMessage;
 
   return {
     status: error.response?.status,
-    code: typeof data?.code === "string" ? data.code : undefined,
+    code:
+      (typeof data?.code === "string" && data.code) ||
+      (typeof data?.title === "string" && data.title) ||
+      undefined,
     message,
+    detail,
+    fieldErrors: normalizeFieldErrors(data?.fieldErrors),
     original: error,
   };
+}
+
+function normalizeFieldErrors(fieldErrors: unknown): ApiFieldError[] | undefined {
+  if (!Array.isArray(fieldErrors)) {
+    return undefined;
+  }
+
+  const normalized: ApiFieldError[] = [];
+
+  for (const item of fieldErrors) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const field = (item as { field?: unknown }).field;
+    const message = (item as { message?: unknown }).message;
+    const rejectedValue = (item as { rejectedValue?: unknown }).rejectedValue;
+
+    if (typeof field !== "string" || typeof message !== "string") {
+      continue;
+    }
+
+    const normalizedItem: ApiFieldError = { field, message };
+    if (rejectedValue !== undefined && rejectedValue !== null) {
+      normalizedItem.rejectedValue =
+        typeof rejectedValue === "string" ? rejectedValue : String(rejectedValue);
+    } else if (rejectedValue === null) {
+      normalizedItem.rejectedValue = null;
+    }
+
+    normalized.push(normalizedItem);
+  }
+
+  return normalized.length > 0 ? normalized : undefined;
 }

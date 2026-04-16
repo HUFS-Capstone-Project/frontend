@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   NICKNAME_MAX_LENGTH,
   NicknameInputSection,
+  normalizeNickname,
   OnboardingButton,
   OnboardingContent,
   onboardingContentClassName,
@@ -12,14 +13,27 @@ import {
   OnboardingTitle,
 } from "@/features/onboarding";
 
+type NicknamePageLocationState = {
+  nickname?: string;
+  nicknameError?: string;
+};
+
 /**
- * 온보딩 1단계: 닉네임 등록.
+ * 온보딩 1단계: 닉네임 입력
  */
 export function NicknamePage() {
   const navigate = useNavigate();
-  const [nickname, setNickname] = useState("");
+  const location = useLocation();
 
-  const trimmed = nickname.trim();
+  const locationState = (location.state as NicknamePageLocationState | null) ?? null;
+  const initialNickname = locationState?.nickname?.trim() ?? "";
+  const initialNicknameError = locationState?.nicknameError ?? null;
+
+  const [nickname, setNickname] = useState(() => initialNickname);
+  const [nicknameError, setNicknameError] = useState<string | null>(() => initialNicknameError);
+
+  const trimmed = normalizeNickname(nickname);
+
   const canSubmit =
     trimmed.length > 0 &&
     trimmed.length <= NICKNAME_MAX_LENGTH &&
@@ -28,13 +42,23 @@ export function NicknamePage() {
   return (
     <OnboardingLayout>
       <OnboardingContent className={onboardingContentClassName.nickname}>
-        <OnboardingTitle firstLineRest="에서 사용할" secondLine="닉네임을 등록하세요" />
+        <OnboardingTitle firstLineRest="에서 사용할" secondLine="닉네임을 등록해 주세요" />
         <NicknameInputSection
           label="닉네임"
           value={nickname}
-          onChange={setNickname}
+          onChange={(nextValue) => {
+            setNickname(nextValue);
+            if (nicknameError) {
+              setNicknameError(null);
+            }
+          }}
           maxLength={NICKNAME_MAX_LENGTH}
         />
+
+        <div className="min-h-5">
+          {nicknameError ? <p className="text-destructive text-sm">{nicknameError}</p> : null}
+        </div>
+
         <OnboardingFooter>
           <OnboardingButton
             active={canSubmit}
