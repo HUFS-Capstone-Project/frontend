@@ -29,10 +29,8 @@ export const webAuthApi = {
   },
 
   /**
-   * 웹 세션 로그아웃 — CSRF는 `ensureCsrfCookie({ forceRefresh: true })`로 쿠키를 맞춘 뒤
-   * 다른 unsafe 요청과 동일하게 `webAuthClient` + 인터셉터로 전송.
-   * Spring `CsrfFilter`는 보통 `X-XSRF-TOKEN` 헤더만으로 충분하다. JSON 본문이 거부되면
-   * `application/x-www-form-urlencoded` + `_csrf`(값은 `getCookie(XSRF_COOKIE_NAME)`만)로 바꿀 수 있다.
+   * 웹 세션 로그아웃 — 멱등. 성공 시 **`204 No Content`(본문 없음)**.
+   * CSRF: `ensureCsrfCookie({ forceRefresh: true })` 후 `XSRF-TOKEN` ↔ `X-XSRF-TOKEN` (인터셉터).
    */
   logout: async (): Promise<void> => {
     await ensureCsrfCookie({ forceRefresh: true });
@@ -41,7 +39,7 @@ export const webAuthApi = {
     }
 
     try {
-      await webAuthClient.post("/v1/auth/logout", {});
+      await webAuthClient.post("/v1/auth/logout");
     } catch (e) {
       if (isAxiosError(e)) {
         const data = e.response?.data as { detail?: string; message?: string } | undefined;
