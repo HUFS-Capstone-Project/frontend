@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import type { TokenResponse } from "@/features/auth/types";
 import type { ApiErrorResponse, ApiFieldError, CommonResponse } from "@/shared/types/api-types";
@@ -13,7 +14,10 @@ const hasProdApiEnv =
   Boolean(import.meta.env.VITE_WEB_API_BASE_URL?.trim()) ||
   Boolean(import.meta.env.VITE_MOBILE_API_BASE_URL?.trim());
 
-if (import.meta.env.PROD && !hasProdApiEnv) {
+const webUsesRelativeApi =
+  getRuntimeAuthChannel() !== "mobile" && getApiBaseURL() === "/api";
+
+if (import.meta.env.PROD && !hasProdApiEnv && !webUsesRelativeApi) {
   console.warn(
     "[udidura] 프로덕션 빌드에 API base가 없습니다. VITE_WEB_API_BASE_URL 또는 VITE_MOBILE_API_BASE_URL을 설정하세요.",
   );
@@ -23,6 +27,7 @@ if (import.meta.env.PROD && !hasProdApiEnv) {
 export const api = axios.create({
   baseURL: getApiBaseURL(),
   timeout: 25_000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
