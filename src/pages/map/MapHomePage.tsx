@@ -29,7 +29,7 @@ function roomFriendsForFab(room: SelectedRoom): RoomFriend[] {
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 
-export function MapHomePage() {
+export function MapHomePageContent() {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
   const [filteredPlaces, setFilteredPlaces] = useState<SavedPlace[]>(SAVED_PLACE_MOCKS);

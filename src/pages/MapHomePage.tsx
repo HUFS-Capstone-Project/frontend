@@ -1,14 +1,14 @@
 import { MapHomePageSelectOption } from "@/components/filter/MapHomePage_SelectOption";
-import { MapHomePage } from "@/pages/map/MapHomePage";
+import { MapHomePageContent } from "@/pages/map/MapHomePage";
 import { useUiStore } from "@/store/uiStore";
 
-export function MapHomePage_WithFilter() {
+export function MapHomePage() {
   const isOpen = useUiStore((state) => state.filterOpen);
   const setIsOpen = useUiStore((state) => state.setFilterOpen);
 
   return (
     <>
-      <MapHomePage />
+      <MapHomePageContent />
       <MapHomePageSelectOption open={isOpen} onOpenChange={setIsOpen} />
     </>
   );

@@ -7,7 +7,7 @@ import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
 import { DevSelectOptionPage } from "@/pages/dev/DevSelectOptionPage";
 import { EntryPage } from "@/pages/EntryPage";
 import { LoginPage } from "@/pages/LoginPage";
-import { MapHomePage_WithFilter } from "@/pages/MapHomePage_WithFilter";
+import { MapHomePage } from "@/pages/MapHomePage";
 import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
 import { RoomMainPage } from "@/pages/room/RoomMainPage";
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
         ),
         children: [
           { path: "room", element: <RoomMainPage /> },
-          { path: "map", element: <MapHomePage_WithFilter /> },
+          { path: "map", element: <MapHomePage /> },
           { path: "list", element: <PlaceListPage /> },
           { path: "course", element: <CoursePlannerPage /> },
           { path: "mypage", element: <MyPage /> },
