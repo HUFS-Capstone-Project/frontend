@@ -12,8 +12,7 @@ import { ensureCsrfCookie, webAuthClient } from "./web-auth-client";
 
 const hasProdApiEnv = Boolean(import.meta.env.VITE_MOBILE_API_BASE_URL?.trim());
 
-const webUsesRelativeApi =
-  getRuntimeAuthChannel() !== "mobile" && getApiBaseURL() === "/api";
+const webUsesRelativeApi = getRuntimeAuthChannel() !== "mobile" && getApiBaseURL() === "/api";
 
 if (import.meta.env.PROD && !hasProdApiEnv && !webUsesRelativeApi) {
   console.warn("[udidura] 프로덕션 빌드에 API base 환경 변수가 없습니다. (모바일 빌드 등)");
