@@ -9,6 +9,9 @@ export type CaptionResultScreenProps = {
   result: CaptionResult;
   onClose: () => void;
   onRetry: () => void;
+  onSave?: () => void;
+  isSavePending?: boolean;
+  hasSaved?: boolean;
   onMoveToMockPlaces?: () => void;
 };
 
@@ -17,10 +20,14 @@ export function CaptionResultScreen({
   result,
   onClose,
   onRetry,
+  onSave,
+  isSavePending = false,
+  hasSaved = false,
   onMoveToMockPlaces,
 }: CaptionResultScreenProps) {
   const isSucceeded = result.status === "SUCCEEDED";
   const isFailed = result.status === "FAILED";
+  const canSave = isSucceeded && onSave != null;
 
   return (
     <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-16 pb-8">
@@ -59,11 +66,20 @@ export function CaptionResultScreen({
         </button>
       ) : null}
 
-      <div className={cn("mt-auto grid gap-2.5 pt-6", isSucceeded ? "grid-cols-1" : "grid-cols-2")}>
+      <div className={cn("mt-auto grid gap-2.5 pt-6", canSave || !isSucceeded ? "grid-cols-2" : "grid-cols-1")}>
         <PillButton type="button" variant="outline" onClick={onClose}>
           닫기
         </PillButton>
-        {!isSucceeded ? (
+        {canSave ? (
+          <PillButton
+            type="button"
+            variant={hasSaved ? "onboardingMuted" : "onboarding"}
+            disabled={hasSaved || isSavePending}
+            onClick={onSave}
+          >
+            {hasSaved ? "저장됨" : isSavePending ? "저장 중..." : "저장하기"}
+          </PillButton>
+        ) : !isSucceeded ? (
           <PillButton
             type="button"
             variant={isFailed ? "onboarding" : "onboardingMuted"}

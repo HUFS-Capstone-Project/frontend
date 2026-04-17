@@ -24,14 +24,18 @@ export function LinkAddModal({ room, onClose }: LinkAddModalProps) {
     renderStep,
     url,
     setUrl,
+    urlError,
     selectedMockPlaceId,
     setSelectedMockPlaceId,
     renderCaptionResult,
     mockPlaces,
     isSubmitEnabled,
+    hasSaved,
+    isSavePending,
     cancelOngoingSubmission,
     submitLink,
     retryPolling,
+    saveSucceededResult,
     openMockPlaceScreen,
     confirmMockSelection,
   } = useLinkAddFlow({ room: displayRoom, activeRoomId: room?.id ?? null });
@@ -56,6 +60,7 @@ export function LinkAddModal({ room, onClose }: LinkAddModalProps) {
         <LinkInputScreen
           roomName={displayRoom.displayName}
           url={url}
+          urlError={urlError}
           onChangeUrl={setUrl}
           onCancel={handleRequestClose}
           onSubmit={() => {
@@ -81,6 +86,11 @@ export function LinkAddModal({ room, onClose }: LinkAddModalProps) {
           onRetry={() => {
             void retryPolling();
           }}
+          onSave={() => {
+            void saveSucceededResult();
+          }}
+          hasSaved={hasSaved}
+          isSavePending={isSavePending}
           onMoveToMockPlaces={ENABLE_MOCK_PLACE_NAVIGATION ? openMockPlaceScreen : undefined}
         />
       ) : null}

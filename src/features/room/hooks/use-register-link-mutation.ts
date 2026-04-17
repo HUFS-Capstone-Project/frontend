@@ -10,10 +10,8 @@ export function useRegisterLinkMutation() {
   return useMutation({
     mutationKey: [...roomQueryKeys.all, "register-link"],
     mutationFn: (payload: RegisterLinkRequest) => roomService.registerLink(payload),
-    onSuccess: (result, variables) => {
+    onSuccess: (result) => {
       queryClient.removeQueries({ queryKey: roomQueryKeys.linkStatus(result.linkId) });
-      void queryClient.invalidateQueries({ queryKey: roomQueryKeys.rooms() });
-      void queryClient.invalidateQueries({ queryKey: roomQueryKeys.roomDetail(variables.roomId) });
     },
   });
 }

@@ -3,6 +3,7 @@ import { PillButton } from "@/components/ui/PillButton";
 export type LinkInputScreenProps = {
   roomName: string;
   url: string;
+  urlError?: string | null;
   onChangeUrl: (value: string) => void;
   onCancel: () => void;
   onSubmit: () => void;
@@ -12,6 +13,7 @@ export type LinkInputScreenProps = {
 export function LinkInputScreen({
   roomName,
   url,
+  urlError,
   onChangeUrl,
   onCancel,
   onSubmit,
@@ -36,6 +38,11 @@ export function LinkInputScreen({
           autoComplete="off"
           className="border-input placeholder:text-muted-foreground h-11 w-full rounded-full border bg-white px-4 text-sm outline-none"
         />
+        {urlError ? (
+          <p className="text-destructive mt-2 px-1 text-sm" role="alert">
+            {urlError}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2.5">
