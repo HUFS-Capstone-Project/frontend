@@ -2,6 +2,7 @@ import { CircleEllipsis, Coffee, Flag, UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { MapPlaceCategory } from "@/shared/types/map-home";
+import { useFilterStore } from "@/store/filterStore";
 
 export type CategoryChipsProps = {
   categories: MapPlaceCategory[];
@@ -23,11 +24,14 @@ export function CategoryChips({
   onToggleCategory,
   className,
 }: CategoryChipsProps) {
+  const selectedTags = useFilterStore((state) => state.selectedTags);
+
   return (
     <ul className={cn("scrollbar-hide flex gap-2 overflow-x-auto pb-0.5", className)} role="list">
       {categories.map((category) => {
         const Icon = CATEGORY_ICON_MAP[category];
-        const selected = selectedCategories.includes(category);
+        const selected =
+          category === "기타" ? selectedTags.length > 0 : selectedCategories.includes(category);
 
         return (
           <li key={category}>

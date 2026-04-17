@@ -16,10 +16,10 @@ export type SignInOptions = {
 export type AuthState = {
   accessToken: string | null;
 
-  /** 모바일 리프레시 토큰(메모리). Secure Storage와 별도 동기화 */
+  /** 모바일 전용(메모리). Secure Storage는 별도 연동. */
   refreshToken: string | null;
 
-  /** `web` | `mobile` — 초기화/로그아웃 시 분기 채널 */
+  /** `web` | `mobile` — 부트스트랩·로그아웃 분기(persist) */
   authChannel: AuthChannel;
 
   isLoggedIn: boolean;
@@ -30,9 +30,10 @@ export type AuthState = {
   setRefreshToken: (token: string | null) => void;
   setLoggedIn: (loggedIn: boolean) => void;
   setNickname: (nickname: string | null) => void;
-  setHasCompletedOnboarding: (completed: boolean) => void;
 
   signIn: (accessToken: string, data: SignInData, options?: SignInOptions) => void;
+
+  completeOnboardingFlow: (nickname: string) => void;
 
   logout: () => void;
 };
@@ -51,7 +52,6 @@ export const useAuthStore = create<AuthState>()(
       setRefreshToken: (token) => set({ refreshToken: token }),
       setLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),
       setNickname: (nickname) => set({ nickname }),
-      setHasCompletedOnboarding: (completed) => set({ hasCompletedOnboarding: completed }),
 
       signIn: (accessToken, { nickname, hasCompletedOnboarding }, options) =>
         set({
@@ -62,6 +62,14 @@ export const useAuthStore = create<AuthState>()(
           authChannel: options?.channel ?? "web",
           refreshToken: options?.channel === "mobile" ? (options.refreshToken ?? null) : null,
         }),
+
+      completeOnboardingFlow: (raw) => {
+        const trimmed = raw.trim();
+        set({
+          hasCompletedOnboarding: true,
+          nickname: trimmed.length > 0 ? trimmed : null,
+        });
+      },
 
       logout: () =>
         set({
