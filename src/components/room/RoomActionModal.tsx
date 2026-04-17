@@ -84,7 +84,11 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
     (type: RoomActionType, targetRoom: FriendRoomRow) => {
       requestClose();
 
-      if (type === "add-direct-link" || type === "invite-code") {
+      if (
+        type === "add-direct-link" ||
+        type === "invite-code" ||
+        type === "leave"
+      ) {
         // 액션 모달 history(back)가 먼저 정리된 다음 후속 모달을 열어 즉시 닫힘을 방지한다.
         window.setTimeout(() => onAction(type, targetRoom), 0);
         return;
