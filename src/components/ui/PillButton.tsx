@@ -32,6 +32,13 @@ const pillButtonVariants = cva(
           "disabled:opacity-100",
           "focus-visible:ring-2 focus-visible:ring-brand-coral/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         ],
+        modal: [
+          "h-10 min-h-10 px-4 text-sm",
+          "cursor-pointer border border-transparent bg-brand-coral text-white",
+          "active:bg-brand-coral/90",
+          "disabled:opacity-100",
+          "focus-visible:ring-2 focus-visible:ring-brand-coral/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        ],
       },
     },
     defaultVariants: {

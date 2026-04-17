@@ -12,7 +12,7 @@ export type { RoomActionType };
 export type RoomActionModalProps = {
   room: FriendRoomRow | null;
   onClose: () => void;
-  /** 모달에서 선택한 액션과 대상 방. 이후 API 연동 시 동일 시그니처로 교체하기 좋습니다. */
+  /** 모달에서 선택된 액션과 대상 방. 이후 API 연동 시 동일 시그니처로 교체하기 좋습니다. */
   onAction: (action: RoomActionType, room: FriendRoomRow) => void;
 };
 
@@ -71,10 +71,7 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
   );
 });
 
-/**
- * 방 리스트에서 열리는 중앙 액션 모달 (오버레이 + 라운드 패널).
- * 등장/퇴장: opacity·scale CSS transition (Framer Motion 미사용).
- */
+/** 방 리스트에서 여는 중앙 액션 모달 (오버레이 + 라운드 패널). */
 export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
 
@@ -82,8 +79,15 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
 
   const handleSelectAction = useCallback(
     (type: RoomActionType, targetRoom: FriendRoomRow) => {
-      onAction(type, targetRoom);
       onClose();
+
+      if (type === "add-direct-link" || type === "invite-code") {
+        // 액션 모달 히스토리(back)가 먼저 정리된 뒤 후속 모달을 열어 즉시 닫힘을 방지한다.
+        window.setTimeout(() => onAction(type, targetRoom), 0);
+        return;
+      }
+
+      onAction(type, targetRoom);
     },
     [onAction, onClose],
   );

@@ -11,9 +11,16 @@ function easeInOut(t: number) {
 type BrandMarkerLoaderProps = {
   className?: string;
   announce?: boolean;
+  /** false면 마커 아래 타원 그림자 비표시 */
+  showShadow?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
-export function BrandMarkerLoader({ className, announce = true, ...rest }: BrandMarkerLoaderProps) {
+export function BrandMarkerLoader({
+  className,
+  announce = true,
+  showShadow = true,
+  ...rest
+}: BrandMarkerLoaderProps) {
   const markerRef = useRef<HTMLDivElement>(null);
   const shadowRef = useRef<HTMLDivElement>(null);
   const heartWrapRef = useRef<HTMLDivElement>(null);
@@ -26,7 +33,7 @@ export function BrandMarkerLoader({ className, announce = true, ...rest }: Brand
       const marker = markerRef.current;
       const shadow = shadowRef.current;
       const heartWrap = heartWrapRef.current;
-      if (!marker || !shadow || !heartWrap) return;
+      if (!marker || !heartWrap) return;
 
       const cycle = ts % (RAF_DURATION_MS * 2);
       const t =
@@ -41,15 +48,17 @@ export function BrandMarkerLoader({ className, announce = true, ...rest }: Brand
       const dy = -offset * Math.sin(rad) + -offset * Math.cos(rad);
       heartWrap.style.transform = `translateY(${dy}px)`;
 
-      const shadowScale = 0.5 + e * 0.5;
-      shadow.style.transform = `scale(${shadowScale})`;
+      if (shadow) {
+        const shadowScale = 0.5 + e * 0.5;
+        shadow.style.transform = `scale(${shadowScale})`;
+      }
 
       rafId = requestAnimationFrame(animate);
     }
 
     rafId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafId);
-  }, []);
+  }, [showShadow]);
 
   return (
     <div
@@ -59,7 +68,9 @@ export function BrandMarkerLoader({ className, announce = true, ...rest }: Brand
         : { "aria-hidden": true as const })}
       {...rest}
     >
-      <div ref={shadowRef} className="brand-marker-loader__shadow" aria-hidden />
+      {showShadow ? (
+        <div ref={shadowRef} className="brand-marker-loader__shadow" aria-hidden />
+      ) : null}
       <div ref={markerRef} className="brand-marker-loader__marker" aria-hidden />
       <div ref={heartWrapRef} className="brand-marker-loader__heart-wrap">
         <svg

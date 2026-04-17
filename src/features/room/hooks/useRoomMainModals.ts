@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+﻿import { useCallback, useMemo, useState } from "react";
 
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import {
@@ -6,22 +6,57 @@ import {
   type PinOverride,
   sortFriendRoomRows,
 } from "@/features/room/utils/friendRoomRows";
-import { FRIEND_ROOM_MOCK_ROWS } from "@/pages/room/friend-room-mock";
 import type { FriendRoomRow } from "@/shared/types/room";
 
+import type { RoomSummaryResponse } from "../api";
+import { useRoomDetailQuery } from "./use-room-detail-query";
+import { useRoomsQuery } from "./use-rooms-query";
+
 /**
- * 방 메인: 고정 오버레이·초대코드/나가기 모달 상태 및 액션 메뉴 분기.
- * handleRoomAction은 setter만 사용하므로 deps를 비운다. 외부 값(navigate 등)이 필요해지면 배열에 추가할 것.
+ * 방 메인 화면의 모달 상태와 액션 핸들러 훅
  */
 export function useRoomMainModals() {
   const [pinOverrides, setPinOverrides] = useState<Record<string, PinOverride>>({});
   const [inviteCodeRoom, setInviteCodeRoom] = useState<FriendRoomRow | null>(null);
   const [leaveRoom, setLeaveRoom] = useState<FriendRoomRow | null>(null);
+  const [linkAddRoom, setLinkAddRoom] = useState<FriendRoomRow | null>(null);
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+
+  const roomsQuery = useRoomsQuery();
+  const roomRows = useMemo(() => {
+    const rooms = roomsQuery.data ?? [];
+
+    return rooms.map(mapRoomSummaryToRow);
+  }, [roomsQuery.data]);
 
   const sortedRows = useMemo(() => {
-    const merged = applyPinOverrides(FRIEND_ROOM_MOCK_ROWS, pinOverrides);
+    const merged = applyPinOverrides(roomRows, pinOverrides);
     return sortFriendRoomRows(merged);
-  }, [pinOverrides]);
+  }, [pinOverrides, roomRows]);
+
+  const inviteCodeRoomId = inviteCodeRoom?.id ?? null;
+  const inviteCodeRoomDetailQuery = useRoomDetailQuery(inviteCodeRoomId, {
+    enabled: inviteCodeRoomId != null,
+  });
+
+  const inviteCodeDisplayRoom = useMemo(() => {
+    if (!inviteCodeRoom) {
+      return null;
+    }
+
+    const detail = inviteCodeRoomDetailQuery.data;
+    if (!detail) {
+      return inviteCodeRoom;
+    }
+
+    return {
+      ...inviteCodeRoom,
+      displayName: detail.roomName,
+      inviteCode: detail.inviteCode,
+      memberCount: toNonNegativeNumber(detail.memberCount, inviteCodeRoom.memberCount),
+      placeCount: toNonNegativeNumber(detail.linkCount, inviteCodeRoom.placeCount),
+    };
+  }, [inviteCodeRoom, inviteCodeRoomDetailQuery.data]);
 
   const handleRoomAction = useCallback((action: RoomActionType, room: FriendRoomRow) => {
     if (action === "toggle-pin") {
@@ -36,8 +71,7 @@ export function useRoomMainModals() {
     }
 
     if (action === "add-direct-link") {
-      // TODO: 링크 입력 모달/폼 — openAddLinkFlow({ roomId: room.id, title: room.displayName })
-      void room.id;
+      setLinkAddRoom(room);
       return;
     }
 
@@ -67,17 +101,58 @@ export function useRoomMainModals() {
     setInviteCodeRoom(null);
   }, []);
 
+  const openInviteCodeModal = useCallback((room: FriendRoomRow) => {
+    setInviteCodeRoom(room);
+  }, []);
+
   const closeLeaveRoomModal = useCallback(() => {
     setLeaveRoom(null);
   }, []);
 
+  const closeLinkAddModal = useCallback(() => {
+    setLinkAddRoom(null);
+  }, []);
+
+  const openAddRoom = useCallback(() => {
+    setIsAddRoomOpen(true);
+  }, []);
+
+  const closeAddRoom = useCallback(() => {
+    setIsAddRoomOpen(false);
+  }, []);
+
   return {
     sortedRows,
-    inviteCodeRoom,
+    inviteCodeRoom: inviteCodeDisplayRoom,
     leaveRoom,
+    linkAddRoom,
+    isAddRoomOpen,
+    isRoomsLoading: roomsQuery.isLoading,
+    roomsError: roomsQuery.error,
     handleRoomAction,
     handleConfirmLeaveRoom,
     closeInviteCodeModal,
+    openInviteCodeModal,
     closeLeaveRoomModal,
+    closeLinkAddModal,
+    openAddRoom,
+    closeAddRoom,
   };
+}
+
+function mapRoomSummaryToRow(room: RoomSummaryResponse): FriendRoomRow {
+  return {
+    id: room.roomId,
+    displayName: room.roomName,
+    memberCount: toNonNegativeNumber(room.memberCount, 1),
+    placeCount: toNonNegativeNumber(room.linkCount, 0),
+  };
+}
+
+function toNonNegativeNumber(value: number | null | undefined, fallback: number): number {
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return fallback;
+  }
+
+  return value;
 }

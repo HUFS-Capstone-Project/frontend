@@ -4,14 +4,16 @@ import { cn } from "@/lib/utils";
 
 export type FloatingActionButtonProps = {
   label: string;
+  onClick?: () => void;
   className?: string;
 };
 
-export function FloatingActionButton({ label, className }: FloatingActionButtonProps) {
+export function FloatingActionButton({ label, onClick, className }: FloatingActionButtonProps) {
   return (
     <button
       type="button"
       aria-label={label}
+      onClick={onClick}
       className={cn(
         "bg-brand-coral text-primary-foreground shadow-md",
         "focus-visible:ring-ring flex size-12 items-center justify-center rounded-full outline-none",

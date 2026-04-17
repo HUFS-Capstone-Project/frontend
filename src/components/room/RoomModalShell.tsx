@@ -28,7 +28,7 @@ export function RoomModalShell({
       <button
         type="button"
         className={cn(
-          "absolute inset-0 cursor-default border-0 bg-black/45 transition-opacity duration-180 ease-out",
+          "absolute inset-0 cursor-default border-0 bg-black/20 transition-opacity duration-180 ease-out",
           visible ? "opacity-100" : "opacity-0",
         )}
         aria-label="닫기"

@@ -7,7 +7,9 @@ import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { FriendRoomList } from "@/components/room/FriendRoomList";
 import { InviteCodeModal } from "@/components/room/InviteCodeModal";
 import { LeaveRoomConfirmModal } from "@/components/room/LeaveRoomConfirmModal";
+import { LinkAddModal } from "@/components/room/link-add";
 import { RoomActionModal } from "@/components/room/RoomActionModal";
+import { RoomAddModal } from "@/components/room/RoomAddModal";
 import { RoomMainHeader } from "@/components/room/RoomMainHeader";
 import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
@@ -30,10 +32,15 @@ export function RoomMainPage() {
     sortedRows,
     inviteCodeRoom,
     leaveRoom,
+    linkAddRoom,
+    isAddRoomOpen,
     handleRoomAction,
     handleConfirmLeaveRoom,
     closeInviteCodeModal,
     closeLeaveRoomModal,
+    closeLinkAddModal,
+    openAddRoom,
+    closeAddRoom,
   } = useRoomMainModals();
 
   const handleRoomNavigate = useCallback(
@@ -47,7 +54,7 @@ export function RoomMainPage() {
   return (
     <RoomMainShell
       header={<RoomMainHeader title={roomMainHeaderTitle} />}
-      fab={<FloatingActionButton label="방 생성" />}
+      fab={<FloatingActionButton label="방 추가" onClick={openAddRoom} />}
       bottomNav={
         <>
           <BottomNavToast message={toastMessage} />
@@ -67,6 +74,8 @@ export function RoomMainPage() {
         onClose={closeLeaveRoomModal}
         onConfirmLeave={handleConfirmLeaveRoom}
       />
+      <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
+      <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
     </RoomMainShell>
   );
 }

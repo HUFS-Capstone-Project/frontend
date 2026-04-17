@@ -1,17 +1,61 @@
-import type { FriendRoomRow } from "@/shared/types/room";
+﻿import type { FriendRoomRow } from "@/shared/types/room";
 
-/** 초대코드 5자리 문자열(표시·복사 공통). inviteCode 미설정 시 room.id 기반 임시값. */
+const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const INVITE_CODE_LENGTH = 12;
+
+/**
+ * 초대코드 표시/복사용 문자열.
+ * 서버에서 base62 코드를 내려주므로 숫자 필터링 없이 그대로 사용한다.
+ */
 export function getInviteCodeDigits(room: FriendRoomRow): string {
-  const raw = room.inviteCode?.replace(/\D/g, "") ?? "";
-  if (raw.length >= 5) return raw.slice(0, 5);
-  if (raw.length > 0) return raw.padStart(5, "0").slice(0, 5);
-  const n = Number.parseInt(room.id, 10);
-  const base = Number.isFinite(n)
-    ? n
-    : room.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return String(10000 + (base % 90000)).slice(0, 5);
+  const raw = normalizeInviteCode(room.inviteCode);
+  if (raw) {
+    return raw;
+  }
+
+  return buildFallbackInviteCode(room.id, INVITE_CODE_LENGTH);
 }
 
-export function formatInviteCodeForDisplay(digits: string): string {
-  return digits.split("").join(" ");
+export function formatInviteCodeForDisplay(code: string): string {
+  const normalized = code.trim();
+  if (normalized.length === 0) {
+    return "";
+  }
+
+  const chunked = normalized.match(/.{1,4}/g);
+  if (!chunked) {
+    return normalized;
+  }
+
+  return chunked.join("-");
+}
+
+function normalizeInviteCode(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function buildFallbackInviteCode(seed: string, length: number): string {
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+
+  let current = hash || 1;
+  let code = "";
+
+  for (let index = 0; index < length; index += 1) {
+    current = (current * 1664525 + 1013904223) >>> 0;
+    code += BASE62[current % BASE62.length];
+  }
+
+  return code;
 }
