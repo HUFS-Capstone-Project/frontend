@@ -4,9 +4,10 @@ import { RootLayout } from "@/app/layouts/RootLayout";
 import { OnboardingGate } from "@/app/router/OnboardingGate";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import { AuthCallbackPage } from "@/pages/AuthCallbackPage";
+import { DevSelectOptionPage } from "@/pages/dev/DevSelectOptionPage";
 import { EntryPage } from "@/pages/EntryPage";
 import { LoginPage } from "@/pages/LoginPage";
-import { MapHomePage } from "@/pages/map/MapHomePage";
+import { MapHomePage } from "@/pages/MapHomePage";
 import { NicknamePage } from "@/pages/onboarding/NicknamePage";
 import { TermsAgreementPage } from "@/pages/onboarding/TermsAgreementPage";
 import { RoomMainPage } from "@/pages/room/RoomMainPage";
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <EntryPage /> },
       { path: "dev/splash", element: <SplashScreenPage /> },
+      { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {

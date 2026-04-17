@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { type JSX, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
@@ -7,14 +7,16 @@ import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
 import { KakaoMapView } from "@/components/map/KakaoMapView";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
+import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import {
   MAP_CATEGORY_ITEMS,
   MAP_INITIAL_CENTER,
+  MAP_PRIMARY_CATEGORY_ITEMS,
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
 } from "@/pages/map/map-home-mock";
-import type { RoomFriend, SavedPlace } from "@/shared/types/map-home";
+import type { RoomFriend } from "@/shared/types/map-home";
 import type { SelectedRoom } from "@/store/room-selection-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
@@ -29,21 +31,40 @@ function roomFriendsForFab(room: SelectedRoom): RoomFriend[] {
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 
-export function MapHomePage() {
+type MapHomePageContentProps = {
+  defaultFilterPanelOpen?: boolean;
+};
+
+export function MapHomePageContent({
+  defaultFilterPanelOpen = false,
+}: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
-  const [filteredPlaces, setFilteredPlaces] = useState<SavedPlace[]>(SAVED_PLACE_MOCKS);
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
+
+  const {
+    keyword,
+    setKeyword,
+    activeCategories,
+    focusedCategory,
+    toggleCategory,
+    closeTagPanel,
+    isTagPanelOpen,
+    selectedTagKeysByCategory,
+    selectedTagCountByCategory,
+    toggleTagInCategory,
+    resetFocusedCategoryTags,
+    filteredPlaces,
+  } = useMapSearchFilters({
+    places: SAVED_PLACE_MOCKS,
+    initialFocusedCategory: defaultFilterPanelOpen ? MAP_PRIMARY_CATEGORY_ITEMS[0] : null,
+  });
 
   const fabFriends = useMemo(
     () => (selectedRoom ? roomFriendsForFab(selectedRoom) : []),
     [selectedRoom],
   );
-
-  const handleFilteredPlacesChange = useCallback((nextPlaces: SavedPlace[]) => {
-    setFilteredPlaces(nextPlaces);
-  }, []);
 
   if (!selectedRoom) {
     return <Navigate to="/room" replace />;
@@ -63,10 +84,19 @@ export function MapHomePage() {
 
         <div className="px-page pointer-events-none absolute inset-x-0 top-0 z-20 pt-3">
           <MapSearchOverlay
-            places={SAVED_PLACE_MOCKS}
-            categories={MAP_CATEGORY_ITEMS}
             placeholder={MAP_SEARCH_PLACEHOLDER}
-            onFilteredPlacesChange={handleFilteredPlacesChange}
+            keyword={keyword}
+            onKeywordChange={setKeyword}
+            categories={MAP_CATEGORY_ITEMS}
+            activeCategories={activeCategories}
+            focusedCategory={focusedCategory}
+            onToggleCategory={toggleCategory}
+            isTagPanelOpen={isTagPanelOpen}
+            selectedTagKeysByCategory={selectedTagKeysByCategory}
+            selectedTagCountByCategory={selectedTagCountByCategory}
+            onToggleTagInCategory={toggleTagInCategory}
+            onResetFocusedCategoryTags={resetFocusedCategoryTags}
+            onCloseTagPanel={closeTagPanel}
           />
         </div>
       </main>

@@ -66,7 +66,12 @@ export function CaptionResultScreen({
         </button>
       ) : null}
 
-      <div className={cn("mt-auto grid gap-2.5 pt-6", canSave || !isSucceeded ? "grid-cols-2" : "grid-cols-1")}>
+      <div
+        className={cn(
+          "mt-auto grid gap-2.5 pt-6",
+          canSave || !isSucceeded ? "grid-cols-2" : "grid-cols-1",
+        )}
+      >
         <PillButton type="button" variant="outline" onClick={onClose}>
           닫기
         </PillButton>

@@ -1,66 +1,49 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useRef } from "react";
 
-import { SearchField } from "@/components/common/SearchField";
-import type { MapPlaceCategory, SavedPlace } from "@/shared/types/map-home";
+import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 
-import { CategoryChips } from "./CategoryChips";
+import { SearchField } from "../common/SearchField";
+import { MAP_SEARCH_INPUT_GLASS_CLASS } from "./chip-style";
+import { FilterBar } from "./FilterBar";
+import type { MapFilterBarProps } from "./filters/map-filter-bar-props";
 
-export type MapSearchOverlayProps = {
-  places: SavedPlace[];
-  categories: MapPlaceCategory[];
+export type MapSearchOverlayProps = MapFilterBarProps & {
   placeholder: string;
-  initialCategories?: MapPlaceCategory[];
-  onFilteredPlacesChange: (places: SavedPlace[]) => void;
+  keyword: string;
+  onKeywordChange: (keyword: string) => void;
 };
 
 export const MapSearchOverlay = memo(function MapSearchOverlay({
-  places,
-  categories,
   placeholder,
-  initialCategories = [],
-  onFilteredPlacesChange,
+  keyword,
+  onKeywordChange,
+  onCloseTagPanel,
+  isTagPanelOpen,
+  ...filterBarProps
 }: MapSearchOverlayProps) {
-  const [keyword, setKeyword] = useState("");
-  const [selectedCategories, setSelectedCategories] =
-    useState<MapPlaceCategory[]>(initialCategories);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const filteredPlaces = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
-    const hasCategoryFilter = selectedCategories.length > 0;
-    const selectedCategorySet = new Set(selectedCategories);
-
-    return places.filter((place) => {
-      if (hasCategoryFilter && !selectedCategorySet.has(place.category)) return false;
-      if (!normalizedKeyword) return true;
-
-      const searchable = `${place.name} ${place.address}`.toLowerCase();
-      return searchable.includes(normalizedKeyword);
-    });
-  }, [keyword, places, selectedCategories]);
-
-  useEffect(() => {
-    onFilteredPlacesChange(filteredPlaces);
-  }, [filteredPlaces, onFilteredPlacesChange]);
-
-  const handleCategoryToggle = (category: MapPlaceCategory) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category],
-    );
-  };
+  usePointerDownOutside(containerRef, isTagPanelOpen, onCloseTagPanel);
 
   return (
-    <div className="pointer-events-auto space-y-2.5">
-      <SearchField
-        name="map-search"
-        value={keyword}
-        placeholder={placeholder}
-        onChange={(event) => setKeyword(event.target.value)}
-      />
-      <CategoryChips
-        categories={categories}
-        selectedCategories={selectedCategories}
-        onToggleCategory={handleCategoryToggle}
-      />
+    <div ref={containerRef} className="pointer-events-none space-y-2.5">
+      <div className="pointer-events-auto">
+        <SearchField
+          name="map-search"
+          value={keyword}
+          placeholder={placeholder}
+          onChange={(event) => onKeywordChange(event.target.value)}
+          inputClassName={MAP_SEARCH_INPUT_GLASS_CLASS}
+        />
+      </div>
+
+      <div className="pointer-events-auto">
+        <FilterBar
+          {...filterBarProps}
+          onCloseTagPanel={onCloseTagPanel}
+          isTagPanelOpen={isTagPanelOpen}
+        />
+      </div>
     </div>
   );
 });
