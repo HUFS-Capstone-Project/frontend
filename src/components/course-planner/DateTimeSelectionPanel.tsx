@@ -1,4 +1,4 @@
-﻿import { CalendarDays, ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -20,22 +20,25 @@ type DateTimeSelectionPanelProps = {
   onConfirm: () => void;
 };
 
-const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+const weekdayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const weekdaysKo = ["\uc77c", "\uc6d4", "\ud654", "\uc218", "\ubaa9", "\uae08", "\ud1a0"];
 const monthLabel = "April 2026";
-const dateOptions = Array.from({ length: 14 }, (_, index) => {
-  const day = 14 + index;
+const monthStartBlankCount = 3;
+const dateOptions = Array.from({ length: 30 }, (_, index) => {
+  const day = index + 1;
   const date = `2026.04.${String(day).padStart(2, "0")}`;
-  const weekday = weekdays[new Date(2026, 3, day).getDay()];
+  const weekday = weekdaysKo[new Date(2026, 3, day).getDay()];
   return { date, day, weekday };
 });
-const timeOptions = ["11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+const startTimeOptions = ["11:00", "12:00", "13:00", "14:00", "15:00"];
+const endTimeOptions = ["18:00", "19:00", "20:00", "21:00"];
 
 export function getDateTimeDisplayValue(selection: DateTimeSelection | null) {
   if (!selection) return "";
   if (!selection.startTime || !selection.endTime) {
-    return `${selection.date} ${selection.weekday}요일`;
+    return `${selection.date} ${selection.weekday}\uc694\uc77c`;
   }
-  return `${selection.date} ${selection.weekday}요일 ${selection.startTime} ~ ${selection.endTime}`;
+  return `${selection.date} ${selection.weekday}\uc694\uc77c ${selection.startTime} ~ ${selection.endTime}`;
 }
 
 export function DateTimeSelectionPanel({
@@ -48,128 +51,149 @@ export function DateTimeSelectionPanel({
   onClose,
   onConfirm,
 }: DateTimeSelectionPanelProps) {
-  const selectedDateOption = dateOptions.find((option) => option.date === selectedDate) ?? dateOptions[0];
+  const selectedDateOption = dateOptions.find((option) => option.date === selectedDate) ?? dateOptions[19];
   const hasTimeRange = selectedStartTime != null && selectedEndTime != null;
+  const confirmLabel = hasTimeRange
+    ? `${selectedDateOption.date} ${selectedStartTime} ~ ${selectedEndTime} \uc124\uc815\ud558\uae30`
+    : `${selectedDateOption.date} \uc124\uc815\ud558\uae30`;
 
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-5 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
-      <div className="mx-auto mb-4 h-1 w-14 rounded-full bg-[#d9d9d9]" />
-
-      <header className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex size-8 items-center justify-center rounded-full text-[#52525b] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          aria-label="날짜 및 시간 설정 닫기"
-        >
-          <ChevronLeft className="size-4" aria-hidden />
-        </button>
-        <h1 className="text-base font-bold text-[#171717]">날짜 및 시간 설정</h1>
-      </header>
-
-      <div className="mt-5 rounded-2xl border border-[#eeeeee] bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-bold text-[#171717]">{monthLabel}</p>
-            <p className="mt-1 text-xs text-[#9ca3af]">오늘 이후 날짜만 선택할 수 있어요</p>
-          </div>
-          <CalendarDays className="size-5 text-[#f06f6b]" aria-hidden />
-        </div>
-
-        <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[0.7rem] font-semibold text-[#a1a1aa]">
-          {weekdays.map((weekday) => (
-            <span key={weekday}>{weekday}</span>
-          ))}
-        </div>
-
-        <div className="mt-2 grid grid-cols-7 gap-1">
-          {dateOptions.map((option) => {
-            const selected = option.date === selectedDateOption.date;
-            return (
-              <button
-                key={option.date}
-                type="button"
-                onClick={() => onSelectDate(option.date)}
-                className={cn(
-                  "flex aspect-square items-center justify-center rounded-full text-sm transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  selected ? "bg-[#f06f6b] font-bold text-white" : "text-[#171717] hover:bg-[#fff0ee]",
-                )}
-                aria-label={`${option.date} ${option.weekday}요일`}
-              >
-                {option.day}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#171717]">시간 설정</h2>
+    <section className="relative z-30 -mt-44 flex justify-center px-4 pb-7">
+      <div className="w-[280px] overflow-hidden rounded-xl bg-white shadow-[0_18px_50px_rgba(15,23,42,0.22)] ring-1 ring-black/5">
+        <header className="flex items-center justify-between px-3.5 py-3">
           <button
             type="button"
-            onClick={() => {
-              onSelectStartTime(null);
-              onSelectEndTime(null);
-            }}
-            className={cn(
-              "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
-              hasTimeRange ? "bg-[#f4f4f5] text-[#71717a]" : "bg-[#fff0ee] text-[#f06f6b]",
-            )}
+            onClick={onClose}
+            className="inline-flex size-7 items-center justify-center rounded-full text-[#454545] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-label="\ub0a0\uc9dc \ubc0f \uc2dc\uac04 \uc124\uc815 \ub2eb\uae30"
           >
-            시간 지정 안 함
+            <ChevronLeft className="size-4" aria-hidden />
+          </button>
+
+          <div className="flex items-center gap-1 text-sm font-bold text-[#252525]">
+            <span>{monthLabel}</span>
+            <ChevronRight className="size-3.5 text-[#2687d9]" aria-hidden />
+          </div>
+
+          <div className="flex items-center gap-1 text-[#2687d9]">
+            <button
+              type="button"
+              className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              aria-label="\uc774\uc804 \ub2ec"
+            >
+              <ChevronLeft className="size-4" aria-hidden />
+            </button>
+            <button
+              type="button"
+              className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              aria-label="\ub2e4\uc74c \ub2ec"
+            >
+              <ChevronRight className="size-4" aria-hidden />
+            </button>
+          </div>
+        </header>
+
+        <div className="px-3.5 pb-2">
+          <div className="grid grid-cols-7 text-center text-[0.58rem] font-semibold text-[#a3a3a3]">
+            {weekdayLabels.map((weekday) => (
+              <span key={weekday} className="py-1">
+                {weekday}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-1 grid grid-cols-7 gap-y-1 text-center">
+            {Array.from({ length: monthStartBlankCount }).map((_, index) => (
+              <span key={`blank-${index}`} aria-hidden />
+            ))}
+            {dateOptions.map((option) => {
+              const selected = option.date === selectedDateOption.date;
+              return (
+                <button
+                  key={option.date}
+                  type="button"
+                  onClick={() => onSelectDate(option.date)}
+                  className={cn(
+                    "mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    selected ? "bg-[#7dd3fc] font-bold text-[#0f172a]" : "text-[#171717] hover:bg-[#f1f5f9]",
+                  )}
+                  aria-label={`${option.date} ${option.weekday}\uc694\uc77c`}
+                >
+                  {option.day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-[#ededed] px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold text-[#303030]">Time</span>
+            <button
+              type="button"
+              onClick={() => {
+                onSelectStartTime(null);
+                onSelectEndTime(null);
+              }}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                hasTimeRange ? "bg-[#f4f4f5] text-[#71717a] hover:bg-[#e9e9ec]" : "bg-[#fff0ee] text-[#f06f6b]",
+              )}
+            >
+              {hasTimeRange ? `${selectedStartTime} ~ ${selectedEndTime}` : "\uc2dc\uac04 \uc9c0\uc815 \uc548 \ud568"}
+            </button>
+          </div>
+
+          <div className="mt-2 grid gap-1.5">
+            <TimeChipRow
+              label="\uc2dc\uc791"
+              selectedTime={selectedStartTime}
+              options={startTimeOptions}
+              onSelect={(time) => {
+                onSelectStartTime(time);
+                if (!selectedEndTime || time >= selectedEndTime) {
+                  onSelectEndTime("21:00");
+                }
+              }}
+            />
+            <TimeChipRow
+              label="\uc885\ub8cc"
+              selectedTime={selectedEndTime}
+              options={endTimeOptions}
+              onSelect={(time) => {
+                if (selectedStartTime && time <= selectedStartTime) return;
+                onSelectEndTime(time);
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="px-3.5 pb-3">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-xs font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {confirmLabel}
           </button>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <TimeColumn
-            label="시작"
-            selectedTime={selectedStartTime}
-            options={timeOptions.slice(0, -1)}
-            onSelect={(time) => {
-              onSelectStartTime(time);
-              if (!selectedEndTime || time >= selectedEndTime) {
-                onSelectEndTime("21:00");
-              }
-            }}
-          />
-          <TimeColumn
-            label="종료"
-            selectedTime={selectedEndTime}
-            options={timeOptions.slice(1)}
-            onSelect={(time) => {
-              if (selectedStartTime && time <= selectedStartTime) return;
-              onSelectEndTime(time);
-            }}
-          />
-        </div>
       </div>
-
-      <button
-        type="button"
-        onClick={onConfirm}
-        className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-sm font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        {hasTimeRange
-          ? `${selectedDateOption.date} ${selectedStartTime} ~ ${selectedEndTime} 설정하기`
-          : `${selectedDateOption.date} 설정하기`}
-      </button>
     </section>
   );
 }
 
-type TimeColumnProps = {
+type TimeChipRowProps = {
   label: string;
   selectedTime: string | null;
   options: string[];
   onSelect: (time: string) => void;
 };
 
-function TimeColumn({ label, selectedTime, options, onSelect }: TimeColumnProps) {
+function TimeChipRow({ label, selectedTime, options, onSelect }: TimeChipRowProps) {
   return (
-    <div className="rounded-2xl border border-[#eeeeee] bg-[#fafafa] p-2">
-      <p className="px-2 py-1 text-xs font-semibold text-[#71717a]">{label}</p>
-      <div className="mt-1 grid max-h-44 gap-1 overflow-y-auto pr-1">
+    <div className="flex items-center gap-1.5">
+      <span className="w-7 shrink-0 text-[0.65rem] font-semibold text-[#8a8a8a]">{label}</span>
+      <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto pb-0.5">
         {options.map((time) => {
           const selected = time === selectedTime;
           return (
@@ -178,8 +202,8 @@ function TimeColumn({ label, selectedTime, options, onSelect }: TimeColumnProps)
               type="button"
               onClick={() => onSelect(time)}
               className={cn(
-                "h-9 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                selected ? "bg-[#fff0ee] text-[#f06f6b]" : "bg-white text-[#52525b] hover:bg-[#f4f4f5]",
+                "shrink-0 rounded-md px-2 py-1 text-[0.68rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                selected ? "bg-[#fff0ee] text-[#f06f6b]" : "bg-[#fafafa] text-[#5f5f5f] hover:bg-[#f1f1f1]",
               )}
             >
               {time}
