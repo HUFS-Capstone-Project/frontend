@@ -47,7 +47,7 @@ export function FullScreenOverlayShell({
         type="button"
         aria-label="닫기"
         className={cn(
-          "absolute inset-0 bg-black/20 transition-opacity duration-180 ease-out md:bg-transparent",
+          "bg-overlay-scrim absolute inset-0 transition-opacity duration-180 ease-out md:bg-transparent",
           isVisible ? "opacity-100" : "opacity-0",
           overlayClassName,
         )}
@@ -56,7 +56,7 @@ export function FullScreenOverlayShell({
 
       <section
         className={cn(
-          "relative z-10 flex h-dvh w-full max-w-lg flex-col overflow-hidden bg-white",
+          "bg-card relative z-10 flex h-dvh w-full max-w-lg flex-col overflow-hidden",
           "transition-[opacity,transform] duration-180 ease-out md:max-w-3xl xl:max-w-lg",
           isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
           panelClassName,

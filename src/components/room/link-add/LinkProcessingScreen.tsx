@@ -15,11 +15,11 @@ export function LinkProcessingScreen({ roomName, url, onCancel }: LinkProcessing
         <p className="text-foreground text-xl leading-tight font-bold">링크로 릴스 추가</p>
       </div>
 
-      <div className="mt-6 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm text-zinc-700">
+      <div className="border-border bg-muted/50 mt-6 rounded-full border px-4 py-2 text-sm text-foreground">
         <p className="truncate">{url}</p>
       </div>
 
-      <div className="mt-10 flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
+      <div className="border-border bg-muted/40 mt-10 flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed px-6 py-10 text-center">
         <BrandMarkerLoader className="h-12 w-12 -translate-y-3" showShadow={false} />
         <div className="space-y-1">
           <p className="text-foreground text-sm font-semibold">링크를 처리 중입니다</p>

@@ -29,7 +29,7 @@ export function FriendFloatingMenu({
               <button
                 type="button"
                 className={cn(
-                  "bg-muted text-muted-foreground pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border-2 border-white shadow-[0_4px_10px_rgb(0_0_0_/_0.18)] transition-all duration-200",
+                  "bg-muted text-muted-foreground border-background pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border-2 shadow-floating transition-all duration-200",
                   open
                     ? "translate-y-0 scale-100 opacity-100"
                     : "pointer-events-none translate-y-1.5 scale-90 opacity-0",
@@ -51,7 +51,7 @@ export function FriendFloatingMenu({
         onClick={onToggle}
         aria-expanded={open}
         aria-label="친구 목록 열기"
-        className="bg-brand-coral text-primary-foreground focus-visible:ring-ring focus-visible:ring-offset-background active:bg-brand-coral/90 inline-flex size-12 items-center justify-center rounded-full shadow-md outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="bg-primary text-primary-foreground focus-visible:ring-ring focus-visible:ring-offset-background active:bg-primary/90 inline-flex size-12 items-center justify-center rounded-full shadow-md outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         <MoreHorizontal className="size-6" strokeWidth={2.4} aria-hidden />
       </button>

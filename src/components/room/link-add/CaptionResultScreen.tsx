@@ -36,7 +36,7 @@ export function CaptionResultScreen({
         <p className="text-foreground text-xl leading-tight font-bold">캡션 추출 결과</p>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-4">
+      <div className="bg-card border-border mt-6 rounded-2xl border p-4">
         <div className="space-y-3">
           <ResultRow label="linkId" value={String(result.linkId)} />
           <ResultRow label="originalUrl" value={result.originalUrl} />
@@ -44,9 +44,9 @@ export function CaptionResultScreen({
             <span
               className={cn(
                 "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
-                isSucceeded && "bg-emerald-50 text-emerald-700",
-                isFailed && "bg-red-50 text-red-700",
-                !isSucceeded && !isFailed && "bg-zinc-100 text-zinc-700",
+                isSucceeded && "bg-success-soft text-success-foreground",
+                isFailed && "bg-error-soft text-error-foreground",
+                !isSucceeded && !isFailed && "bg-muted text-foreground",
               )}
             >
               {result.status}
@@ -59,7 +59,7 @@ export function CaptionResultScreen({
       {onMoveToMockPlaces ? (
         <button
           type="button"
-          className="text-brand-coral mt-4 self-start text-xs font-semibold underline underline-offset-4"
+          className="text-primary mt-4 self-start text-xs font-semibold underline underline-offset-4"
           onClick={onMoveToMockPlaces}
         >
           (Mock) 장소 후보 화면으로 이동
@@ -109,7 +109,7 @@ function ResultRow({ label, value, children }: ResultRowProps) {
   return (
     <div className="grid grid-cols-[88px_minmax(0,1fr)] items-start gap-2 text-sm">
       <span className="text-muted-foreground text-xs font-semibold uppercase">{label}</span>
-      <div className="min-w-0 break-all text-zinc-700">{children ?? value}</div>
+      <div className="text-foreground min-w-0 break-all">{children ?? value}</div>
     </div>
   );
 }

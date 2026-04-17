@@ -35,6 +35,35 @@ body {
   /* 방 메인 헤더: 좌상 → 우하 대각선 그라데이션 */
   --room-header-gradient-from: #ff968e;
   --room-header-gradient-to: #f68981;
+  --room-header-foreground: oklch(0.99 0 0);
+  --room-header-foreground-muted: oklch(0.99 0 0 / 0.9);
+
+  /* 오버레이·스크림·미세 테두리 (컴포넌트는 토큰만 참조) */
+  --overlay-scrim: oklch(0 0 0 / 0.2);
+  --overlay-scrim-strong: oklch(0 0 0 / 0.45);
+  --border-subtle: oklch(0 0 0 / 0.1);
+
+  /* 그림자 (단일 출처 → @theme shadow-* 유틸) */
+  --elevation-sheet: 0 -4px 28px oklch(0.25 0.02 260 / 0.06);
+  --elevation-floating: 0 4px 10px oklch(0 0 0 / 0.18);
+  --elevation-nav: 0 -1px 10px oklch(0 0 0 / 0.05);
+  --elevation-filter-panel: 0 8px 20px oklch(0 0 0 / 0.08);
+
+  /* 지도·크롬 (index.html theme-color 와 동기: --app-theme-color) */
+  --map-placeholder-bg: #ece8e5;
+  --app-theme-color: var(--brand-coral-solid);
+
+  /* 스플래시 타이틀 (순백 #fff 대신 근사 톤) */
+  --splash-foreground: oklch(0.99 0 0);
+
+  /* 상태 배지 (CaptionResult 등) */
+  --success-soft: oklch(0.96 0.04 160);
+  --success-foreground: oklch(0.45 0.12 160);
+  --error-soft: oklch(0.96 0.05 25);
+  --error-foreground: oklch(0.45 0.2 25);
+
+  /* 리스트 탭 하이라이트 (순흑 대신 투명도) */
+  --tap-highlight: oklch(0 0 0 / 0.02);
 
   /* 방 메인 리스트·셸 (레이아웃·타이포 한곳에서 조정) */
   --room-fab-gap-above-nav: 1rem;
@@ -202,7 +231,7 @@ body {
     width: 24px;
     height: 4px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--overlay-scrim);
     transform-origin: center;
   }
 
@@ -290,6 +319,25 @@ body {
   /* 하위 호환: 기존 `onboarding-point` 유틸 */
   --color-onboarding-point: var(--brand-coral-solid);
   --color-onboarding-point-soft: var(--brand-coral-soft);
+
+  /* 시맨틱 확장: 오버레이·상태·헤더 글자색 */
+  --color-overlay-scrim: var(--overlay-scrim);
+  --color-overlay-scrim-strong: var(--overlay-scrim-strong);
+  --color-border-subtle: var(--border-subtle);
+  --color-map-placeholder-bg: var(--map-placeholder-bg);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-error-soft: var(--error-soft);
+  --color-error-foreground: var(--error-foreground);
+  --color-splash-foreground: var(--splash-foreground);
+  --color-room-header-foreground: var(--room-header-foreground);
+  --color-room-header-foreground-muted: var(--room-header-foreground-muted);
+  --color-tap-highlight: var(--tap-highlight);
+
+  --shadow-sheet: var(--elevation-sheet);
+  --shadow-floating: var(--elevation-floating);
+  --shadow-nav: var(--elevation-nav);
+  --shadow-filter-panel: var(--elevation-filter-panel);
 }
 
 :root {
@@ -299,7 +347,11 @@ body {
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /**
+   * primary = 브랜드 코랄 (`--brand-coral-solid`와 동일 출처).
+   * CTA·강조는 `bg-primary` / `text-primary` 우선, `brand-coral-*` 유틸은 보조 톤(soft/muted)용.
+   */
+  --primary: var(--brand-coral-solid);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -328,14 +380,26 @@ body {
 }
 
 .dark {
+  --overlay-scrim: oklch(0 0 0 / 0.55);
+  --overlay-scrim-strong: oklch(0 0 0 / 0.72);
+  --border-subtle: oklch(1 0 0 / 0.12);
+  --tap-highlight: oklch(1 0 0 / 0.06);
+  --success-soft: oklch(0.32 0.06 160);
+  --success-foreground: oklch(0.88 0.06 160);
+  --error-soft: oklch(0.32 0.08 25);
+  --error-foreground: oklch(0.9 0.05 25);
+  --splash-foreground: oklch(0.99 0 0);
+  --room-header-foreground: oklch(0.99 0 0);
+  --room-header-foreground-muted: oklch(0.99 0 0 / 0.9);
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: var(--brand-coral-solid);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);

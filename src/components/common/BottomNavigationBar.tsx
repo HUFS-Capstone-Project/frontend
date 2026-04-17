@@ -27,7 +27,7 @@ export function BottomNavigationBar({ activeId, onSelect, className }: BottomNav
     <nav
       className={cn(
         "border-border/60 bg-background overflow-hidden rounded-t-3xl pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]",
-        "border-t shadow-[0_-1px_10px_rgb(0_0_0_/_0.05)]",
+        "border-t shadow-nav",
         className,
       )}
       aria-label="하단 메뉴"
@@ -49,7 +49,7 @@ export function BottomNavigationBar({ activeId, onSelect, className }: BottomNav
                 <Icon
                   className={cn(
                     "transition-interaction-nav-color size-5 shrink-0",
-                    active ? "text-brand-coral" : "text-muted-foreground/45",
+                    active ? "text-primary" : "text-muted-foreground/45",
                   )}
                   strokeWidth={active ? 2.25 : 2}
                   aria-hidden
@@ -57,7 +57,7 @@ export function BottomNavigationBar({ activeId, onSelect, className }: BottomNav
                 <span
                   className={cn(
                     "transition-interaction-nav-color max-w-full truncate px-0.5",
-                    active ? "text-brand-coral" : "text-muted-foreground/85",
+                    active ? "text-primary" : "text-muted-foreground/85",
                   )}
                 >
                   {label}

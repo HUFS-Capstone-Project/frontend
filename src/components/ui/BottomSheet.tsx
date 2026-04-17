@@ -106,7 +106,7 @@ export function BottomSheet({
         type="button"
         aria-label="닫기"
         className={cn(
-          "absolute inset-0 bg-black/20 transition-opacity duration-240 ease-out",
+          "bg-overlay-scrim absolute inset-0 transition-opacity duration-240 ease-out",
           isVisible ? "opacity-100" : "opacity-0",
           overlayClassName,
         )}
@@ -116,7 +116,7 @@ export function BottomSheet({
       <section
         className={cn(
           "bg-background relative z-10 mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.7rem]",
-          "max-h-[calc(100dvh-3.5rem)] shadow-[0_-4px_28px_rgba(15,23,42,0.06)]",
+          "max-h-[calc(100dvh-3.5rem)] shadow-sheet",
           isDragging ? "transition-none" : "transition-[transform,opacity] duration-240 ease-out",
           panelClassName,
         )}
@@ -132,7 +132,7 @@ export function BottomSheet({
       >
         {!hideHandle ? (
           <div className="px-5 pt-2 pb-2">
-            <div className="mx-auto h-1 w-16 rounded-full bg-zinc-200/95" />
+            <div className="bg-muted-foreground/25 mx-auto h-1 w-16 rounded-full" />
           </div>
         ) : null}
 

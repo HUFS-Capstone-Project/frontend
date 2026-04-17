@@ -12,7 +12,7 @@ export function RoomAddDrawer({ onSelectCreate, onSelectJoin }: RoomAddDrawerPro
       <div className="mt-6 space-y-3.5">
         <button
           type="button"
-          className="w-full rounded-[1.0rem] border border-zinc-300/95 px-4 py-4 text-left transition-colors hover:bg-zinc-100/60 active:bg-zinc-200/65"
+          className="border-border hover:bg-muted/30 active:bg-muted/40 w-full rounded-[1.0rem] border px-4 py-4 text-left transition-colors"
           onClick={onSelectCreate}
         >
           <p className="text-foreground text-[1.0rem] leading-snug font-medium">방 생성 / 초대</p>
@@ -22,7 +22,7 @@ export function RoomAddDrawer({ onSelectCreate, onSelectJoin }: RoomAddDrawerPro
         </button>
         <button
           type="button"
-          className="w-full rounded-[1.0rem] border border-zinc-300/95 px-4 py-4 text-left transition-colors hover:bg-zinc-100/60 active:bg-zinc-200/65"
+          className="border-border hover:bg-muted/30 active:bg-muted/40 w-full rounded-[1.0rem] border px-4 py-4 text-left transition-colors"
           onClick={onSelectJoin}
         >
           <p className="text-foreground text-[1.0rem] leading-snug font-medium">입장코드로 참여</p>

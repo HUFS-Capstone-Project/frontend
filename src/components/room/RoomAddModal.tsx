@@ -88,7 +88,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
         open={step !== "none"}
         onClose={closeFlow}
         historyStateKey="roomAddFlow"
-        overlayClassName="bg-black/45 md:bg-transparent"
+        overlayClassName="bg-overlay-scrim-strong md:bg-transparent"
       >
         {renderStep === "createName" ? (
           <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-16 pb-8">
@@ -110,7 +110,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 }}
                 placeholder="예: 내 사랑♥️"
                 autoComplete="off"
-                className="border-input placeholder:text-muted-foreground h-12 w-full rounded-full border bg-white px-4 text-sm outline-none"
+                className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
               {roomNameError ? (
                 <p className="text-destructive mt-2 px-1 text-sm" role="alert">
@@ -147,7 +147,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 초대할 친구에게 하단의 입장코드를 공유하세요
               </p>
 
-              <div className="border-border mt-6 rounded-3xl border bg-white px-5 py-6">
+              <div className="border-border bg-card mt-6 rounded-3xl border px-5 py-6">
                 <p className="text-foreground text-[1.75rem] leading-none font-medium tabular-nums">
                   {displayInviteCode}
                 </p>
@@ -209,7 +209,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 }}
                 placeholder="입장코드를 입력해 주세요"
                 autoComplete="off"
-                className="border-input placeholder:text-muted-foreground h-12 w-full rounded-full border bg-white px-4 text-sm outline-none"
+                className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
               {inviteCodeError ? (
                 <p className="text-destructive mt-2 px-1 text-sm" role="alert">

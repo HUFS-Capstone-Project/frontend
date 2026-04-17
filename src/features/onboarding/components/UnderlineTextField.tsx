@@ -89,7 +89,7 @@ export function UnderlineTextField({
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
-      <div className="focus-within:border-onboarding-point/70 flex min-h-11 items-center gap-2 border-b border-zinc-200 pb-2 transition-colors">
+      <div className="focus-within:border-onboarding-point/70 border-border flex min-h-11 items-center gap-2 border-b pb-2 transition-colors">
         <input
           id={id}
           type="text"
@@ -108,7 +108,7 @@ export function UnderlineTextField({
           onPaste={handlePaste}
           placeholder={placeholder}
           className={cn(
-            "min-h-0 min-w-0 flex-1 bg-transparent py-1 placeholder:text-zinc-400 focus:outline-none",
+            "placeholder:text-muted-foreground min-h-0 min-w-0 flex-1 bg-transparent py-1 focus:outline-none",
             appFormInputTextClassName,
             inputClassName,
           )}
@@ -119,7 +119,7 @@ export function UnderlineTextField({
             aria-label={`${label} 지우기`}
             tabIndex={hasValue ? 0 : -1}
             className={cn(
-              "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors active:bg-zinc-100",
+              "text-muted-foreground active:bg-muted flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors",
               !hasValue && "pointer-events-none invisible",
             )}
             onClick={() => {
@@ -127,7 +127,7 @@ export function UnderlineTextField({
               clear();
             }}
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white">
+            <span className="border-border bg-card flex h-6 w-6 items-center justify-center rounded-full border">
               <X className="h-3.5 w-3.5" strokeWidth={2.5} />
             </span>
           </button>

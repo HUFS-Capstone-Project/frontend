@@ -23,7 +23,7 @@ export function AgreementList({
 }: AgreementListProps) {
   return (
     <div className="flex w-full flex-col gap-0.5 pt-0.5">
-      <div className="mb-3 border-b border-zinc-200/90 pb-4">
+      <div className="border-border mb-3 border-b pb-4">
         <AgreementItem
           id={`${idPrefix}-all`}
           label="전체동의"

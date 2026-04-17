@@ -43,7 +43,7 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
           type="button"
           className={cn(
             "flex-1 py-4 text-sm font-medium transition-colors",
-            "border-border/50 text-brand-coral hover:bg-muted/25 active:bg-muted/35 border-r",
+            "border-border/50 text-primary hover:bg-muted/25 active:bg-muted/35 border-r",
           )}
           onClick={onClose}
         >

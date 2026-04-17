@@ -21,7 +21,7 @@ export function RoomMainHeader({
   return (
     <header
       className={cn(
-        "bg-room-header-gradient px-page flex flex-col gap-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 text-white",
+        "bg-room-header-gradient text-room-header-foreground px-page flex flex-col gap-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3",
         className,
       )}
     >
@@ -42,7 +42,7 @@ export function RoomMainHeader({
         <button
           type="button"
           onClick={() => void handleLogout()}
-          className="focus-visible:ring-ring -me-0.5 shrink-0 rounded-md px-1 py-1 text-sm font-medium text-white/90 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--room-header-gradient-to)]"
+          className="focus-visible:ring-ring text-room-header-foreground-muted hover:text-room-header-foreground -me-0.5 shrink-0 rounded-md px-1 py-1 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--room-header-gradient-to)]"
         >
           로그아웃
         </button>

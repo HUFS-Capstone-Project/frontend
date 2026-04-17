@@ -77,7 +77,7 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
       </p>
 
       <div className="col-start-3 row-span-2 row-start-1 flex shrink-0 flex-col items-center justify-center self-center">
-        <span className="text-room-meta text-brand-coral cursor-pointer text-center">
+        <span className="text-room-meta text-primary cursor-pointer text-center">
           {row.placeCount}개 장소
         </span>
       </div>

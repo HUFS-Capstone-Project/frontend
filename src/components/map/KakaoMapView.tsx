@@ -125,18 +125,18 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
   }, [loadState, places]);
 
   return (
-    <div className={cn("relative h-full w-full bg-[#ece8e5]", className)}>
+    <div className={cn("relative h-full w-full bg-map-placeholder-bg", className)}>
       <div
         ref={mapContainerRef}
         className="relative z-0 h-full w-full [touch-action:pan-x_pan-y]"
       />
 
       {hasMapKey && loadState === "loading" ? (
-        <div className="pointer-events-none absolute inset-0 bg-white/30" aria-hidden />
+        <div className="bg-background/30 pointer-events-none absolute inset-0" aria-hidden />
       ) : null}
 
       {!hasMapKey || loadState === "error" ? (
-        <div className="bg-background/95 absolute inset-x-4 top-4 rounded-xl border border-black/10 p-3 text-xs shadow">
+        <div className="bg-background/95 border-border-subtle absolute inset-x-4 top-4 rounded-xl border p-3 text-xs shadow-sm">
           <p className="font-semibold">지도를 불러오지 못했어요.</p>
           <p className="text-muted-foreground mt-1 leading-4">
             `.env.*`에 `VITE_KAKAO_MAP_APP_KEY`를 설정하면 Kakao 지도가 표시됩니다.

@@ -30,7 +30,7 @@ export function PlaceSelectionScreen({
         <p className="text-foreground text-xl leading-tight font-bold">(Mock) 장소 후보 선택</p>
       </div>
 
-      <div className="mt-6 rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm text-zinc-700">
+      <div className="border-border bg-muted/50 mt-6 rounded-full border px-4 py-2 text-sm text-foreground">
         <p className="truncate">{originalUrl}</p>
       </div>
 
@@ -46,16 +46,16 @@ export function PlaceSelectionScreen({
               <button
                 type="button"
                 className={cn(
-                  "flex w-full items-center justify-between rounded-full bg-zinc-100 px-4 py-3 text-left text-sm",
-                  checked && "bg-brand-coral-soft",
+                  "flex w-full items-center justify-between rounded-full bg-muted/60 px-4 py-3 text-left text-sm",
+                  checked && "bg-primary/10",
                 )}
                 onClick={() => onSelectPlace(place.id)}
               >
                 <span className="text-foreground">{place.name}</span>
                 <span
                   className={cn(
-                    "inline-flex h-5 w-5 rounded-full border border-zinc-400",
-                    checked && "border-brand-coral bg-brand-coral",
+                    "inline-flex h-5 w-5 rounded-full border border-border",
+                    checked && "border-primary bg-primary",
                   )}
                 />
               </button>
