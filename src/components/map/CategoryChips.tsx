@@ -7,6 +7,7 @@ export type CategoryChipsProps = {
   categories: MapPlaceCategory[];
   selectedCategories: MapPlaceCategory[];
   onToggleCategory: (category: MapPlaceCategory) => void;
+  onEtcClick?: () => void;
   className?: string;
 };
 
@@ -21,6 +22,7 @@ export function CategoryChips({
   categories,
   selectedCategories,
   onToggleCategory,
+  onEtcClick,
   className,
 }: CategoryChipsProps) {
   return (
@@ -33,7 +35,9 @@ export function CategoryChips({
           <li key={category}>
             <button
               type="button"
-              onClick={() => onToggleCategory(category)}
+              onClick={() =>
+                category === "기타" && onEtcClick ? onEtcClick() : onToggleCategory(category)
+              }
               className={cn(
                 "flex h-7 min-w-fit items-center justify-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors",
                 selected

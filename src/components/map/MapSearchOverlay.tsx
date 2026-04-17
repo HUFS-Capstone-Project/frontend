@@ -2,6 +2,8 @@ import { memo, useEffect, useMemo, useState } from "react";
 
 import { SearchField } from "@/components/common/SearchField";
 import type { MapPlaceCategory, SavedPlace } from "@/shared/types/map-home";
+import { useFilterStore } from "@/store/filterStore";
+import { useUiStore } from "@/store/uiStore";
 
 import { CategoryChips } from "./CategoryChips";
 
@@ -22,7 +24,18 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
 }: MapSearchOverlayProps) {
   const [keyword, setKeyword] = useState("");
   const [selectedCategories, setSelectedCategories] =
-    useState<MapPlaceCategory[]>(initialCategories);
+    useState<MapPlaceCategory[]>(initialCategories.filter((category) => category !== "기타"));
+  const selectedTags = useFilterStore((state) => state.selectedTags);
+  const setFilterOpen = useUiStore((state) => state.setFilterOpen);
+  const isEtcActive = selectedTags.length > 0;
+
+  const visibleSelectedCategories = useMemo<MapPlaceCategory[]>(
+    () =>
+      isEtcActive
+        ? [...selectedCategories.filter((category) => category !== "기타"), "기타"]
+        : selectedCategories.filter((category) => category !== "기타"),
+    [isEtcActive, selectedCategories],
+  );
 
   const filteredPlaces = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
@@ -43,6 +56,11 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
   }, [filteredPlaces, onFilteredPlacesChange]);
 
   const handleCategoryToggle = (category: MapPlaceCategory) => {
+    if (category === "기타") {
+      setFilterOpen(true);
+      return;
+    }
+
     setSelectedCategories((prev) =>
       prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category],
     );
@@ -58,8 +76,9 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
       />
       <CategoryChips
         categories={categories}
-        selectedCategories={selectedCategories}
+        selectedCategories={visibleSelectedCategories}
         onToggleCategory={handleCategoryToggle}
+        onEtcClick={() => setFilterOpen(true)}
       />
     </div>
   );
