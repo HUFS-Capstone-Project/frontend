@@ -23,8 +23,9 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
   onFilteredPlacesChange,
 }: MapSearchOverlayProps) {
   const [keyword, setKeyword] = useState("");
-  const [selectedCategories, setSelectedCategories] =
-    useState<MapPlaceCategory[]>(initialCategories.filter((category) => category !== "기타"));
+  const [selectedCategories, setSelectedCategories] = useState<MapPlaceCategory[]>(
+    initialCategories.filter((category) => category !== "기타"),
+  );
   const selectedTags = useFilterStore((state) => state.selectedTags);
   const setFilterOpen = useUiStore((state) => state.setFilterOpen);
   const isEtcActive = selectedTags.length > 0;

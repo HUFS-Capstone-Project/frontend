@@ -266,7 +266,10 @@ export function useLinkAddFlow({
   };
 }
 
-function applySavedLinkCountToRoomCache(queryClient: ReturnType<typeof useQueryClient>, roomId: string) {
+function applySavedLinkCountToRoomCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  roomId: string,
+) {
   queryClient.setQueryData(roomQueryKeys.rooms(), (previous: RoomSummaryResponse[] | undefined) => {
     if (!previous) {
       return previous;

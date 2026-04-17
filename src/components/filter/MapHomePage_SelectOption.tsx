@@ -14,10 +14,7 @@ const SECTION_ICON_MAP: Record<FilterSection["category"], typeof UtensilsCrossed
   놀거리: Flag,
 };
 
-export function MapHomePageSelectOption({
-  open,
-  onOpenChange,
-}: MapHomePageSelectOptionProps) {
+export function MapHomePageSelectOption({ open, onOpenChange }: MapHomePageSelectOptionProps) {
   const selectedTags = useFilterStore((state) => state.selectedTags);
   const toggleTag = useFilterStore((state) => state.toggleTag);
   const setSelectedTags = useFilterStore((state) => state.setSelectedTags);
