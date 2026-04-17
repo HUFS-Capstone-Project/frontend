@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect } from "react";
 
 import { MapHomePage_WithFilter } from "@/pages/MapHomePage_WithFilter";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -13,22 +13,15 @@ const DEV_ROOM = {
 export function DevSelectOptionPage() {
   const selectRoom = useRoomSelectionStore((state) => state.selectRoom);
   const setFilterOpen = useUiStore((state) => state.setFilterOpen);
-  const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
     selectRoom(DEV_ROOM);
     setFilterOpen(true);
-    setReady(true);
 
     return () => {
       setFilterOpen(false);
-      setReady(false);
     };
   }, [selectRoom, setFilterOpen]);
-
-  if (!ready) {
-    return null;
-  }
 
   return <MapHomePage_WithFilter />;
 }
