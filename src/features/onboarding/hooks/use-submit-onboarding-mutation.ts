@@ -34,7 +34,6 @@ export function useSubmitOnboardingMutation() {
       setHasCompletedOnboarding(me.onboardingCompleted);
 
       queryClient.setQueryData(userQueryKeys.me(), me);
-      void queryClient.invalidateQueries({ queryKey: userQueryKeys.me() });
     },
   });
 }

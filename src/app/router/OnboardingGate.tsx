@@ -21,8 +21,6 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);
 
-  const setNickname = useAuthStore((s) => s.setNickname);
-  const setHasCompletedOnboarding = useAuthStore((s) => s.setHasCompletedOnboarding);
   const logout = useAuthStore((s) => s.logout);
 
   const meQuery = useUserMeQuery({
@@ -30,15 +28,6 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   });
 
   const me = meQuery.data;
-
-  useEffect(() => {
-    if (!me) {
-      return;
-    }
-
-    setNickname(me.nickname);
-    setHasCompletedOnboarding(me.onboardingCompleted);
-  }, [me, setHasCompletedOnboarding, setNickname]);
 
   const shouldRedirectToLogin =
     meQuery.isError &&

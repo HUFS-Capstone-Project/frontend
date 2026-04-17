@@ -32,8 +32,6 @@ export function useCreateRoomMutation() {
           return [mapCreateRoomToSummary(createdRoom), ...next];
         },
       );
-
-      void queryClient.invalidateQueries({ queryKey: roomQueryKeys.rooms() });
     },
   });
 }

@@ -25,7 +25,6 @@ export function useJoinRoomMutation() {
         },
       );
 
-      void queryClient.invalidateQueries({ queryKey: roomQueryKeys.rooms() });
       void queryClient.invalidateQueries({ queryKey: roomQueryKeys.roomDetail(joinedRoom.roomId) });
     },
   });

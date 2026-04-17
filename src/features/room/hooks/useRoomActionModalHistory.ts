@@ -1,35 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import type { FriendRoomRow } from "@/shared/types/room";
 
 /**
- * 방 액션 모달과 브라우저 history 스택 동기화 (뒤로가기로 모달 닫기).
+ * 방 액션 모달 선택 상태만 관리한다.
+ * history/back/ESC 제어는 `useOverlayFlowController`에서 공통 처리한다.
  */
 export function useRoomActionModalHistory() {
   const [actionRoom, setActionRoom] = useState<FriendRoomRow | null>(null);
-  const historyPushedForModalRef = useRef(false);
 
   const openRoomActions = useCallback((row: FriendRoomRow) => {
     setActionRoom(row);
-    window.history.pushState({ roomActionModal: true }, "");
-    historyPushedForModalRef.current = true;
   }, []);
 
   const closeRoomActions = useCallback(() => {
     setActionRoom(null);
-    if (historyPushedForModalRef.current) {
-      historyPushedForModalRef.current = false;
-      window.history.back();
-    }
-  }, []);
-
-  useEffect(() => {
-    const onPopState = () => {
-      historyPushedForModalRef.current = false;
-      setActionRoom(null);
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   return { actionRoom, openRoomActions, closeRoomActions };

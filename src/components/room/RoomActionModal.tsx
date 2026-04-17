@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 
-import { useEscapeKey, useRoomActionModalPresence } from "@/features/room/hooks";
+import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { cn } from "@/lib/utils";
 import type { FriendRoomRow } from "@/shared/types/room";
@@ -74,22 +74,25 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
 /** 방 리스트에서 여는 중앙 액션 모달 (오버레이 + 라운드 패널). */
 export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
-
-  useEscapeKey(onClose, displayRoom != null);
+  const { requestClose } = useOverlayFlowController({
+    open: room != null,
+    onClose,
+    historyStateKey: "roomActionModal",
+  });
 
   const handleSelectAction = useCallback(
     (type: RoomActionType, targetRoom: FriendRoomRow) => {
-      onClose();
+      requestClose();
 
       if (type === "add-direct-link" || type === "invite-code") {
-        // 액션 모달 히스토리(back)가 먼저 정리된 뒤 후속 모달을 열어 즉시 닫힘을 방지한다.
+        // 액션 모달 history(back)가 먼저 정리된 다음 후속 모달을 열어 즉시 닫힘을 방지한다.
         window.setTimeout(() => onAction(type, targetRoom), 0);
         return;
       }
 
       onAction(type, targetRoom);
     },
-    [onAction, onClose],
+    [onAction, requestClose],
   );
 
   if (!displayRoom) return null;
@@ -98,7 +101,7 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
     <RoomActionModalPanel
       displayRoom={displayRoom}
       visible={visible}
-      onClose={onClose}
+      onClose={requestClose}
       onSelectAction={handleSelectAction}
     />
   );

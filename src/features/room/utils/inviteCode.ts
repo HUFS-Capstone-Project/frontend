@@ -7,13 +7,18 @@ const INVITE_CODE_LENGTH = 12;
  * 초대코드 표시/복사용 문자열.
  * 서버에서 base62 코드를 내려주므로 숫자 필터링 없이 그대로 사용한다.
  */
-export function getInviteCodeDigits(room: FriendRoomRow): string {
+export function getInviteCodeValue(room: FriendRoomRow): string {
   const raw = normalizeInviteCode(room.inviteCode);
   if (raw) {
     return raw;
   }
 
   return buildFallbackInviteCode(room.id, INVITE_CODE_LENGTH);
+}
+
+/** @deprecated `getInviteCodeValue`를 사용하세요. */
+export function getInviteCodeDigits(room: FriendRoomRow): string {
+  return getInviteCodeValue(room);
 }
 
 export function formatInviteCodeForDisplay(code: string): string {

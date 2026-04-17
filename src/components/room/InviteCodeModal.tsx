@@ -2,8 +2,8 @@ import { Clipboard } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { PillButton } from "@/components/ui/PillButton";
-import { useEscapeKey, useRoomActionModalPresence } from "@/features/room/hooks";
-import { formatInviteCodeForDisplay, getInviteCodeDigits } from "@/features/room/utils/inviteCode";
+import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
+import { formatInviteCodeForDisplay, getInviteCodeValue } from "@/features/room/utils/inviteCode";
 import type { FriendRoomRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
@@ -32,7 +32,7 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
   onClose: () => void;
   showToast?: (message: string) => void;
 }) {
-  const inviteCode = getInviteCodeDigits(displayRoom);
+  const inviteCode = getInviteCodeValue(displayRoom);
   const displayCode = formatInviteCodeForDisplay(inviteCode);
   const [isCopying, setIsCopying] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>("idle");
@@ -132,47 +132,11 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
  */
 export function InviteCodeModal({ room, onClose, showToast }: InviteCodeModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
-  const historyPushedRef = useRef(false);
-  const closedByPopStateRef = useRef(false);
-
-  useEscapeKey(onClose, displayRoom != null);
-
-  useEffect(() => {
-    if (!displayRoom) {
-      return;
-    }
-
-    window.history.pushState({ inviteCodeModal: true }, "");
-    historyPushedRef.current = true;
-
-    const handlePopState = () => {
-      if (!historyPushedRef.current) {
-        return;
-      }
-
-      closedByPopStateRef.current = true;
-      historyPushedRef.current = false;
-      onClose();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [displayRoom, onClose]);
-
-  useEffect(() => {
-    if (displayRoom != null) {
-      return;
-    }
-
-    if (historyPushedRef.current && !closedByPopStateRef.current) {
-      historyPushedRef.current = false;
-      window.history.back();
-    }
-
-    closedByPopStateRef.current = false;
-  }, [displayRoom]);
+  const { requestClose } = useOverlayFlowController({
+    open: room != null,
+    onClose,
+    historyStateKey: "inviteCodeModal",
+  });
 
   if (!displayRoom) return null;
 
@@ -180,7 +144,7 @@ export function InviteCodeModal({ room, onClose, showToast }: InviteCodeModalPro
     <InviteCodeModalInner
       displayRoom={displayRoom}
       visible={visible}
-      onClose={onClose}
+      onClose={requestClose}
       showToast={showToast}
     />
   );

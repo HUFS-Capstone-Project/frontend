@@ -1,5 +1,6 @@
-﻿import { type ReactNode, type TouchEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, type TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import { useOverlayFlowController } from "@/features/room/hooks/useOverlayFlowController";
 import { cn } from "@/lib/utils";
 
 const BOTTOM_SHEET_TRANSITION_MS = 240;
@@ -24,110 +25,27 @@ export function BottomSheet({
   panelClassName,
   hideHandle = false,
 }: BottomSheetProps) {
-  const [shouldRender, setShouldRender] = useState(open);
-  const [visible, setVisible] = useState(false);
-  const [dragOffsetY, setDragOffsetY] = useState(0);
+  const { isRendered, isVisible, requestClose } = useOverlayFlowController({
+    open,
+    onClose,
+    historyStateKey: "bottomSheet",
+    transitionMs: BOTTOM_SHEET_TRANSITION_MS,
+  });
 
-  const historyPushedRef = useRef(false);
-  const closedByPopStateRef = useRef(false);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dragOffsetY, setDragOffsetY] = useState(0);
   const touchStartYRef = useRef<number | null>(null);
   const shouldDragSheetRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const requestClose = useCallback(() => {
-    if (historyPushedRef.current) {
-      historyPushedRef.current = false;
-      onClose();
-      window.history.back();
-      return;
-    }
-
-    onClose();
-  }, [onClose]);
-
   useEffect(() => {
-    if (open) {
-      closedByPopStateRef.current = false;
+    if (!open) {
       queueMicrotask(() => {
-        setShouldRender(true);
         setDragOffsetY(0);
       });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setVisible(true);
-        });
-      });
-      return;
+      touchStartYRef.current = null;
+      shouldDragSheetRef.current = false;
     }
-
-    if (historyPushedRef.current && !closedByPopStateRef.current) {
-      historyPushedRef.current = false;
-      window.history.back();
-    }
-    closedByPopStateRef.current = false;
-
-    queueMicrotask(() => {
-      setVisible(false);
-      setDragOffsetY(0);
-    });
-
-    closeTimerRef.current = setTimeout(() => {
-      setShouldRender(false);
-      closeTimerRef.current = null;
-    }, BOTTOM_SHEET_TRANSITION_MS);
-
-    return () => {
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
-        closeTimerRef.current = null;
-      }
-    };
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    window.history.pushState({ bottomSheet: true }, "");
-    historyPushedRef.current = true;
-
-    const handlePopState = () => {
-      if (!historyPushedRef.current) {
-        return;
-      }
-
-      closedByPopStateRef.current = true;
-      historyPushedRef.current = false;
-      onClose();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      event.preventDefault();
-      requestClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, requestClose]);
 
   const handleTouchStart = useCallback((event: TouchEvent<HTMLElement>) => {
     touchStartYRef.current = event.touches[0]?.clientY ?? null;
@@ -172,7 +90,7 @@ export function BottomSheet({
     setDragOffsetY(0);
   }, [dragOffsetY, requestClose]);
 
-  if (!shouldRender) {
+  if (!isRendered) {
     return null;
   }
 
@@ -189,7 +107,7 @@ export function BottomSheet({
         aria-label="닫기"
         className={cn(
           "absolute inset-0 bg-black/20 transition-opacity duration-240 ease-out",
-          visible ? "opacity-100" : "opacity-0",
+          isVisible ? "opacity-100" : "opacity-0",
           overlayClassName,
         )}
         onClick={requestClose}
@@ -203,8 +121,8 @@ export function BottomSheet({
           panelClassName,
         )}
         style={{
-          transform: visible ? `translateY(${dragOffsetY}px)` : "translateY(100%)",
-          opacity: visible ? 1 : 0,
+          transform: isVisible ? `translateY(${dragOffsetY}px)` : "translateY(100%)",
+          opacity: isVisible ? 1 : 0,
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}

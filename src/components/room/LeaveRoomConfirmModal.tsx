@@ -1,6 +1,6 @@
 import { memo, useCallback } from "react";
 
-import { useEscapeKey, useRoomActionModalPresence } from "@/features/room/hooks";
+import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import { cn } from "@/lib/utils";
 import type { FriendRoomRow } from "@/shared/types/room";
 
@@ -70,8 +70,11 @@ export function LeaveRoomConfirmModal({
   onConfirmLeave,
 }: LeaveRoomConfirmModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
-
-  useEscapeKey(onClose, displayRoom != null);
+  const { requestClose } = useOverlayFlowController({
+    open: room != null,
+    onClose,
+    historyStateKey: "leaveRoomConfirmModal",
+  });
 
   if (!displayRoom) return null;
 
@@ -79,7 +82,7 @@ export function LeaveRoomConfirmModal({
     <LeaveRoomConfirmModalInner
       displayRoom={displayRoom}
       visible={visible}
-      onClose={onClose}
+      onClose={requestClose}
       onConfirmLeave={onConfirmLeave}
     />
   );
