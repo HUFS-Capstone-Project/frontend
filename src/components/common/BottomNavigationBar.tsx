@@ -1,4 +1,4 @@
-import { Flag, Map, MapPinned, Menu, User } from "lucide-react";
+import { House, Map, MapPinned, Menu, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ const items: {
   Icon: typeof MapPinned;
 }[] = [
   { id: "list", label: "목록", Icon: Menu },
-  { id: "room", label: "방", Icon: Flag },
+  { id: "room", label: "방", Icon: House },
   { id: "map", label: "지도", Icon: MapPinned },
   { id: "course", label: "코스 짜기", Icon: Map },
   { id: "mypage", label: "마이페이지", Icon: User },
