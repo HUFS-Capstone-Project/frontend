@@ -28,6 +28,7 @@ export function FilterBar({
             <CategoryChip
               category={category}
               highlighted={getMapCategoryChipHighlighted(category, highlightCtx)}
+              panelFocused={isTagPanelOpen && focusedCategory === category}
               selectedTagCount={category === "전체" ? 0 : selectedTagCountByCategory[category]}
               onClick={() => onToggleCategory(category)}
               className="w-full min-w-0 justify-center"

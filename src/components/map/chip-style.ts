@@ -6,6 +6,13 @@ export const MAP_CHIP_SELECTED_CLASS = "border-brand-coral bg-brand-coral text-p
 export const MAP_CHIP_UNSELECTED_CLASS =
   "bg-background/92 text-muted-foreground/85 hover:bg-background border-border/80 backdrop-blur-sm";
 
+/** 태그 패널에서 이 카테고리를 보고 있을 때 — 회색 톤(active 코랄 실색과 구분) */
+export const MAP_CHIP_PANEL_FOCUS_CLASS =
+  "border-border/90 bg-muted/85 text-foreground/88 backdrop-blur-sm hover:bg-muted";
+
+/** active 칩이면서 태그 패널 포커스일 때 — 코랄 위 대비용 얕은 링 */
+export const MAP_CHIP_PANEL_FOCUS_ON_ACTIVE_CLASS = "ring-2 ring-inset ring-white/45";
+
 /** 인라인 뱃지 (md 이상, 코랄 칩 위) — 흰색 반투명 pill */
 export const MAP_CHIP_BADGE_SELECTED_CLASS = "md:bg-white/25 md:text-white md:backdrop-blur-sm";
 
