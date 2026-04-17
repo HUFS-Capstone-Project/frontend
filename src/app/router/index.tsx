@@ -22,6 +22,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <EntryPage /> },
       { path: "dev/splash", element: <SplashScreenPage /> },
+      { path: "dev/mypage", element: <MyPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {
@@ -61,3 +62,5 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+
