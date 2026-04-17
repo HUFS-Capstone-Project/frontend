@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isApiError } from "@/shared/api/axios";
 import type { FriendRoomRow } from "@/shared/types/room";
 
+import type { RoomDetailResponse, RoomSummaryResponse } from "../api/types";
 import {
   buildMockPlacesFromCaption,
   type CaptionResult,
@@ -28,16 +29,20 @@ type UseLinkAddFlowResult = {
   renderStep: Step;
   url: string;
   setUrl: (value: string) => void;
+  urlError: string | null;
   selectedMockPlaceId: string | null;
   setSelectedMockPlaceId: (value: string | null) => void;
   renderCaptionResult: CaptionResult | null;
   mockPlaces: ReturnType<typeof buildMockPlacesFromCaption>;
   isSubmitting: boolean;
   isSubmitEnabled: boolean;
+  hasSaved: boolean;
+  isSavePending: boolean;
   cancelOngoingSubmission: () => void;
   resetFlow: () => void;
   submitLink: () => Promise<void>;
   retryPolling: () => Promise<void>;
+  saveSucceededResult: () => Promise<void>;
   openMockPlaceScreen: () => void;
   confirmMockSelection: () => Promise<void>;
 };
@@ -50,9 +55,12 @@ export function useLinkAddFlow({
 
   const [step, setStep] = useState<Step>(DEFAULT_STEP);
   const [url, setUrl] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [linkId, setLinkId] = useState<number | null>(null);
   const [captionResult, setCaptionResult] = useState<CaptionResult | null>(null);
   const [selectedMockPlaceId, setSelectedMockPlaceId] = useState<string | null>(null);
+  const [hasSaved, setHasSaved] = useState(false);
+  const [isSavePending, setIsSavePending] = useState(false);
 
   const submitSequenceRef = useRef(0);
 
@@ -62,12 +70,20 @@ export function useLinkAddFlow({
     pollingIntervalMs: LINK_STATUS_POLLING_INTERVAL_MS,
   });
 
+  const handleChangeUrl = useCallback((value: string) => {
+    setUrl(value);
+    setUrlError(null);
+  }, []);
+
   const resetFlow = useCallback(() => {
     setStep(DEFAULT_STEP);
     setUrl("");
+    setUrlError(null);
     setLinkId(null);
     setCaptionResult(null);
     setSelectedMockPlaceId(null);
+    setHasSaved(false);
+    setIsSavePending(false);
   }, []);
 
   const resetKey = activeRoomId ?? room?.id ?? null;
@@ -127,18 +143,23 @@ export function useLinkAddFlow({
       return;
     }
 
-    const trimmedUrl = url.trim();
-    if (trimmedUrl.length === 0) {
+    const validationError = validateLinkUrl(url);
+    if (validationError) {
+      setUrlError(validationError);
       return;
     }
+
+    const trimmedUrl = url.trim();
 
     const submitSequence = submitSequenceRef.current + 1;
     submitSequenceRef.current = submitSequence;
 
     setUrl(trimmedUrl);
+    setUrlError(null);
     setCaptionResult(null);
     setSelectedMockPlaceId(null);
     setLinkId(null);
+    setHasSaved(false);
     setStep("processing");
 
     try {
@@ -183,6 +204,25 @@ export function useLinkAddFlow({
     await linkStatusQuery.refetch();
   }, [linkId, linkStatusQuery, queryClient, submitLink]);
 
+  const saveSucceededResult = useCallback(async () => {
+    if (!room || hasSaved || isSavePending) {
+      return;
+    }
+
+    if (!renderCaptionResult || renderCaptionResult.status !== "SUCCEEDED") {
+      return;
+    }
+
+    setIsSavePending(true);
+
+    try {
+      applySavedLinkCountToRoomCache(queryClient, room.id);
+      setHasSaved(true);
+    } finally {
+      setIsSavePending(false);
+    }
+  }, [hasSaved, isSavePending, queryClient, renderCaptionResult, room]);
+
   const mockPlaces = useMemo(
     () => buildMockPlacesFromCaption(renderCaptionResult?.caption ?? null),
     [renderCaptionResult?.caption],
@@ -206,20 +246,96 @@ export function useLinkAddFlow({
     step,
     renderStep,
     url,
-    setUrl,
+    setUrl: handleChangeUrl,
+    urlError,
     selectedMockPlaceId,
     setSelectedMockPlaceId,
     renderCaptionResult,
     mockPlaces,
     isSubmitting: registerLinkMutation.isPending,
-    isSubmitEnabled: url.trim().length > 0 && !registerLinkMutation.isPending,
+    isSubmitEnabled: validateLinkUrl(url) == null && !registerLinkMutation.isPending,
+    hasSaved,
+    isSavePending,
     cancelOngoingSubmission,
     resetFlow,
     submitLink,
     retryPolling,
+    saveSucceededResult,
     openMockPlaceScreen,
     confirmMockSelection,
   };
+}
+
+function applySavedLinkCountToRoomCache(queryClient: ReturnType<typeof useQueryClient>, roomId: string) {
+  queryClient.setQueryData(roomQueryKeys.rooms(), (previous: RoomSummaryResponse[] | undefined) => {
+    if (!previous) {
+      return previous;
+    }
+
+    return previous.map((room) => {
+      if (room.roomId !== roomId) {
+        return room;
+      }
+
+      return {
+        ...room,
+        linkCount: incrementCount(room.linkCount),
+      };
+    });
+  });
+
+  queryClient.setQueryData(
+    roomQueryKeys.roomDetail(roomId),
+    (previous: RoomDetailResponse | undefined) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        linkCount: incrementCount(previous.linkCount),
+      };
+    },
+  );
+}
+
+function incrementCount(value: number | null | undefined): number {
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return 1;
+  }
+
+  return value + 1;
+}
+
+function validateLinkUrl(value: string): string | null {
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return "링크를 입력해 주세요.";
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return "올바른 링크 형식이 아니에요.";
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return "http/https 링크만 등록할 수 있어요.";
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  const isInstagram =
+    hostname === "instagram.com" ||
+    hostname === "www.instagram.com" ||
+    hostname.endsWith(".instagram.com");
+
+  if (!isInstagram) {
+    return "인스타그램 링크만 등록할 수 있어요.";
+  }
+
+  return null;
 }
 
 function resolveRegisterLinkErrorMessage(error: unknown): string {
