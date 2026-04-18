@@ -1,5 +1,6 @@
 import { memo, useCallback, useState } from "react";
 
+import { useControlledMaxLengthWarning } from "@/features/onboarding";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import { cn } from "@/lib/utils";
 import type { FriendRoomRow } from "@/shared/types/room";
@@ -7,6 +8,7 @@ import type { FriendRoomRow } from "@/shared/types/room";
 import { RoomModalShell } from "./RoomModalShell";
 
 const ROOM_NAME_MAX_LENGTH = 20;
+const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
 const ROOM_NAME_REQUIRED_MESSAGE = "방 이름을 입력해 주세요.";
 const ROOM_NAME_MAX_LENGTH_MESSAGE = "방 이름은 최대 20자까지 입력할 수 있어요.";
 
@@ -43,6 +45,11 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
 }) {
   const [roomNameInput, setRoomNameInput] = useState(displayRoom.displayName);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {
+    applyChange: applyRoomNameChange,
+    handleCompositionStart: handleRoomNameCompositionStart,
+    handleCompositionEnd: handleRoomNameCompositionEnd,
+  } = useControlledMaxLengthWarning(ROOM_NAME_MAX_LENGTH, roomNameInput);
 
   const handleSubmit = useCallback(async () => {
     if (isSubmitting) {
@@ -70,6 +77,13 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
     }
   }, [displayRoom, isSubmitting, onSubmitRoomName, roomNameInput]);
 
+  const handleChangeRoomName = useCallback(
+    (next: string) => {
+      applyRoomNameChange(next, setRoomNameInput);
+    },
+    [applyRoomNameChange],
+  );
+
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5">
@@ -87,6 +101,12 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
             value={roomNameInput}
             maxLength={ROOM_NAME_MAX_LENGTH}
             autoComplete="off"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="none"
+            aria-describedby={
+              errorMessage ? "edit-room-name-error" : "edit-room-name-limit-warning"
+            }
             className={cn(
               "border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-xl border px-4 text-sm outline-none",
               "focus-visible:ring-ring focus-visible:ring-2",
@@ -94,9 +114,11 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
             )}
             placeholder="방 이름을 입력해 주세요"
             onChange={(event) => {
-              setRoomNameInput(event.target.value);
+              handleChangeRoomName(event.target.value);
               setErrorMessage(null);
             }}
+            onCompositionStart={handleRoomNameCompositionStart}
+            onCompositionEnd={handleRoomNameCompositionEnd}
             onKeyDown={(event) => {
               if (event.key !== "Enter") {
                 return;
@@ -106,11 +128,17 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
               void handleSubmit();
             }}
           />
-          {errorMessage ? (
-            <p className="text-destructive mt-2 px-1 text-left text-sm" role="alert">
-              {errorMessage}
-            </p>
-          ) : null}
+          <div className="mt-2 min-h-5 px-1">
+            {errorMessage ? (
+              <p className="text-destructive text-sm" id="edit-room-name-error" role="alert">
+                {errorMessage}
+              </p>
+            ) : (
+              <p id="edit-room-name-limit-warning" className="text-brand-coral text-xs">
+                {ROOM_NAME_LIMIT_HINT}
+              </p>
+            )}
+          </div>
         </div>
       </div>
       <div className="border-border/50 flex border-t">

@@ -14,7 +14,7 @@ export default function CoursePlannerPage() {
   }
 
   return (
-    <div className="-m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <main className="bg-background min-h-0 flex-1" />
       <BottomNavToast message={toastMessage} />
       <BottomNavigationBar activeId="course" onSelect={handleSelectBottomNav} />

@@ -180,6 +180,9 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 aria-describedby={roomNameLimitWarning ? "room-name-limit-warning" : undefined}
                 placeholder="예: 내 사랑♥️"
                 autoComplete="off"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="none"
                 className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
               <div className="mt-2 min-h-5 px-1">
@@ -295,6 +298,9 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 }}
                 placeholder="입장코드를 입력해 주세요"
                 autoComplete="off"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="none"
                 className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
               {inviteCodeError ? (

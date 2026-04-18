@@ -36,6 +36,9 @@ export function LinkInputScreen({
           onChange={(event) => onChangeUrl(event.target.value)}
           placeholder="해당 릴스의 링크를 넣어주세요"
           autoComplete="off"
+          spellCheck={false}
+          autoCorrect="off"
+          autoCapitalize="none"
           className="border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-full border px-4 text-sm outline-none"
         />
         {urlError ? (

@@ -73,7 +73,7 @@ export function MapHomePageContent({
   }
 
   return (
-    <div className="-m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <MapHeader title={mapTitle} />
 
       <main className="relative min-h-0 flex-1">

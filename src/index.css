@@ -93,6 +93,26 @@ body {
     display: none;
   }
 
+  /**
+   * 방·목록·지도·코스·마이페이지 등 메인 탭 화면에서 비입력 요소의 텍스트 선택/캐럿 노출을 막고,
+   * 실제 입력 요소만 선택 및 캐럿을 허용한다.
+   */
+  .room-no-caret,
+  .room-no-caret * {
+    -webkit-user-select: none;
+    user-select: none;
+    caret-color: transparent;
+  }
+
+  .room-no-caret input,
+  .room-no-caret textarea,
+  .room-no-caret select,
+  .room-no-caret [contenteditable]:not([contenteditable="false"]) {
+    -webkit-user-select: text;
+    user-select: text;
+    caret-color: auto;
+  }
+
   /** 브랜드명「어디더라」— `var(--brand-coral-gradient-*)` 와 동일 */
   .text-brand-gradient {
     background-image: linear-gradient(
