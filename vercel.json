@@ -5,6 +5,14 @@
       "destination": "https://udidura.onrender.com/api/:path*"
     },
     {
+      "source": "/oauth2/:path*",
+      "destination": "https://udidura.onrender.com/oauth2/:path*"
+    },
+    {
+      "source": "/login/oauth2/:path*",
+      "destination": "https://udidura.onrender.com/login/oauth2/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
