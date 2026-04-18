@@ -46,7 +46,12 @@ export function LinkInputScreen({
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2.5">
-        <PillButton type="button" variant="outline" onClick={onCancel}>
+        <PillButton
+          type="button"
+          variant="outline"
+          className="text-muted-foreground hover:text-muted-foreground"
+          onClick={onCancel}
+        >
           취소
         </PillButton>
         <PillButton

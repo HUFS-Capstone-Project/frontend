@@ -120,7 +120,12 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
             </div>
 
             <div className="mt-auto grid grid-cols-2 gap-2.5 pt-6">
-              <PillButton type="button" variant="outline" onClick={closeFlow}>
+              <PillButton
+                type="button"
+                variant="outline"
+                className="text-muted-foreground hover:text-muted-foreground"
+                onClick={closeFlow}
+              >
                 취소
               </PillButton>
               <PillButton
@@ -219,7 +224,12 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
             </div>
 
             <div className="mt-auto grid grid-cols-2 gap-2.5 pt-6">
-              <PillButton type="button" variant="outline" onClick={closeFlow}>
+              <PillButton
+                type="button"
+                variant="outline"
+                className="text-muted-foreground hover:text-muted-foreground"
+                onClick={closeFlow}
+              >
                 취소
               </PillButton>
               <PillButton

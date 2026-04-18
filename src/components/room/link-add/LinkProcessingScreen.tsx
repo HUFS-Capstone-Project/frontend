@@ -30,7 +30,12 @@ export function LinkProcessingScreen({ roomName, url, onCancel }: LinkProcessing
       </div>
 
       <div className="mt-auto pt-6">
-        <PillButton type="button" variant="outline" onClick={onCancel}>
+        <PillButton
+          type="button"
+          variant="outline"
+          className="text-muted-foreground hover:text-muted-foreground"
+          onClick={onCancel}
+        >
           취소
         </PillButton>
       </div>
