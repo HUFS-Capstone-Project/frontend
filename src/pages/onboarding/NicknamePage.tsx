@@ -21,7 +21,7 @@ type NicknamePageLocationState = {
 /**
  * 온보딩 1단계: 닉네임 입력
  */
-export function NicknamePage() {
+export default function NicknamePage() {
   const navigate = useNavigate();
   const location = useLocation();
 

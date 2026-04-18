@@ -1,10 +1,9 @@
-import { type JSX, useMemo, useState } from "react";
+import { type JSX, lazy, Suspense, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
-import { KakaoMapView } from "@/components/map/KakaoMapView";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
@@ -30,6 +29,9 @@ function roomFriendsForFab(room: SelectedRoom): RoomFriend[] {
 }
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
+const KakaoMapView = lazy(() =>
+  import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
+);
 
 type MapHomePageContentProps = {
   defaultFilterPanelOpen?: boolean;
@@ -75,12 +77,14 @@ export function MapHomePageContent({
       <MapHeader title={mapTitle} />
 
       <main className="relative min-h-0 flex-1">
-        <KakaoMapView
-          appKey={KAKAO_MAP_APP_KEY}
-          places={filteredPlaces}
-          center={MAP_INITIAL_CENTER}
-          className="absolute inset-0"
-        />
+        <Suspense fallback={<div className="absolute inset-0" aria-hidden />}>
+          <KakaoMapView
+            appKey={KAKAO_MAP_APP_KEY}
+            places={filteredPlaces}
+            center={MAP_INITIAL_CENTER}
+            className="absolute inset-0"
+          />
+        </Suspense>
 
         <div className="px-page pointer-events-none absolute inset-x-0 top-0 z-20 pt-3">
           <MapSearchOverlay

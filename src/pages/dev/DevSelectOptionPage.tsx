@@ -1,7 +1,8 @@
-import { useLayoutEffect } from "react";
+import { lazy, Suspense, useLayoutEffect } from "react";
 
-import { MapHomePage } from "@/pages/MapHomePage";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
+
+const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 
 const DEV_ROOM = {
   id: "dev-room-select-option",
@@ -9,7 +10,7 @@ const DEV_ROOM = {
   memberCount: 4,
 };
 
-export function DevSelectOptionPage() {
+export default function DevSelectOptionPage() {
   const selectRoom = useRoomSelectionStore((state) => state.selectRoom);
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
   const isDevRoomReady = selectedRoom?.id === DEV_ROOM.id;
@@ -24,5 +25,9 @@ export function DevSelectOptionPage() {
     return null;
   }
 
-  return <MapHomePage defaultFilterPanelOpen />;
+  return (
+    <Suspense fallback={null}>
+      <MapHomePage defaultFilterPanelOpen />
+    </Suspense>
+  );
 }

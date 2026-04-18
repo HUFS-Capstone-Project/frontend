@@ -5,7 +5,7 @@ import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
-export function PlaceListPage() {
+export default function PlaceListPage() {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
 

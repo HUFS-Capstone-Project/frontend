@@ -4,12 +4,12 @@ import { Navigate } from "react-router-dom";
 import { hasShownLaunchSplash, markLaunchSplashShown } from "@/features/splash/lib/launch-splash";
 import { useAuthStore } from "@/store/auth-store";
 
-import { SplashScreenPage } from "./SplashScreenPage";
+import SplashScreenPage from "./SplashScreenPage";
 
 const SPLASH_DEFAULT_DURATION_MS = 2200;
 const SPLASH_REDUCED_MOTION_DURATION_MS = 500;
 
-export function EntryPage() {
+export default function EntryPage() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);

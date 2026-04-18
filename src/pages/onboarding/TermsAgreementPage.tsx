@@ -28,7 +28,7 @@ type TermsLocationState = {
 /**
  * 온보딩 2단계: 약관 동의 및 제출
  */
-export function TermsAgreementPage() {
+export default function TermsAgreementPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const idPrefix = useId();

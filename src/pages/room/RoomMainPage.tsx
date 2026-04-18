@@ -1,24 +1,42 @@
-import { useCallback } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { FriendRoomList } from "@/components/room/FriendRoomList";
-import { InviteCodeModal } from "@/components/room/InviteCodeModal";
-import { LeaveRoomConfirmModal } from "@/components/room/LeaveRoomConfirmModal";
-import { LinkAddModal } from "@/components/room/link-add";
-import { RoomActionModal } from "@/components/room/RoomActionModal";
-import { RoomAddModal } from "@/components/room/RoomAddModal";
 import { RoomMainHeader } from "@/components/room/RoomMainHeader";
 import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
+import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
-export function RoomMainPage() {
+const RoomActionModal = lazy(() =>
+  import("@/components/room/RoomActionModal").then((module) => ({
+    default: module.RoomActionModal,
+  })),
+);
+const InviteCodeModal = lazy(() =>
+  import("@/components/room/InviteCodeModal").then((module) => ({
+    default: module.InviteCodeModal,
+  })),
+);
+const LeaveRoomConfirmModal = lazy(() =>
+  import("@/components/room/LeaveRoomConfirmModal").then((module) => ({
+    default: module.LeaveRoomConfirmModal,
+  })),
+);
+const LinkAddModal = lazy(() =>
+  import("@/components/room/link-add").then((module) => ({ default: module.LinkAddModal })),
+);
+const RoomAddModal = lazy(() =>
+  import("@/components/room/RoomAddModal").then((module) => ({ default: module.RoomAddModal })),
+);
+
+export default function RoomMainPage() {
   const navigate = useNavigate();
   const selectRoom = useRoomSelectionStore((s) => s.selectRoom);
   const nickname = useAuthStore((s) => s.nickname);
@@ -42,6 +60,11 @@ export function RoomMainPage() {
     openAddRoom,
     closeAddRoom,
   } = useRoomMainModals();
+  const [isRoomActionModalLoaded, setIsRoomActionModalLoaded] = useState(actionRoom != null);
+  const [isInviteCodeModalLoaded, setIsInviteCodeModalLoaded] = useState(inviteCodeRoom != null);
+  const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
+  const [isLinkAddModalLoaded, setIsLinkAddModalLoaded] = useState(linkAddRoom != null);
+  const [isRoomAddModalLoaded, setIsRoomAddModalLoaded] = useState(isAddRoomOpen);
 
   const handleRoomNavigate = useCallback(
     (row: FriendRoomRow) => {
@@ -51,10 +74,38 @@ export function RoomMainPage() {
     [navigate, selectRoom],
   );
 
+  const handleOpenRoomActions = useCallback(
+    (row: FriendRoomRow) => {
+      setIsRoomActionModalLoaded(true);
+      openRoomActions(row);
+    },
+    [openRoomActions],
+  );
+
+  const handleRoomActionWithLoad = useCallback(
+    (action: RoomActionType, row: FriendRoomRow) => {
+      if (action === "invite-code") {
+        setIsInviteCodeModalLoaded(true);
+      } else if (action === "leave") {
+        setIsLeaveRoomModalLoaded(true);
+      } else if (action === "add-direct-link") {
+        setIsLinkAddModalLoaded(true);
+      }
+
+      handleRoomAction(action, row);
+    },
+    [handleRoomAction],
+  );
+
+  const handleOpenAddRoom = useCallback(() => {
+    setIsRoomAddModalLoaded(true);
+    openAddRoom();
+  }, [openAddRoom]);
+
   return (
     <RoomMainShell
       header={<RoomMainHeader title={roomMainHeaderTitle} />}
-      fab={<FloatingActionButton label="방 추가" onClick={openAddRoom} />}
+      fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
       bottomNav={
         <>
           <BottomNavToast message={toastMessage} />
@@ -65,17 +116,45 @@ export function RoomMainPage() {
       <FriendRoomList
         rows={sortedRows}
         onRoomNavigate={handleRoomNavigate}
-        onOpenRoomActions={openRoomActions}
+        onOpenRoomActions={handleOpenRoomActions}
       />
-      <RoomActionModal room={actionRoom} onClose={closeRoomActions} onAction={handleRoomAction} />
-      <InviteCodeModal room={inviteCodeRoom} onClose={closeInviteCodeModal} showToast={showToast} />
-      <LeaveRoomConfirmModal
-        room={leaveRoom}
-        onClose={closeLeaveRoomModal}
-        onConfirmLeave={handleConfirmLeaveRoom}
-      />
-      <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
-      <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
+      {isRoomActionModalLoaded ? (
+        <Suspense fallback={null}>
+          <RoomActionModal
+            room={actionRoom}
+            onClose={closeRoomActions}
+            onAction={handleRoomActionWithLoad}
+          />
+        </Suspense>
+      ) : null}
+      {isInviteCodeModalLoaded ? (
+        <Suspense fallback={null}>
+          <InviteCodeModal
+            room={inviteCodeRoom}
+            onClose={closeInviteCodeModal}
+            showToast={showToast}
+          />
+        </Suspense>
+      ) : null}
+      {isLeaveRoomModalLoaded ? (
+        <Suspense fallback={null}>
+          <LeaveRoomConfirmModal
+            room={leaveRoom}
+            onClose={closeLeaveRoomModal}
+            onConfirmLeave={handleConfirmLeaveRoom}
+          />
+        </Suspense>
+      ) : null}
+      {isLinkAddModalLoaded ? (
+        <Suspense fallback={null}>
+          <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
+        </Suspense>
+      ) : null}
+      {isRoomAddModalLoaded ? (
+        <Suspense fallback={null}>
+          <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
+        </Suspense>
+      ) : null}
     </RoomMainShell>
   );
 }

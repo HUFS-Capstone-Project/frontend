@@ -17,7 +17,7 @@ const SECTION_ACCESSIBILITY: Record<
   marketing: { "aria-labelledby": "login-marketing-heading" },
 };
 
-export function LoginPage() {
+export default function LoginPage() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);

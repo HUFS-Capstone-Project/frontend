@@ -6,6 +6,8 @@ type MapHomePageProps = {
   defaultFilterPanelOpen?: boolean;
 };
 
-export function MapHomePage({ defaultFilterPanelOpen = false }: MapHomePageProps): JSX.Element {
+export default function MapHomePage({
+  defaultFilterPanelOpen = false,
+}: MapHomePageProps): JSX.Element {
   return <MapHomePageContent defaultFilterPanelOpen={defaultFilterPanelOpen} />;
 }

@@ -37,7 +37,7 @@ function AuthCallbackFallback({ message, onBackToLogin }: AuthCallbackFallbackPr
  * 웹 OAuth 콜백 처리 전용 페이지.
  * exchange-ticket 이후에도 온보딩 분기는 반드시 /users/me 기준으로 판단한다.
  */
-export function AuthCallbackPage() {
+export default function AuthCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
