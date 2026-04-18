@@ -42,9 +42,7 @@ export function AgreementItem({
         <span
           className={cn(
             "mt-0.5 flex h-[1.375rem] w-[1.375rem] shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-            checked
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-card",
+            checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card",
           )}
           aria-hidden
         >

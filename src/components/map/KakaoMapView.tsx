@@ -125,7 +125,7 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
   }, [loadState, places]);
 
   return (
-    <div className={cn("relative h-full w-full bg-map-placeholder-bg", className)}>
+    <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>
       <div
         ref={mapContainerRef}
         className="relative z-0 h-full w-full [touch-action:pan-x_pan-y]"

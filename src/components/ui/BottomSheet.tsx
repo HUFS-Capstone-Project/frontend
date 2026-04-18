@@ -116,7 +116,7 @@ export function BottomSheet({
       <section
         className={cn(
           "bg-background relative z-10 mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.7rem]",
-          "max-h-[calc(100dvh-3.5rem)] shadow-sheet",
+          "shadow-sheet max-h-[calc(100dvh-3.5rem)]",
           isDragging ? "transition-none" : "transition-[transform,opacity] duration-240 ease-out",
           panelClassName,
         )}

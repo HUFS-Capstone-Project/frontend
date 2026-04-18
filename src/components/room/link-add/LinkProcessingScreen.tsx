@@ -15,7 +15,7 @@ export function LinkProcessingScreen({ roomName, url, onCancel }: LinkProcessing
         <p className="text-foreground text-xl leading-tight font-bold">링크로 릴스 추가</p>
       </div>
 
-      <div className="border-border bg-muted/50 mt-6 rounded-full border px-4 py-2 text-sm text-foreground">
+      <div className="border-border bg-muted/50 text-foreground mt-6 rounded-full border px-4 py-2 text-sm">
         <p className="truncate">{url}</p>
       </div>
 

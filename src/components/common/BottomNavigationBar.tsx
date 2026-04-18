@@ -27,7 +27,7 @@ export function BottomNavigationBar({ activeId, onSelect, className }: BottomNav
     <nav
       className={cn(
         "border-border/60 bg-background overflow-hidden rounded-t-3xl pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]",
-        "border-t shadow-nav",
+        "shadow-nav border-t",
         className,
       )}
       aria-label="하단 메뉴"

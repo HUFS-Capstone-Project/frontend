@@ -76,16 +76,9 @@ export function useMapSearchFilters({
           return previous;
         }
 
-        const nextSelectedCategories = previous.filter((current) => current !== category);
-
-        setSelectedTagKeysByCategory((previousTags) => ({
-          ...previousTags,
-          [category]: [],
-        }));
-
         setFocusedCategory(null);
 
-        return nextSelectedCategories;
+        return previous;
       });
     },
     [focusedCategory],

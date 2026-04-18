@@ -29,7 +29,7 @@ export function FriendFloatingMenu({
               <button
                 type="button"
                 className={cn(
-                  "bg-muted text-muted-foreground border-background pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border-2 shadow-floating transition-all duration-200",
+                  "bg-muted text-muted-foreground border-background shadow-floating pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border-2 transition-all duration-200",
                   open
                     ? "translate-y-0 scale-100 opacity-100"
                     : "pointer-events-none translate-y-1.5 scale-90 opacity-0",
