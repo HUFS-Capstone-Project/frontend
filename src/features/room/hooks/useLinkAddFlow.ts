@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isApiError } from "@/shared/api/axios";
 import type { FriendRoomRow } from "@/shared/types/room";
 
-import type { RoomDetailResponse, RoomSummaryResponse } from "../api/types";
 import {
   buildMockPlacesFromCaption,
   type CaptionResult,
@@ -13,6 +12,7 @@ import {
   type Step,
 } from "../link-add";
 import { roomQueryKeys } from "../query-keys";
+import { incrementRoomLinkCountInCache } from "../utils/room-query-cache";
 import { useLinkStatusPollingQuery } from "./use-link-status-polling-query";
 import { useRegisterLinkMutation } from "./use-register-link-mutation";
 
@@ -216,7 +216,7 @@ export function useLinkAddFlow({
     setIsSavePending(true);
 
     try {
-      applySavedLinkCountToRoomCache(queryClient, room.id);
+      incrementRoomLinkCountInCache(queryClient, room.id);
       setHasSaved(true);
     } finally {
       setIsSavePending(false);
@@ -264,50 +264,6 @@ export function useLinkAddFlow({
     openMockPlaceScreen,
     confirmMockSelection,
   };
-}
-
-function applySavedLinkCountToRoomCache(
-  queryClient: ReturnType<typeof useQueryClient>,
-  roomId: string,
-) {
-  queryClient.setQueryData(roomQueryKeys.rooms(), (previous: RoomSummaryResponse[] | undefined) => {
-    if (!previous) {
-      return previous;
-    }
-
-    return previous.map((room) => {
-      if (room.roomId !== roomId) {
-        return room;
-      }
-
-      return {
-        ...room,
-        linkCount: incrementCount(room.linkCount),
-      };
-    });
-  });
-
-  queryClient.setQueryData(
-    roomQueryKeys.roomDetail(roomId),
-    (previous: RoomDetailResponse | undefined) => {
-      if (!previous) {
-        return previous;
-      }
-
-      return {
-        ...previous,
-        linkCount: incrementCount(previous.linkCount),
-      };
-    },
-  );
-}
-
-function incrementCount(value: number | null | undefined): number {
-  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return 1;
-  }
-
-  return value + 1;
 }
 
 function validateLinkUrl(value: string): string | null {

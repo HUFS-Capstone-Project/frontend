@@ -11,8 +11,11 @@ import type {
   LinkStatusResponse,
   RegisterLinkRequest,
   RegisterLinkResponse,
+  RoomActionResult,
   RoomDetailResponse,
   RoomSummaryResponse,
+  UpdateRoomNameRequest,
+  UpdateRoomPinRequest,
 } from "./types";
 
 const API_PATHS = {
@@ -35,6 +38,46 @@ export const roomService = {
   getRoomDetail: async (roomId: string): Promise<RoomDetailResponse> => {
     const res = await api.get<CommonResponse<RoomDetailResponse>>(`${API_PATHS.rooms}/${roomId}`);
     return res.data.data;
+  },
+
+  updateRoomName: async (
+    roomId: string,
+    payload: UpdateRoomNameRequest,
+  ): Promise<RoomActionResult> => {
+    return withCsrf(async () => {
+      const res = await api.patch<CommonResponse<null>>(`${API_PATHS.rooms}/${roomId}`, payload, {
+        withCredentials: true,
+        headers: getXsrfHeader(),
+      });
+      return toRoomActionResult(res.data.message);
+    });
+  },
+
+  updateRoomPin: async (
+    roomId: string,
+    payload: UpdateRoomPinRequest,
+  ): Promise<RoomActionResult> => {
+    return withCsrf(async () => {
+      const res = await api.patch<CommonResponse<null>>(
+        `${API_PATHS.rooms}/${roomId}/pin`,
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
+      return toRoomActionResult(res.data.message);
+    });
+  },
+
+  leaveRoom: async (roomId: string): Promise<RoomActionResult> => {
+    return withCsrf(async () => {
+      const res = await api.delete<CommonResponse<null>>(`${API_PATHS.rooms}/${roomId}/leave`, {
+        withCredentials: true,
+        headers: getXsrfHeader(),
+      });
+      return toRoomActionResult(res.data.message);
+    });
   },
 
   createRoom: async (payload: CreateRoomRequest): Promise<CreateRoomResponse> => {
@@ -104,4 +147,10 @@ function isCsrfForbidden(error: unknown): boolean {
   }
 
   return error.status === 403 || error.code === "E403_FORBIDDEN";
+}
+
+function toRoomActionResult(message: string | null | undefined): RoomActionResult {
+  return {
+    message: message ?? null,
+  };
 }

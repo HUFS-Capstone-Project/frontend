@@ -11,7 +11,9 @@ export type {
   ProblemJsonErrorResponse,
   RegisterLinkRequest,
   RegisterLinkResponse,
+  RoomActionResult,
   RoomDetailResponse,
-  RoomMemberRole,
   RoomSummaryResponse,
+  UpdateRoomNameRequest,
+  UpdateRoomPinRequest,
 } from "./types";

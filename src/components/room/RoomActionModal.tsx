@@ -59,7 +59,7 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
             className={cn(
               "flex h-12 w-full items-center rounded-xl px-5 text-left text-sm transition-colors duration-150",
               "hover:bg-muted/30 active:bg-muted/40",
-              danger ? "text-destructive font-medium" : "text-foreground",
+              danger ? "text-brand-coral font-medium" : "text-foreground",
             )}
             onClick={() => onSelectAction(type, displayRoom)}
           >
@@ -84,7 +84,12 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
     (type: RoomActionType, targetRoom: FriendRoomRow) => {
       requestClose();
 
-      if (type === "add-direct-link" || type === "invite-code" || type === "leave") {
+      if (
+        type === "add-direct-link" ||
+        type === "invite-code" ||
+        type === "leave" ||
+        type === "edit-info"
+      ) {
         // 액션 모달 history(back)가 먼저 정리된 다음 후속 모달을 열어 즉시 닫힘을 방지한다.
         window.setTimeout(() => onAction(type, targetRoom), 0);
         return;

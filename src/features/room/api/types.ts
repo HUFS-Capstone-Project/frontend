@@ -5,8 +5,6 @@
 
 export type CommonResponse<T> = SharedCommonResponse<T>;
 
-export type RoomMemberRole = "OWNER" | "MEMBER";
-
 export type LinkAnalysisStatus = "REQUESTED" | "PROCESSING" | "SUCCEEDED" | "FAILED";
 
 export type LinkSource = "WEB" | "APP" | null;
@@ -14,7 +12,7 @@ export type LinkSource = "WEB" | "APP" | null;
 export type RoomSummaryResponse = {
   roomId: string;
   roomName: string;
-  role: RoomMemberRole;
+  pinned: boolean;
   createdAt: string;
   linkCount: number;
   memberCount?: number | null;
@@ -24,7 +22,7 @@ export type RoomDetailResponse = {
   roomId: string;
   roomName: string;
   inviteCode: string;
-  role: RoomMemberRole;
+  pinned: boolean;
   memberCount: number;
   linkCount: number;
   createdAt: string;
@@ -34,14 +32,14 @@ export type CreateRoomResponse = {
   roomId: string;
   roomName: string;
   inviteCode: string;
-  role: RoomMemberRole;
+  pinned: boolean;
   createdAt: string;
 };
 
 export type JoinRoomResponse = {
   roomId: string;
   roomName: string;
-  role: RoomMemberRole;
+  pinned: boolean;
   createdAt: string;
 };
 
@@ -70,10 +68,22 @@ export type JoinRoomRequest = {
   inviteCode: string;
 };
 
+export type UpdateRoomNameRequest = {
+  name: string;
+};
+
+export type UpdateRoomPinRequest = {
+  pinned: boolean;
+};
+
 export type RegisterLinkRequest = {
   url: string;
   roomId: string;
   source?: LinkSource;
+};
+
+export type RoomActionResult = {
+  message: string | null;
 };
 
 export type ProblemJsonErrorResponse = {

@@ -1,14 +1,18 @@
 import { Clipboard } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { RoomAddDrawer } from "@/components/room/RoomAddDrawer";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { FullScreenOverlayShell } from "@/components/ui/FullScreenOverlayShell";
 import { PillButton } from "@/components/ui/PillButton";
+import { useControlledMaxLengthWarning } from "@/features/onboarding";
 import { useRoomAddFlow } from "@/features/room";
+import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 
 const FLOW_TRANSITION_MS = 180;
+const ROOM_NAME_MAX_LENGTH = 20;
+const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
 
 type FullScreenStep = "none" | "createName" | "createInvite" | "join";
 
@@ -50,6 +54,13 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
 
   const [renderStep, setRenderStep] = useState<FullScreenStep>("none");
   const closeFlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const {
+    limitWarning: roomNameLimitWarning,
+    notifyLimitAttempt: notifyRoomNameLimitAttempt,
+    applyChange: applyRoomNameChange,
+    handleCompositionStart: handleRoomNameCompositionStart,
+    handleCompositionEnd: handleRoomNameCompositionEnd,
+  } = useControlledMaxLengthWarning(ROOM_NAME_MAX_LENGTH, roomName);
 
   useEffect(() => {
     if (step !== "none") {
@@ -78,6 +89,60 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
     };
   }, [clearFlowState, step]);
 
+  const handleChangeRoomName = useCallback(
+    (next: string) => {
+      applyRoomNameChange(next, onChangeRoomName);
+    },
+    [applyRoomNameChange, onChangeRoomName],
+  );
+
+  const handleRoomNameKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.nativeEvent.isComposing) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
+      if (event.key.length !== 1) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomName,
+        input.selectionStart,
+        input.selectionEnd,
+        1,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [notifyRoomNameLimitAttempt, roomName],
+  );
+
+  const handleRoomNamePaste = useCallback(
+    (event: React.ClipboardEvent<HTMLInputElement>) => {
+      const pastedText = event.clipboardData.getData("text");
+      if (!pastedText) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomName,
+        input.selectionStart,
+        input.selectionEnd,
+        pastedText.length,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [notifyRoomNameLimitAttempt, roomName],
+  );
+
   return (
     <>
       <BottomSheet open={isOpen} onClose={onClose}>
@@ -104,19 +169,35 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
               <input
                 id="room-create-name"
                 value={roomName}
-                maxLength={20}
+                maxLength={ROOM_NAME_MAX_LENGTH}
                 onChange={(event) => {
-                  onChangeRoomName(event.target.value);
+                  handleChangeRoomName(event.target.value);
                 }}
+                onCompositionStart={handleRoomNameCompositionStart}
+                onCompositionEnd={handleRoomNameCompositionEnd}
+                onKeyDown={handleRoomNameKeyDown}
+                onPaste={handleRoomNamePaste}
+                aria-describedby={roomNameLimitWarning ? "room-name-limit-warning" : undefined}
                 placeholder="예: 내 사랑♥️"
                 autoComplete="off"
                 className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
-              {roomNameError ? (
-                <p className="text-destructive mt-2 px-1 text-sm" role="alert">
-                  {roomNameError}
-                </p>
-              ) : null}
+              <div className="mt-2 min-h-5 px-1">
+                {roomNameError ? (
+                  <p className="text-destructive text-sm" role="alert">
+                    {roomNameError}
+                  </p>
+                ) : (
+                  <p
+                    id="room-name-limit-warning"
+                    className={cn("text-brand-coral text-xs", !roomNameLimitWarning && "invisible")}
+                    aria-hidden={!roomNameLimitWarning}
+                    aria-live={roomNameLimitWarning ? "polite" : undefined}
+                  >
+                    {ROOM_NAME_LIMIT_HINT}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="mt-auto grid grid-cols-2 gap-2.5 pt-6">

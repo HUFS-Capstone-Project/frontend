@@ -6,14 +6,14 @@ import type { FriendRoomRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
 
-const LEAVE_WARNING =
-  "방을 나가면 저장한 장소를 볼 수 없게 돼요. \n 그래도 나가시겠어요?";
+const LEAVE_WARNING = "방을 나가면 저장한 장소를 볼 수 없게 돼요. \n 그래도 나가시겠어요?";
 
 export type LeaveRoomConfirmModalProps = {
   room: FriendRoomRow | null;
   onClose: () => void;
   /** 확인 시 호출. 이후 API 연동 시 여기서 `leaveRoom(room.id)` 등 처리 */
   onConfirmLeave: (room: FriendRoomRow) => void;
+  isSubmitting?: boolean;
 };
 
 const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
@@ -21,21 +21,27 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
   visible,
   onClose,
   onConfirmLeave,
+  isSubmitting = false,
 }: {
   displayRoom: FriendRoomRow;
   visible: boolean;
   onClose: () => void;
   onConfirmLeave: (room: FriendRoomRow) => void;
+  isSubmitting?: boolean;
 }) {
   const handleConfirm = useCallback(() => {
+    if (isSubmitting) {
+      return;
+    }
+
     onConfirmLeave(displayRoom);
-  }, [displayRoom, onConfirmLeave]);
+  }, [displayRoom, isSubmitting, onConfirmLeave]);
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5 text-center">
         <h2 className="text-foreground text-lg leading-snug font-bold">방 나가기</h2>
-        <p className="text-foreground mt-4 whitespace-pre-line text-sm leading-relaxed">
+        <p className="text-foreground mt-4 text-sm leading-relaxed whitespace-pre-line">
           {LEAVE_WARNING}
         </p>
       </div>
@@ -48,15 +54,17 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
             "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
           )}
           onClick={onClose}
+          disabled={isSubmitting}
         >
           취소
         </button>
         <button
           type="button"
-          className="text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors"
+          className="text-brand-coral hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors"
           onClick={handleConfirm}
+          disabled={isSubmitting}
         >
-          나가기
+          {isSubmitting ? "나가는 중..." : "나가기"}
         </button>
       </div>
     </RoomModalShell>
@@ -70,6 +78,7 @@ export function LeaveRoomConfirmModal({
   room,
   onClose,
   onConfirmLeave,
+  isSubmitting,
 }: LeaveRoomConfirmModalProps) {
   const { displayRoom, visible } = useRoomActionModalPresence(room);
   const { requestClose } = useOverlayFlowController({
@@ -86,6 +95,7 @@ export function LeaveRoomConfirmModal({
       visible={visible}
       onClose={requestClose}
       onConfirmLeave={onConfirmLeave}
+      isSubmitting={isSubmitting}
     />
   );
 }

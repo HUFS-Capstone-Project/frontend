@@ -35,6 +35,11 @@ const LinkAddModal = lazy(() =>
 const RoomAddModal = lazy(() =>
   import("@/components/room/RoomAddModal").then((module) => ({ default: module.RoomAddModal })),
 );
+const EditRoomNameModal = lazy(() =>
+  import("@/components/room/EditRoomNameModal").then((module) => ({
+    default: module.EditRoomNameModal,
+  })),
+);
 
 export default function RoomMainPage() {
   const navigate = useNavigate();
@@ -48,19 +53,25 @@ export default function RoomMainPage() {
   const { actionRoom, openRoomActions, closeRoomActions } = useRoomActionModalHistory();
   const {
     sortedRows,
+    editRoom,
     inviteCodeRoom,
     leaveRoom,
     linkAddRoom,
     isAddRoomOpen,
+    isRenamePending,
+    isLeavePending,
     handleRoomAction,
+    handleSubmitEditRoomName,
     handleConfirmLeaveRoom,
+    closeEditRoomModal,
     closeInviteCodeModal,
     closeLeaveRoomModal,
     closeLinkAddModal,
     openAddRoom,
     closeAddRoom,
-  } = useRoomMainModals();
+  } = useRoomMainModals({ showToast });
   const [isRoomActionModalLoaded, setIsRoomActionModalLoaded] = useState(actionRoom != null);
+  const [isEditRoomModalLoaded, setIsEditRoomModalLoaded] = useState(editRoom != null);
   const [isInviteCodeModalLoaded, setIsInviteCodeModalLoaded] = useState(inviteCodeRoom != null);
   const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
   const [isLinkAddModalLoaded, setIsLinkAddModalLoaded] = useState(linkAddRoom != null);
@@ -90,6 +101,8 @@ export default function RoomMainPage() {
         setIsLeaveRoomModalLoaded(true);
       } else if (action === "add-direct-link") {
         setIsLinkAddModalLoaded(true);
+      } else if (action === "edit-info") {
+        setIsEditRoomModalLoaded(true);
       }
 
       handleRoomAction(action, row);
@@ -127,6 +140,16 @@ export default function RoomMainPage() {
           />
         </Suspense>
       ) : null}
+      {isEditRoomModalLoaded ? (
+        <Suspense fallback={null}>
+          <EditRoomNameModal
+            room={editRoom}
+            onClose={closeEditRoomModal}
+            onSubmitRoomName={handleSubmitEditRoomName}
+            isSubmitting={isRenamePending}
+          />
+        </Suspense>
+      ) : null}
       {isInviteCodeModalLoaded ? (
         <Suspense fallback={null}>
           <InviteCodeModal
@@ -142,6 +165,7 @@ export default function RoomMainPage() {
             room={leaveRoom}
             onClose={closeLeaveRoomModal}
             onConfirmLeave={handleConfirmLeaveRoom}
+            isSubmitting={isLeavePending}
           />
         </Suspense>
       ) : null}

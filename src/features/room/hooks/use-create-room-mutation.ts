@@ -3,6 +3,7 @@
 import { roomService } from "../api/room-service";
 import type { CreateRoomRequest, CreateRoomResponse, RoomSummaryResponse } from "../api/types";
 import { roomQueryKeys } from "../query-keys";
+import { prependRoomSummary } from "../utils/room-query-cache";
 
 export function useCreateRoomMutation() {
   const queryClient = useQueryClient();
@@ -15,23 +16,12 @@ export function useCreateRoomMutation() {
         roomId: createdRoom.roomId,
         roomName: createdRoom.roomName,
         inviteCode: createdRoom.inviteCode,
-        role: createdRoom.role,
+        pinned: createdRoom.pinned,
         memberCount: 1,
         linkCount: 0,
         createdAt: createdRoom.createdAt,
       });
-
-      queryClient.setQueryData(
-        roomQueryKeys.rooms(),
-        (previous: RoomSummaryResponse[] | undefined) => {
-          if (!previous) {
-            return [mapCreateRoomToSummary(createdRoom)];
-          }
-
-          const next = previous.filter((room) => room.roomId !== createdRoom.roomId);
-          return [mapCreateRoomToSummary(createdRoom), ...next];
-        },
-      );
+      prependRoomSummary(queryClient, mapCreateRoomToSummary(createdRoom));
     },
   });
 }
@@ -40,7 +30,7 @@ function mapCreateRoomToSummary(createdRoom: CreateRoomResponse): RoomSummaryRes
   return {
     roomId: createdRoom.roomId,
     roomName: createdRoom.roomName,
-    role: createdRoom.role,
+    pinned: createdRoom.pinned,
     createdAt: createdRoom.createdAt,
     linkCount: 0,
     memberCount: 1,
