@@ -39,7 +39,7 @@ export const MAP_FILTER_PANEL_HEADER_ACTION_CLASS =
 export const MAP_FILTER_PANEL_SECTION_CLASS = "min-w-0 px-3 py-3";
 
 export const MAP_FILTER_PANEL_GROUP_TITLE_CLASS =
-  "mb-1.5 text-[11px] font-semibold tracking-tight text-muted-foreground/90";
+  "mb-1.5 text-[0.75rem] font-semibold tracking-tight text-muted-foreground/90";
 
 export const MAP_FILTER_PANEL_SECTION_ICON_CLASS = "size-4 shrink-0 text-muted-foreground/90";
 

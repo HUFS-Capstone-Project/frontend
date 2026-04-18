@@ -3,6 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isApiError } from "@/shared/api/axios";
 
 import type { CreateRoomResponse } from "../api";
+import {
+  COPY_ERROR_TOAST_MESSAGE,
+  COPY_SUCCESS_TOAST_MESSAGE,
+  copyTextToClipboard,
+} from "../utils/clipboard";
 import { formatInviteCodeForDisplay } from "../utils/inviteCode";
 import { useCreateRoomMutation } from "./use-create-room-mutation";
 import { useJoinRoomMutation } from "./use-join-room-mutation";
@@ -14,8 +19,6 @@ const COPY_FEEDBACK_RESET_MS = 1800;
 
 const CREATE_SUCCESS_TOAST = "방이 생성되었습니다.";
 const JOIN_SUCCESS_TOAST = "방에 참여했습니다.";
-const COPY_SUCCESS_TOAST = "클립보드에 복사되었습니다.";
-const COPY_ERROR_TOAST = "복사에 실패했습니다. 다시 시도해 주세요.";
 
 type FullScreenStep = "none" | "createName" | "createInvite" | "join";
 type CopyFeedback = "idle" | "copied";
@@ -196,9 +199,9 @@ export function useRoomAddFlow({
     try {
       await copyTextToClipboard(createdRoom.inviteCode);
       setCopyFeedback("copied");
-      showToast?.(COPY_SUCCESS_TOAST);
+      showToast?.(COPY_SUCCESS_TOAST_MESSAGE);
     } catch {
-      showToast?.(COPY_ERROR_TOAST);
+      showToast?.(COPY_ERROR_TOAST_MESSAGE);
     } finally {
       setIsCopying(false);
 
@@ -342,29 +345,4 @@ function resolveJoinRoomErrorMessage(error: unknown): string {
   }
 
   return error.detail ?? error.message;
-}
-
-async function copyTextToClipboard(value: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  textarea.style.pointerEvents = "none";
-
-  document.body.appendChild(textarea);
-  textarea.select();
-  textarea.setSelectionRange(0, textarea.value.length);
-
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textarea);
-
-  if (!copied) {
-    throw new Error("copy-failed");
-  }
 }

@@ -7,7 +7,7 @@ import type { FriendRoomRow } from "@/shared/types/room";
 import { RoomModalShell } from "./RoomModalShell";
 
 const LEAVE_WARNING =
-  "나가기를 하면 저장했던 장소들이 모두 삭제되고 상대방의 채팅목록에서도 삭제됩니다";
+  "방을 나가면 저장한 장소를 볼 수 없게 돼요. \n 그래도 나가시겠어요?";
 
 export type LeaveRoomConfirmModalProps = {
   room: FriendRoomRow | null;
@@ -35,7 +35,9 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5 text-center">
         <h2 className="text-foreground text-lg leading-snug font-bold">방 나가기</h2>
-        <p className="text-foreground mt-4 text-sm leading-relaxed">{LEAVE_WARNING}</p>
+        <p className="text-foreground mt-4 whitespace-pre-line text-sm leading-relaxed">
+          {LEAVE_WARNING}
+        </p>
       </div>
 
       <div className="border-border/50 flex border-t">

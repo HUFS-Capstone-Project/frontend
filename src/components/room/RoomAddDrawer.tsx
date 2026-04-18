@@ -15,8 +15,8 @@ export function RoomAddDrawer({ onSelectCreate, onSelectJoin }: RoomAddDrawerPro
           className="border-border hover:bg-muted/30 active:bg-muted/40 w-full rounded-[1.0rem] border px-4 py-4 text-left transition-colors"
           onClick={onSelectCreate}
         >
-          <p className="text-foreground text-[1.0rem] leading-snug font-medium">방 생성 / 초대</p>
-          <p className="text-muted-foreground mt-1.5 text-[0.8rem] leading-snug">
+          <p className="text-foreground text-[1rem] leading-snug font-medium">방 생성 / 초대</p>
+          <p className="text-muted-foreground mt-1.5 text-[0.75rem] leading-snug">
             장소를 공유하고 싶은 어디더라 유저를 초대해요
           </p>
         </button>
@@ -25,8 +25,8 @@ export function RoomAddDrawer({ onSelectCreate, onSelectJoin }: RoomAddDrawerPro
           className="border-border hover:bg-muted/30 active:bg-muted/40 w-full rounded-[1.0rem] border px-4 py-4 text-left transition-colors"
           onClick={onSelectJoin}
         >
-          <p className="text-foreground text-[1.0rem] leading-snug font-medium">입장코드로 참여</p>
-          <p className="text-muted-foreground mt-1.5 text-[0.8rem] leading-snug">
+          <p className="text-foreground text-[1rem] leading-snug font-medium">입장코드로 참여</p>
+          <p className="text-muted-foreground mt-1.5 text-[0.75rem] leading-snug">
             친구에게 받은 입장코드로 장소를 공유해요
           </p>
         </button>

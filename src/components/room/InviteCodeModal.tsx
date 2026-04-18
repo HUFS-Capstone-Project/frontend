@@ -3,13 +3,15 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { PillButton } from "@/components/ui/PillButton";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
+import {
+  COPY_ERROR_TOAST_MESSAGE,
+  COPY_SUCCESS_TOAST_MESSAGE,
+  copyTextToClipboard,
+} from "@/features/room/utils/clipboard";
 import { formatInviteCodeForDisplay, getInviteCodeValue } from "@/features/room/utils/inviteCode";
 import type { FriendRoomRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
-
-const COPY_SUCCESS_TOAST = "클립보드에 복사되었습니다";
-const COPY_ERROR_TOAST = "복사에 실패했습니다. 다시 시도해 주세요.";
 const FEEDBACK_RESET_MS = 1800;
 
 type CopyFeedback = "idle" | "success" | "error";
@@ -68,10 +70,10 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
     try {
       await copyTextToClipboard(inviteCode);
       setCopyFeedback("success");
-      showToast?.(COPY_SUCCESS_TOAST);
+      showToast?.(COPY_SUCCESS_TOAST_MESSAGE);
     } catch {
       setCopyFeedback("error");
-      showToast?.(COPY_ERROR_TOAST);
+      showToast?.(COPY_ERROR_TOAST_MESSAGE);
     } finally {
       setIsCopying(false);
       resetFeedbackLater();
@@ -81,12 +83,12 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-5 pt-4 pb-4">
-        <h2 className="text-foreground truncate text-center text-[1.0rem] leading-tight font-semibold">
+        <h2 className="text-foreground truncate text-center text-[1rem] leading-tight font-semibold">
           {displayRoom.displayName}
         </h2>
 
         <div className="border-border/85 bg-muted/20 my-4 rounded-xl border px-4 py-3.5">
-          <p className="text-muted-foreground text-center text-[0.7rem] font-semibold tracking-[0.04em] uppercase">
+          <p className="text-muted-foreground text-center text-[0.75rem] font-semibold tracking-[0.04em] uppercase">
             초대코드
           </p>
           <div className="scrollbar-hide mt-2 overflow-x-auto">
@@ -148,29 +150,4 @@ export function InviteCodeModal({ room, onClose, showToast }: InviteCodeModalPro
       showToast={showToast}
     />
   );
-}
-
-async function copyTextToClipboard(value: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  textarea.style.pointerEvents = "none";
-
-  document.body.appendChild(textarea);
-  textarea.select();
-  textarea.setSelectionRange(0, textarea.value.length);
-
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textarea);
-
-  if (!copied) {
-    throw new Error("copy-failed");
-  }
 }

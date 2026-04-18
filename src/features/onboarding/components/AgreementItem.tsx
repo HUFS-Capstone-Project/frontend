@@ -37,7 +37,7 @@ export function AgreementItem({
         aria-checked={checked}
         aria-labelledby={labelId}
         onClick={onToggle}
-        className="text-foreground active:bg-tap-highlight flex w-full cursor-pointer items-start gap-3 rounded-xl py-2.5 text-left text-[0.98rem] leading-snug"
+        className="text-foreground active:bg-tap-highlight flex w-full cursor-pointer items-start gap-3 rounded-xl py-2.5 text-left text-[1rem] leading-snug"
       >
         <span
           className={cn(

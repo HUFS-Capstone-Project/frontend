@@ -60,7 +60,7 @@ export function CategoryChip({
       {selectedTagCount > 0 ? (
         <span
           className={cn(
-            "rounded-full text-[10px] leading-none md:inline-flex md:shrink-0 md:items-center md:px-1.5 md:py-0.5",
+            "rounded-full text-[0.75rem] leading-none md:inline-flex md:shrink-0 md:items-center md:px-1.5 md:py-0.5",
             highlighted ? MAP_CHIP_BADGE_SELECTED_CLASS : MAP_CHIP_BADGE_UNSELECTED_CLASS,
             highlighted
               ? MAP_CHIP_BADGE_SELECTED_MOBILE_CLASS

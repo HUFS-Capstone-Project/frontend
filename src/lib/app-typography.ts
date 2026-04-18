@@ -4,4 +4,4 @@ export const appHeadlineSizeClassName = "text-[1.5rem] font-bold leading-snug tr
 export const appHeadlineClassName = `${appHeadlineSizeClassName} text-foreground`;
 
 /** 폼 한 줄 입력(닉네임 밑줄 등) — 본문보다 한 단계 작게 */
-export const appFormInputTextClassName = "text-[1.05rem] leading-normal text-foreground";
+export const appFormInputTextClassName = "text-[1rem] leading-normal text-foreground";

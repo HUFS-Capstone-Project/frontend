@@ -69,8 +69,8 @@ body {
   --room-fab-gap-above-nav: 1rem;
   --room-scroll-pb-min: 6.5rem;
   --room-scroll-pb-safe-add: 5.75rem;
-  --room-row-title-size: 0.9375rem;
-  --room-row-meta-size: 0.6875rem;
+  --room-row-title-size: 1rem;
+  --room-row-meta-size: 0.75rem;
 
   /* 인터랙션 마이크로 애니메이션 (컴포넌트에서 동일 변수 참조) */
   --interaction-duration-row: 140ms;
