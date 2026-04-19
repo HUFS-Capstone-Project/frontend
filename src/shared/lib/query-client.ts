@@ -30,3 +30,5 @@ function getErrorStatus(error: unknown): number | undefined {
   }
   return undefined;
 }
+
+export const appQueryClient = createQueryClient();

@@ -8,6 +8,7 @@ import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import DevSelectOptionPage from "@/pages/dev/DevSelectOptionPage";
 import EntryPage from "@/pages/EntryPage";
 import LoginPage from "@/pages/LoginPage";
+import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
@@ -58,7 +59,7 @@ export const router = createBrowserRouter([
         ),
         children: [
           { path: "room", element: <RoomMainPage /> },
-          { path: "map", element: <MapHomePage /> },
+          { path: "map", element: <MapHomePage />, loader: mapHomeLoader },
           { path: "list", element: <PlaceListPage /> },
           { path: "course", element: <CoursePlannerPage /> },
           { path: "mypage", element: <MyPage /> },

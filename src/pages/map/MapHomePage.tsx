@@ -43,7 +43,14 @@ export function MapHomePageContent({
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
-  const { categories, categoryNameByCode, filterCategories } = usePlaceFilterData();
+  const {
+    categories,
+    categoryNameByCode,
+    filterCategories,
+    isInitialLoading,
+    isInitialError,
+    retryLoad,
+  } = usePlaceFilterData();
 
   const {
     keyword,
@@ -95,6 +102,11 @@ export function MapHomePageContent({
             categories={categories}
             categoryNameByCode={categoryNameByCode}
             filterCategories={filterCategories}
+            isCategoryLoading={isInitialLoading}
+            isCategoryError={isInitialError}
+            onRetryLoadCategories={() => {
+              void retryLoad();
+            }}
             activeCategories={activeCategories}
             focusedCategory={focusedCategory}
             onToggleCategory={toggleCategory}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import {
   MAP_ALL_CATEGORY_FILTER_CHIP,
@@ -15,10 +15,15 @@ type UsePlaceFilterDataResult = {
   categories: MapCategoryFilterChip[];
   categoryNameByCode: Record<MapPrimaryCategory, string>;
   filterCategories: Category[];
+  isInitialLoading: boolean;
+  isInitialError: boolean;
+  retryLoad: () => Promise<unknown>;
 };
 
 export function usePlaceFilterData(): UsePlaceFilterDataResult {
-  const { data: placeFilterData } = usePlaceFilterOptionsQuery();
+  const { data: placeFilterData, isPending, isError, refetch } = usePlaceFilterOptionsQuery();
+
+  const hasInitialData = Boolean(placeFilterData);
 
   const filterCategories = useMemo(
     () => placeFilterData?.categories ?? EMPTY_FILTER_CATEGORIES,
@@ -42,9 +47,14 @@ export function usePlaceFilterData(): UsePlaceFilterDataResult {
     [filterCategories],
   );
 
+  const retryLoad = useCallback(() => refetch(), [refetch]);
+
   return {
     categories,
     categoryNameByCode,
     filterCategories,
+    isInitialLoading: !hasInitialData && isPending,
+    isInitialError: !hasInitialData && isError,
+    retryLoad,
   };
 }

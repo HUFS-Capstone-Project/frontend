@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { queryOptions, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 
 import { useAuthStore } from "@/store/auth-store";
 
@@ -8,12 +8,22 @@ import { mapQueryKeys } from "../query-keys";
 
 const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
+export function getPlaceFilterOptionsQueryOptions() {
+  return queryOptions({
+    queryKey: mapQueryKeys.placeFilterOptions(),
+    queryFn: placeTaxonomyApi.getPlaceFilterOptions,
+    staleTime: ONE_DAY_MS,
+    gcTime: ONE_DAY_MS,
+    retry: 1,
+  });
+}
+
 type UsePlaceFilterOptionsQueryOptions = {
   enabled?: boolean;
   queryOptions?: Omit<
     UseQueryOptions<
       PlaceFilterData,
-      unknown,
+      Error,
       PlaceFilterData,
       ReturnType<typeof mapQueryKeys.placeFilterOptions>
     >,
@@ -26,11 +36,7 @@ export function usePlaceFilterOptionsQuery(options?: UsePlaceFilterOptionsQueryO
   const accessToken = useAuthStore((state) => state.accessToken);
 
   return useQuery({
-    queryKey: mapQueryKeys.placeFilterOptions(),
-    queryFn: placeTaxonomyApi.getPlaceFilterOptions,
-    staleTime: ONE_DAY_MS,
-    gcTime: ONE_DAY_MS,
-    retry: 1,
+    ...getPlaceFilterOptionsQueryOptions(),
     enabled: (options?.enabled ?? true) && isLoggedIn && Boolean(accessToken),
     ...(options?.queryOptions ?? {}),
   });
