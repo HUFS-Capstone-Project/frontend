@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { MAP_ALL_TAG_KEY_BY_CATEGORY } from "@/features/map/constants/filter-sections";
-import type {
-  MapCategoryFilterChip,
-  MapPrimaryCategory,
-  SavedPlace,
+import type { Category } from "@/features/map/api/place-taxonomy-types";
+import {
+  MAP_ALL_CATEGORY_FILTER_CHIP,
+  type MapCategoryFilterChip,
+  type MapPrimaryCategory,
+  type SavedPlace,
 } from "@/shared/types/map-home";
 
 type SelectedTagKeysByCategory = Record<MapPrimaryCategory, string[]>;
@@ -12,13 +13,14 @@ type SelectedTagCountByCategory = Record<MapPrimaryCategory, number>;
 
 type UseMapSearchFiltersOptions = {
   places: SavedPlace[];
+  filterCategories: Category[];
   initialFocusedCategory?: MapPrimaryCategory | null;
 };
 
 type UseMapSearchFiltersResult = {
   keyword: string;
   setKeyword: (value: string) => void;
-  /** 상세 태그가 1개 이상인 카테고리만 (칩 활성 표시용) */
+  /** 상세 태그가 1개 이상인 카테고리만(칩 “활성” 표시용) */
   activeCategories: MapPrimaryCategory[];
   focusedCategory: MapPrimaryCategory | null;
   toggleCategory: (category: MapCategoryFilterChip) => void;
@@ -32,118 +34,210 @@ type UseMapSearchFiltersResult = {
   filteredPlaces: SavedPlace[];
 };
 
-const PRIMARY_CATEGORIES: MapPrimaryCategory[] = ["맛집", "카페", "놀거리"];
+function buildEmptySelectedTagKeysByCategory(
+  categories: readonly MapPrimaryCategory[],
+): SelectedTagKeysByCategory {
+  return categories.reduce((accumulator, category) => {
+    accumulator[category] = [];
+    return accumulator;
+  }, {} as SelectedTagKeysByCategory);
+}
 
-const EMPTY_SELECTED_TAG_KEYS_BY_CATEGORY: SelectedTagKeysByCategory = {
-  맛집: [],
-  카페: [],
-  놀거리: [],
-};
+function normalizeSelectedTagKeysByCategory(
+  previous: SelectedTagKeysByCategory,
+  categories: readonly MapPrimaryCategory[],
+): SelectedTagKeysByCategory {
+  const next = buildEmptySelectedTagKeysByCategory(categories);
+  const categorySet = new Set(categories);
+
+  for (const [category, tagKeys] of Object.entries(previous)) {
+    if (!categorySet.has(category)) {
+      continue;
+    }
+    next[category] = tagKeys;
+  }
+
+  return next;
+}
 
 export function useMapSearchFilters({
   places,
+  filterCategories,
   initialFocusedCategory = null,
 }: UseMapSearchFiltersOptions): UseMapSearchFiltersResult {
   const [keyword, setKeyword] = useState("");
-  const [focusedCategory, setFocusedCategory] = useState<MapPrimaryCategory | null>(
-    initialFocusedCategory,
+  const [focusedCategoryState, setFocusedCategoryState] = useState<MapPrimaryCategory | null>(null);
+  const [selectedCategoriesState, setSelectedCategoriesState] = useState<MapPrimaryCategory[]>([]);
+  const [selectedTagKeysByCategoryState, setSelectedTagKeysByCategoryState] =
+    useState<SelectedTagKeysByCategory>({});
+  const [isInitialFocusDismissed, setIsInitialFocusDismissed] = useState(false);
+
+  const primaryCategories = useMemo(
+    () => filterCategories.map((category) => category.code),
+    [filterCategories],
   );
-  const [selectedCategories, setSelectedCategories] = useState<MapPrimaryCategory[]>(
-    initialFocusedCategory ? [initialFocusedCategory] : [],
+  const categoryCodeSet = useMemo(() => new Set(primaryCategories), [primaryCategories]);
+
+  const allTagKeyByCategory = useMemo(
+    () =>
+      filterCategories.reduce(
+        (accumulator, category) => {
+          const allTag = category.tagGroups
+            .flatMap((group) => group.tags)
+            .find((tag) => tag.code === "ALL");
+
+          accumulator[category.code] = allTag?.code;
+          return accumulator;
+        },
+        {} as Record<MapPrimaryCategory, string | undefined>,
+      ),
+    [filterCategories],
   );
-  const [selectedTagKeysByCategory, setSelectedTagKeysByCategory] =
-    useState<SelectedTagKeysByCategory>(EMPTY_SELECTED_TAG_KEYS_BY_CATEGORY);
+
+  const focusedCategory = useMemo(() => {
+    if (focusedCategoryState && categoryCodeSet.has(focusedCategoryState)) {
+      return focusedCategoryState;
+    }
+
+    if (
+      !isInitialFocusDismissed &&
+      initialFocusedCategory &&
+      categoryCodeSet.has(initialFocusedCategory)
+    ) {
+      return initialFocusedCategory;
+    }
+
+    return null;
+  }, [categoryCodeSet, focusedCategoryState, initialFocusedCategory, isInitialFocusDismissed]);
+
+  const selectedCategories = useMemo(() => {
+    const normalized = selectedCategoriesState.filter((category) => categoryCodeSet.has(category));
+
+    if (normalized.length > 0) {
+      return normalized;
+    }
+
+    if (
+      !isInitialFocusDismissed &&
+      initialFocusedCategory &&
+      categoryCodeSet.has(initialFocusedCategory)
+    ) {
+      return [initialFocusedCategory];
+    }
+
+    return normalized;
+  }, [categoryCodeSet, initialFocusedCategory, isInitialFocusDismissed, selectedCategoriesState]);
+
+  const selectedTagKeysByCategory = useMemo(
+    () => normalizeSelectedTagKeysByCategory(selectedTagKeysByCategoryState, primaryCategories),
+    [primaryCategories, selectedTagKeysByCategoryState],
+  );
 
   const toggleCategory = useCallback(
     (category: MapCategoryFilterChip) => {
-      if (category === "전체") {
-        setSelectedTagKeysByCategory({ ...EMPTY_SELECTED_TAG_KEYS_BY_CATEGORY });
-        setSelectedCategories([]);
-        setFocusedCategory(null);
+      setIsInitialFocusDismissed(true);
+
+      if (category === MAP_ALL_CATEGORY_FILTER_CHIP) {
+        setSelectedTagKeysByCategoryState(buildEmptySelectedTagKeysByCategory(primaryCategories));
+        setSelectedCategoriesState([]);
+        setFocusedCategoryState(null);
         return;
       }
 
-      setSelectedCategories((previous) => {
-        const isSelected = previous.includes(category);
+      if (!categoryCodeSet.has(category)) {
+        return;
+      }
+
+      setSelectedCategoriesState((previous) => {
+        const normalized = previous.filter((current) => categoryCodeSet.has(current));
+        const isSelected = normalized.includes(category);
 
         if (!isSelected) {
-          setFocusedCategory(category);
-          return [...previous, category];
+          setFocusedCategoryState(category);
+          return [...normalized, category];
         }
 
         if (focusedCategory !== category) {
-          setFocusedCategory(category);
-          return previous;
+          setFocusedCategoryState(category);
+          return normalized;
         }
 
-        setFocusedCategory(null);
-
-        return previous;
+        setFocusedCategoryState(null);
+        return normalized;
       });
     },
-    [focusedCategory],
+    [categoryCodeSet, focusedCategory, primaryCategories],
   );
 
   const closeTagPanel = useCallback(() => {
-    setFocusedCategory(null);
+    setIsInitialFocusDismissed(true);
+    setFocusedCategoryState(null);
   }, []);
 
-  const toggleTagInCategory = useCallback((category: MapPrimaryCategory, tagKey: string) => {
-    const allTagKey = MAP_ALL_TAG_KEY_BY_CATEGORY[category];
+  const toggleTagInCategory = useCallback(
+    (category: MapPrimaryCategory, tagKey: string) => {
+      setSelectedTagKeysByCategoryState((previous) => {
+        const currentTagKeys = previous[category] ?? [];
+        const hasCurrentTag = currentTagKeys.includes(tagKey);
+        const allTagKey = allTagKeyByCategory[category];
 
-    setSelectedTagKeysByCategory((previous) => {
-      const currentTagKeys = previous[category];
-      const hasCurrentTag = currentTagKeys.includes(tagKey);
+        let nextTagKeys: string[];
 
-      let nextTagKeys: string[];
+        if (allTagKey && tagKey === allTagKey) {
+          nextTagKeys = hasCurrentTag ? [] : [allTagKey];
+        } else {
+          const withoutAll = allTagKey
+            ? currentTagKeys.filter((current) => current !== allTagKey)
+            : currentTagKeys;
+          nextTagKeys = hasCurrentTag
+            ? withoutAll.filter((current) => current !== tagKey)
+            : [...withoutAll, tagKey];
+        }
 
-      if (tagKey === allTagKey) {
-        nextTagKeys = hasCurrentTag ? [] : [allTagKey];
-      } else {
-        const withoutAll = currentTagKeys.filter((current) => current !== allTagKey);
-        nextTagKeys = hasCurrentTag
-          ? withoutAll.filter((current) => current !== tagKey)
-          : [...withoutAll, tagKey];
-      }
-
-      return {
-        ...previous,
-        [category]: nextTagKeys,
-      };
-    });
-  }, []);
+        return {
+          ...previous,
+          [category]: nextTagKeys,
+        };
+      });
+    },
+    [allTagKeyByCategory],
+  );
 
   const resetFocusedCategoryTags = useCallback(() => {
     if (!focusedCategory) {
       return;
     }
 
-    setSelectedTagKeysByCategory((previous) => ({
+    setSelectedTagKeysByCategoryState((previous) => ({
       ...previous,
       [focusedCategory]: [],
     }));
   }, [focusedCategory]);
 
   const selectedTagCountByCategory = useMemo(
-    () => ({
-      맛집: selectedTagKeysByCategory.맛집.length,
-      카페: selectedTagKeysByCategory.카페.length,
-      놀거리: selectedTagKeysByCategory.놀거리.length,
-    }),
-    [selectedTagKeysByCategory],
+    () =>
+      primaryCategories.reduce((accumulator, category) => {
+        accumulator[category] = selectedTagKeysByCategory[category]?.length ?? 0;
+        return accumulator;
+      }, {} as SelectedTagCountByCategory),
+    [primaryCategories, selectedTagKeysByCategory],
   );
 
   const totalSelectedTagCount = useMemo(
     () =>
-      selectedTagCountByCategory.맛집 +
-      selectedTagCountByCategory.카페 +
-      selectedTagCountByCategory.놀거리,
+      Object.values(selectedTagCountByCategory).reduce(
+        (accumulator, selectedCount) => accumulator + selectedCount,
+        0,
+      ),
     [selectedTagCountByCategory],
   );
 
-  // 카테고리 chip active 조건: "상세 태그가 1개 이상 선택된 카테고리"
+  // 카테고리 chip active 조건: “상세 태그가 1개 이상 선택된 카테고리”
   const activeCategories = useMemo(
-    () => selectedCategories.filter((category) => selectedTagKeysByCategory[category].length > 0),
+    () =>
+      selectedCategories.filter(
+        (category) => (selectedTagKeysByCategory[category] ?? []).length > 0,
+      ),
     [selectedCategories, selectedTagKeysByCategory],
   );
 
@@ -151,22 +245,25 @@ export function useMapSearchFilters({
 
   const filteredPlaces = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
+    const hasSelectedCategoryFilter = activeCategories.length > 0;
 
     return places.filter((place) => {
-      const placeCategory = place.category as MapPrimaryCategory;
-      const hasSelectedCategoryFilter = activeCategories.length > 0;
+      const placeCategoryCode = place.category as MapPrimaryCategory;
 
-      if (hasSelectedCategoryFilter && !selectedCategorySet.has(placeCategory)) {
-        return false;
-      }
+      if (hasSelectedCategoryFilter) {
+        if (
+          !categoryCodeSet.has(placeCategoryCode) ||
+          !selectedCategorySet.has(placeCategoryCode)
+        ) {
+          return false;
+        }
 
-      if (hasSelectedCategoryFilter && PRIMARY_CATEGORIES.includes(placeCategory)) {
-        const categoryTagKeys = selectedTagKeysByCategory[placeCategory];
-
+        const categoryTagKeys = selectedTagKeysByCategory[placeCategoryCode] ?? [];
         if (categoryTagKeys.length > 0) {
-          const allTagKey = MAP_ALL_TAG_KEY_BY_CATEGORY[placeCategory];
+          const allTagKey = allTagKeyByCategory[placeCategoryCode];
+          const hasAllTagSelected = Boolean(allTagKey && categoryTagKeys.includes(allTagKey));
 
-          if (!categoryTagKeys.includes(allTagKey)) {
+          if (!hasAllTagSelected) {
             if (!place.tagKeys || place.tagKeys.length === 0) {
               return false;
             }
@@ -186,7 +283,15 @@ export function useMapSearchFilters({
       const searchableText = `${place.name} ${place.address}`.toLowerCase();
       return searchableText.includes(normalizedKeyword);
     });
-  }, [activeCategories, keyword, places, selectedCategorySet, selectedTagKeysByCategory]);
+  }, [
+    activeCategories.length,
+    allTagKeyByCategory,
+    categoryCodeSet,
+    keyword,
+    places,
+    selectedCategorySet,
+    selectedTagKeysByCategory,
+  ]);
 
   return {
     keyword,

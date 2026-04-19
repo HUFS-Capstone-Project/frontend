@@ -1,7 +1,7 @@
 import { RotateCcw } from "lucide-react";
 
-import type { FilterSection, FilterTag } from "@/features/map/constants/filter-sections";
-import { MAP_FILTER_SECTION_BY_CATEGORY } from "@/features/map/constants/filter-sections";
+import type { Category, Tag } from "@/features/map/api/place-taxonomy-types";
+import { isDefaultGroup, isEmptyGroup } from "@/features/map/utils/filter-panel-group";
 import { cn } from "@/lib/utils";
 import type { MapPrimaryCategory } from "@/shared/types/map-home";
 
@@ -13,13 +13,14 @@ import {
   MAP_FILTER_PANEL_SECTION_CLASS,
   MAP_FILTER_PANEL_SECTION_ICON_CLASS,
 } from "./chip-style";
-import { MAP_PRIMARY_CATEGORY_ICON } from "./filters/map-category-icons";
+import { renderMapPrimaryCategoryIcon } from "./filters/map-category-icons";
 import { MAP_FILTER_LABELS, mapTagFilterRegionAriaLabel } from "./filters/map-filter-labels";
 import { TagChip } from "./TagChip";
 
 type FilterPanelProps = {
   isOpen: boolean;
   focusedCategory: MapPrimaryCategory | null;
+  filterCategories: Category[];
   selectedTagKeysByCategory: Record<MapPrimaryCategory, string[]>;
   onToggleTagInCategory: (category: MapPrimaryCategory, tagKey: string) => void;
   onResetFocusedCategoryTags: () => void;
@@ -31,7 +32,7 @@ function TagChipRow({
   selectedKeys,
   onToggleTagKey,
 }: {
-  tags: FilterTag[];
+  tags: Tag[];
   selectedKeys: readonly string[];
   onToggleTagKey: (tagKey: string) => void;
 }) {
@@ -39,10 +40,10 @@ function TagChipRow({
     <div className="flex flex-wrap gap-2" role="group">
       {tags.map((tag) => (
         <TagChip
-          key={tag.key}
-          label={tag.label}
-          selected={selectedKeys.includes(tag.key)}
-          onClick={() => onToggleTagKey(tag.key)}
+          key={tag.code}
+          label={tag.name}
+          selected={selectedKeys.includes(tag.code)}
+          onClick={() => onToggleTagKey(tag.code)}
         />
       ))}
     </div>
@@ -54,49 +55,45 @@ function FilterSectionBody({
   selectedKeys,
   onToggleTagInCategory,
 }: {
-  section: FilterSection;
+  section: Category;
   selectedKeys: readonly string[];
   onToggleTagInCategory: (category: MapPrimaryCategory, tagKey: string) => void;
 }) {
-  const { category } = section;
-  const toggle = (tagKey: string) => onToggleTagInCategory(category, tagKey);
-
-  if (section.tagGroups) {
-    return (
-      <div className="space-y-3">
-        {section.leadingTags?.length ? (
-          <TagChipRow
-            tags={section.leadingTags}
-            selectedKeys={selectedKeys}
-            onToggleTagKey={toggle}
-          />
-        ) : null}
-        {section.tagGroups.map((group) => (
-          <div key={group.title}>
-            <div className={MAP_FILTER_PANEL_GROUP_TITLE_CLASS}>{group.title}</div>
-            <TagChipRow tags={group.tags} selectedKeys={selectedKeys} onToggleTagKey={toggle} />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const toggle = (tagKey: string) => onToggleTagInCategory(section.code, tagKey);
 
   return (
-    <TagChipRow tags={section.tags ?? []} selectedKeys={selectedKeys} onToggleTagKey={toggle} />
+    <div className="space-y-3">
+      {section.tagGroups.map((group) => {
+        if (isEmptyGroup(group)) {
+          return null;
+        }
+
+        return (
+          <div key={`${section.code}-${group.code}`}>
+            {!isDefaultGroup(group) ? (
+              <div className={MAP_FILTER_PANEL_GROUP_TITLE_CLASS}>{group.name}</div>
+            ) : null}
+            <TagChipRow tags={group.tags} selectedKeys={selectedKeys} onToggleTagKey={toggle} />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
 export function FilterPanel({
   isOpen,
   focusedCategory,
+  filterCategories,
   selectedTagKeysByCategory,
   onToggleTagInCategory,
   onResetFocusedCategoryTags,
   onClose,
 }: FilterPanelProps) {
-  const section = focusedCategory ? MAP_FILTER_SECTION_BY_CATEGORY[focusedCategory] : null;
-  const CategoryIcon = section ? MAP_PRIMARY_CATEGORY_ICON[section.category] : null;
-  const selectedKeysForSection = section ? selectedTagKeysByCategory[section.category] : [];
+  const section = focusedCategory
+    ? (filterCategories.find((category) => category.code === focusedCategory) ?? null)
+    : null;
+  const selectedKeysForSection = section ? (selectedTagKeysByCategory[section.code] ?? []) : [];
 
   return (
     <section
@@ -106,17 +103,17 @@ export function FilterPanel({
       )}
       role="region"
       aria-hidden={!isOpen}
-      aria-label={section ? mapTagFilterRegionAriaLabel(section.category) : undefined}
+      aria-label={section ? mapTagFilterRegionAriaLabel(section.name) : undefined}
     >
       <div className="scrollbar-hide max-h-[55dvh] overflow-y-auto px-3 pt-3 pb-3">
         {section ? (
           <div className={MAP_FILTER_PANEL_SECTION_CLASS}>
             <header className="mb-2.5 flex items-center justify-between gap-2">
               <div className="text-foreground/90 flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold">
-                {CategoryIcon ? (
-                  <CategoryIcon className={MAP_FILTER_PANEL_SECTION_ICON_CLASS} aria-hidden />
-                ) : null}
-                <span className="truncate">{section.category}</span>
+                {section
+                  ? renderMapPrimaryCategoryIcon(section.name, MAP_FILTER_PANEL_SECTION_ICON_CLASS)
+                  : null}
+                <span className="truncate">{section.name}</span>
               </div>
               <button
                 type="button"

@@ -1,16 +1,7 @@
-import type {
-  MapCategoryFilterChip,
-  MapCoordinate,
-  MapPrimaryCategory,
-  SavedPlace,
-} from "@/shared/types/map-home";
+import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
 
 export const MAP_HOME_TITLE = "친구1 님과의 데이트 지도";
 export const MAP_SEARCH_PLACEHOLDER = "저장해놓은 장소를 검색해보세요";
-
-export const MAP_PRIMARY_CATEGORY_ITEMS: MapPrimaryCategory[] = ["맛집", "카페", "놀거리"];
-
-export const MAP_CATEGORY_ITEMS: MapCategoryFilterChip[] = ["전체", ...MAP_PRIMARY_CATEGORY_ITEMS];
 
 export const MAP_INITIAL_CENTER: MapCoordinate = {
   latitude: 37.59352,

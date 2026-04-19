@@ -1,3 +1,5 @@
+import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
+
 import { CategoryChip } from "./CategoryChip";
 import { FilterPanel } from "./FilterPanel";
 import type { MapFilterBarProps } from "./filters/map-filter-bar-props";
@@ -8,6 +10,8 @@ const CATEGORY_CHIP_GRID_CLASS =
 
 export function FilterBar({
   categories,
+  categoryNameByCode,
+  filterCategories,
   activeCategories,
   focusedCategory,
   onToggleCategory,
@@ -26,10 +30,19 @@ export function FilterBar({
         {categories.map((category) => (
           <li key={category} className="min-w-0">
             <CategoryChip
-              category={category}
+              categoryCode={category}
+              categoryLabel={
+                category === MAP_ALL_CATEGORY_FILTER_CHIP
+                  ? MAP_ALL_CATEGORY_FILTER_CHIP
+                  : (categoryNameByCode[category] ?? category)
+              }
               highlighted={getMapCategoryChipHighlighted(category, highlightCtx)}
               panelFocused={isTagPanelOpen && focusedCategory === category}
-              selectedTagCount={category === "전체" ? 0 : selectedTagCountByCategory[category]}
+              selectedTagCount={
+                category === MAP_ALL_CATEGORY_FILTER_CHIP
+                  ? 0
+                  : (selectedTagCountByCategory[category] ?? 0)
+              }
               onClick={() => onToggleCategory(category)}
               className="w-full min-w-0 justify-center"
             />
@@ -40,6 +53,7 @@ export function FilterBar({
       <FilterPanel
         isOpen={isTagPanelOpen}
         focusedCategory={focusedCategory}
+        filterCategories={filterCategories}
         selectedTagKeysByCategory={selectedTagKeysByCategory}
         onToggleTagInCategory={onToggleTagInCategory}
         onResetFocusedCategoryTags={onResetFocusedCategoryTags}

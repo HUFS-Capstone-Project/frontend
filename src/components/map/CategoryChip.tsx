@@ -12,10 +12,11 @@ import {
   MAP_CHIP_SELECTED_CLASS,
   MAP_CHIP_UNSELECTED_CLASS,
 } from "./chip-style";
-import { MAP_CATEGORY_FILTER_CHIP_ICON } from "./filters/map-category-icons";
+import { renderMapCategoryFilterChipIcon } from "./filters/map-category-icons";
 
 type CategoryChipProps = {
-  category: MapCategoryFilterChip;
+  categoryCode: MapCategoryFilterChip;
+  categoryLabel: string;
   /** 태그 필터·「전체」 규칙에 맞춘 칩 강조 여부 */
   highlighted: boolean;
   /** 태그 패널에서 이 카테고리를 편집 중일 때(보고 있는 카테고리) — active와 다른 연한 표시 */
@@ -26,15 +27,14 @@ type CategoryChipProps = {
 };
 
 export function CategoryChip({
-  category,
+  categoryCode,
+  categoryLabel,
   highlighted,
   panelFocused = false,
   selectedTagCount = 0,
   onClick,
   className,
 }: CategoryChipProps) {
-  const Icon = MAP_CATEGORY_FILTER_CHIP_ICON[category];
-
   const selectionClass = highlighted
     ? MAP_CHIP_SELECTED_CLASS
     : panelFocused
@@ -54,9 +54,10 @@ export function CategoryChip({
       )}
       aria-pressed={highlighted}
       aria-current={panelFocused ? "true" : undefined}
+      data-category-code={categoryCode}
     >
-      <Icon className="size-3 shrink-0" strokeWidth={2.2} aria-hidden />
-      <span className="min-w-0 truncate whitespace-nowrap">{category}</span>
+      {renderMapCategoryFilterChipIcon(categoryLabel)}
+      <span className="min-w-0 truncate whitespace-nowrap">{categoryLabel}</span>
       {selectedTagCount > 0 ? (
         <span
           className={cn(

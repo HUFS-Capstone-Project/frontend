@@ -3,7 +3,7 @@
  * `RootLayout`의 `min-h-dvh` 컬럼 안에서 `flex-1`로 채웁니다.
  */
 export const loginPageRootClassName =
-  "flex min-h-0 w-full flex-1 flex-col overflow-x-hidden bg-background text-foreground";
+  "room-no-caret flex min-h-0 w-full flex-1 flex-col overflow-x-hidden bg-background text-foreground";
 
 /** 카피 + CTA 세로 배치 */
 export const loginPageInnerClassName =

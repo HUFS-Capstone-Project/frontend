@@ -1,16 +1,33 @@
-import { Coffee, LayoutGrid, type LucideIcon, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Coffee, LayoutGrid, Sparkles, UtensilsCrossed } from "lucide-react";
+import type { JSX } from "react";
 
-import type { MapCategoryFilterChip, MapPrimaryCategory } from "@/shared/types/map-home";
-
-/** 맛집·카페·놀거리 (필터 패널 헤더 등) */
-export const MAP_PRIMARY_CATEGORY_ICON: Record<MapPrimaryCategory, LucideIcon> = {
-  맛집: UtensilsCrossed,
-  카페: Coffee,
-  놀거리: Sparkles,
+type IconProps = {
+  className: string;
+  strokeWidth?: number;
 };
 
-/** 「전체」 포함 상단 칩 줄 */
-export const MAP_CATEGORY_FILTER_CHIP_ICON: Record<MapCategoryFilterChip, LucideIcon> = {
-  전체: LayoutGrid,
-  ...MAP_PRIMARY_CATEGORY_ICON,
-};
+function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.Element {
+  switch (categoryName) {
+    case "전체":
+      return <LayoutGrid {...props} aria-hidden />;
+    case "맛집":
+      return <UtensilsCrossed {...props} aria-hidden />;
+    case "카페":
+      return <Coffee {...props} aria-hidden />;
+    case "놀거리":
+      return <Sparkles {...props} aria-hidden />;
+    default:
+      return <Sparkles {...props} aria-hidden />;
+  }
+}
+
+export function renderMapCategoryFilterChipIcon(categoryName: string): JSX.Element {
+  return renderIconByCategoryName(categoryName, {
+    className: "size-3 shrink-0",
+    strokeWidth: 2.2,
+  });
+}
+
+export function renderMapPrimaryCategoryIcon(categoryName: string, className: string): JSX.Element {
+  return renderIconByCategoryName(categoryName, { className });
+}

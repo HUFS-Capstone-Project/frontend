@@ -7,11 +7,10 @@ import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
+import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import {
-  MAP_CATEGORY_ITEMS,
   MAP_INITIAL_CENTER,
-  MAP_PRIMARY_CATEGORY_ITEMS,
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
 } from "@/pages/map/map-home-mock";
@@ -44,6 +43,7 @@ export function MapHomePageContent({
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
+  const { categories, categoryNameByCode, filterCategories } = usePlaceFilterData();
 
   const {
     keyword,
@@ -60,7 +60,8 @@ export function MapHomePageContent({
     filteredPlaces,
   } = useMapSearchFilters({
     places: SAVED_PLACE_MOCKS,
-    initialFocusedCategory: defaultFilterPanelOpen ? MAP_PRIMARY_CATEGORY_ITEMS[0] : null,
+    filterCategories,
+    initialFocusedCategory: defaultFilterPanelOpen ? (filterCategories[0]?.code ?? null) : null,
   });
 
   const fabFriends = useMemo(
@@ -91,7 +92,9 @@ export function MapHomePageContent({
             placeholder={MAP_SEARCH_PLACEHOLDER}
             keyword={keyword}
             onKeywordChange={setKeyword}
-            categories={MAP_CATEGORY_ITEMS}
+            categories={categories}
+            categoryNameByCode={categoryNameByCode}
+            filterCategories={filterCategories}
             activeCategories={activeCategories}
             focusedCategory={focusedCategory}
             onToggleCategory={toggleCategory}

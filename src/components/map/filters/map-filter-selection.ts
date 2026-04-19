@@ -1,4 +1,8 @@
-import type { MapCategoryFilterChip, MapPrimaryCategory } from "@/shared/types/map-home";
+import {
+  MAP_ALL_CATEGORY_FILTER_CHIP,
+  type MapCategoryFilterChip,
+  type MapPrimaryCategory,
+} from "@/shared/types/map-home";
 
 type ChipHighlightContext = {
   /** 상세 태그가 1개 이상 선택된 카테고리(훅의 activeCategories) */
@@ -15,7 +19,7 @@ export function getMapCategoryChipHighlighted(
   chip: MapCategoryFilterChip,
   { activeCategories, focusedCategory }: ChipHighlightContext,
 ): boolean {
-  if (chip === "전체") {
+  if (chip === MAP_ALL_CATEGORY_FILTER_CHIP) {
     return activeCategories.length === 0 && focusedCategory === null;
   }
   return activeCategories.includes(chip);

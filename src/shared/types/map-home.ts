@@ -1,8 +1,11 @@
-export type MapPlaceCategory = "맛집" | "카페" | "놀거리" | "기타";
-export type MapPrimaryCategory = Exclude<MapPlaceCategory, "기타">;
+export type MapPlaceCategory = string;
+export type MapPrimaryCategory = string;
 
-/** 지도 상단 카테고리 칩(「전체」+ 맛집·카페·놀거리) */
-export type MapCategoryFilterChip = MapPrimaryCategory | "전체";
+export const MAP_ALL_CATEGORY_FILTER_CHIP = "전체" as const;
+export type MapAllCategoryFilterChip = typeof MAP_ALL_CATEGORY_FILTER_CHIP;
+
+/** 지도 상단 카테고리 칩(「전체」+ API 카테고리) */
+export type MapCategoryFilterChip = MapAllCategoryFilterChip | MapPrimaryCategory;
 
 export type SavedPlace = {
   id: string;
