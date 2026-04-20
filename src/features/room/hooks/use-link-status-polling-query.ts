@@ -5,6 +5,8 @@ import type { LinkStatusResponse } from "../api/types";
 import { roomQueryKeys } from "../query-keys";
 
 const DEFAULT_POLLING_INTERVAL_MS = 2_500;
+const INITIAL_FAST_POLLING_INTERVAL_MS = 1_250;
+const INITIAL_FAST_POLLING_ATTEMPTS = 3;
 
 type UseLinkStatusPollingQueryOptions = {
   enabled?: boolean;
@@ -24,7 +26,7 @@ export function useLinkStatusPollingQuery(
   linkId: number | null,
   options?: UseLinkStatusPollingQueryOptions,
 ) {
-  const pollInterval = Math.max(options?.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS, 2_000);
+  const relaxedPollInterval = Math.max(options?.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS, 2_000);
 
   return useQuery({
     queryKey: roomQueryKeys.linkStatus(linkId ?? -1),
@@ -37,11 +39,15 @@ export function useLinkStatusPollingQuery(
     enabled: (options?.enabled ?? true) && linkId != null,
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (!data) {
-        return pollInterval;
+      const pollAttemptCount = query.state.dataUpdateCount + query.state.errorUpdateCount;
+
+      if (data && isLinkStatusCompleted(data)) {
+        return false;
       }
 
-      return isLinkStatusCompleted(data) ? false : pollInterval;
+      return pollAttemptCount <= INITIAL_FAST_POLLING_ATTEMPTS
+        ? INITIAL_FAST_POLLING_INTERVAL_MS
+        : relaxedPollInterval;
     },
     refetchIntervalInBackground: true,
     ...(options?.queryOptions ?? {}),
