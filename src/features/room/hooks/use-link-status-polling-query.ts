@@ -5,8 +5,12 @@ import type { LinkStatusResponse } from "../api/types";
 import { roomQueryKeys } from "../query-keys";
 
 const DEFAULT_POLLING_INTERVAL_MS = 2_500;
-const INITIAL_FAST_POLLING_INTERVAL_MS = 1_250;
-const INITIAL_FAST_POLLING_ATTEMPTS = 3;
+const FAST_POLLING_INTERVAL_MS = 500;
+const MID_POLLING_INTERVAL_MS = 1_000;
+const FAST_POLLING_ATTEMPTS = 3;
+const MID_POLLING_ATTEMPTS = 6;
+const MIN_RELAXED_POLLING_INTERVAL_MS = 2_000;
+const MAX_RELAXED_POLLING_INTERVAL_MS = 2_500;
 
 type UseLinkStatusPollingQueryOptions = {
   enabled?: boolean;
@@ -26,7 +30,11 @@ export function useLinkStatusPollingQuery(
   linkId: number | null,
   options?: UseLinkStatusPollingQueryOptions,
 ) {
-  const relaxedPollInterval = Math.max(options?.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS, 2_000);
+  const relaxedPollInterval = clamp(
+    options?.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS,
+    MIN_RELAXED_POLLING_INTERVAL_MS,
+    MAX_RELAXED_POLLING_INTERVAL_MS,
+  );
 
   return useQuery({
     queryKey: roomQueryKeys.linkStatus(linkId ?? -1),
@@ -45,9 +53,15 @@ export function useLinkStatusPollingQuery(
         return false;
       }
 
-      return pollAttemptCount <= INITIAL_FAST_POLLING_ATTEMPTS
-        ? INITIAL_FAST_POLLING_INTERVAL_MS
-        : relaxedPollInterval;
+      if (pollAttemptCount <= FAST_POLLING_ATTEMPTS) {
+        return FAST_POLLING_INTERVAL_MS;
+      }
+
+      if (pollAttemptCount <= MID_POLLING_ATTEMPTS) {
+        return MID_POLLING_INTERVAL_MS;
+      }
+
+      return relaxedPollInterval;
     },
     refetchIntervalInBackground: true,
     ...(options?.queryOptions ?? {}),
@@ -58,4 +72,8 @@ export function isLinkStatusCompleted(
   link: Pick<LinkStatusResponse, "status" | "completed">,
 ): boolean {
   return link.status === "SUCCEEDED" || link.status === "FAILED";
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
