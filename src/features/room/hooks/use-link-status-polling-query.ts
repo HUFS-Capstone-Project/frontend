@@ -57,9 +57,5 @@ export function useLinkStatusPollingQuery(
 export function isLinkStatusCompleted(
   link: Pick<LinkStatusResponse, "status" | "completed">,
 ): boolean {
-  if (link.completed) {
-    return true;
-  }
-
   return link.status === "SUCCEEDED" || link.status === "FAILED";
 }

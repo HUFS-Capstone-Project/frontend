@@ -13,7 +13,7 @@ import {
 } from "../link-add";
 import { roomQueryKeys } from "../query-keys";
 import { incrementRoomLinkCountInCache } from "../utils/room-query-cache";
-import { useLinkStatusPollingQuery } from "./use-link-status-polling-query";
+import { isLinkStatusCompleted, useLinkStatusPollingQuery } from "./use-link-status-polling-query";
 import { useRegisterLinkMutation } from "./use-register-link-mutation";
 
 const DEFAULT_STEP: Step = "input";
@@ -103,10 +103,7 @@ export function useLinkAddFlow({
     }
 
     const latest = linkStatusQuery.data;
-    if (
-      latest &&
-      (latest.completed || latest.status === "SUCCEEDED" || latest.status === "FAILED")
-    ) {
+    if (latest && isLinkStatusCompleted(latest)) {
       const mapped = mapLinkStatusToCaptionResult(latest);
 
       if (latest.status === "SUCCEEDED" && !latest.caption) {
