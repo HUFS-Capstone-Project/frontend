@@ -8,7 +8,6 @@ import type {
   CreateRoomResponse,
   JoinRoomRequest,
   JoinRoomResponse,
-  LinkStatusResponse,
   RegisterLinkRequest,
   RegisterLinkResponse,
   RoomActionResult,
@@ -108,11 +107,6 @@ export const roomService = {
       });
       return res.data.data;
     });
-  },
-
-  getLinkStatus: async (linkId: number): Promise<LinkStatusResponse> => {
-    const res = await api.get<CommonResponse<LinkStatusResponse>>(`${API_PATHS.links}/${linkId}`);
-    return res.data.data;
   },
 };
 
