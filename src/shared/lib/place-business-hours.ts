@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import type {
   PlaceBusinessHourRow,
   PlaceBusinessHours,
-  ResolvedSavedPlace,
   ResolvedPlaceBusinessHours,
+  ResolvedSavedPlace,
   SavedPlace,
 } from "@/shared/types/map-home";
 

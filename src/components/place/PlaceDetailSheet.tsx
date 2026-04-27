@@ -1,5 +1,5 @@
 import { ExternalLink, MapPin } from "lucide-react";
-import { useEffect, useMemo, type JSX } from "react";
+import { type JSX,useEffect, useMemo } from "react";
 
 import { BusinessHoursAccordion } from "@/components/place/BusinessHoursAccordion";
 import { BottomSheet } from "@/components/ui/BottomSheet";
