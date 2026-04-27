@@ -6,6 +6,7 @@ import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
+import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
@@ -14,6 +15,10 @@ import {
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
 } from "@/pages/map/map-home-mock";
+import {
+  resolveSavedPlacesBusinessHours,
+  useKoreanNow,
+} from "@/shared/lib/place-business-hours";
 import type { RoomFriend } from "@/shared/types/map-home";
 import type { SelectedRoom } from "@/store/room-selection-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -34,15 +39,19 @@ const KakaoMapView = lazy(() =>
 
 type MapHomePageContentProps = {
   defaultFilterPanelOpen?: boolean;
+  filterDataOverride?: PlaceFilterData | null;
 };
 
 export function MapHomePageContent({
   defaultFilterPanelOpen = false,
+  filterDataOverride = null,
 }: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
+  const now = useKoreanNow();
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
+  const places = useMemo(() => resolveSavedPlacesBusinessHours(SAVED_PLACE_MOCKS, now), [now]);
   const {
     categories,
     categoryNameByCode,
@@ -50,7 +59,7 @@ export function MapHomePageContent({
     isInitialLoading,
     isInitialError,
     retryLoad,
-  } = usePlaceFilterData();
+  } = usePlaceFilterData(filterDataOverride);
 
   const {
     keyword,
@@ -66,7 +75,7 @@ export function MapHomePageContent({
     resetFocusedCategoryTags,
     filteredPlaces,
   } = useMapSearchFilters({
-    places: SAVED_PLACE_MOCKS,
+    places,
     filterCategories,
     initialFocusedCategory: defaultFilterPanelOpen ? (filterCategories[0]?.code ?? null) : null,
   });

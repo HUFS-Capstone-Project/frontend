@@ -9,6 +9,7 @@ import {
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
+import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/placeDetailStore";
 
 export type KakaoMapViewProps = {
   appKey?: string;
@@ -33,8 +34,10 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
   const mapRef = useRef<KakaoMapInstance | null>(null);
   const mapsRef = useRef<KakaoMaps | null>(null);
   const markerImageRef = useRef<KakaoMarkerImage | null>(null);
+  const selectedMarkerImageRef = useRef<KakaoMarkerImage | null>(null);
   const markerInstancesRef = useRef<KakaoMarker[]>([]);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
+  const selectedPlaceId = usePlaceDetailStore((state) => state.selectedPlaceId);
 
   const clearMarkers = () => {
     markerInstancesRef.current.forEach((marker) => marker.setMap(null));
@@ -74,6 +77,11 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
           new kakao.maps.Size(30, 40),
           { offset: new kakao.maps.Point(15, 39) },
         );
+        selectedMarkerImageRef.current = new kakao.maps.MarkerImage(
+          "/assets/map-marker-selected.png",
+          new kakao.maps.Size(42, 56),
+          { offset: new kakao.maps.Point(21, 55) },
+        );
 
         setLoadState("ready");
       })
@@ -88,6 +96,7 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
       mapRef.current = null;
       mapsRef.current = null;
       markerImageRef.current = null;
+      selectedMarkerImageRef.current = null;
     };
   }, [hasMapKey, mapKey]);
 
@@ -102,27 +111,44 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
 
   // effect C: places 변경 시 marker만 갱신
   useEffect(() => {
-    if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !markerImageRef.current) {
+    if (
+      loadState !== "ready" ||
+      !mapRef.current ||
+      !mapsRef.current ||
+      !markerImageRef.current ||
+      !selectedMarkerImageRef.current
+    ) {
       return;
     }
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
     const markerImage = markerImageRef.current;
+    const selectedMarkerImage = selectedMarkerImageRef.current;
 
     clearMarkers();
     markerInstancesRef.current = places.map((place) => {
-      return new maps.Marker({
+      const marker = new maps.Marker({
         map: mapInstance,
         title: place.name,
         position: new maps.LatLng(place.latitude, place.longitude),
-        image: markerImage,
+        image: place.id === selectedPlaceId ? selectedMarkerImage : markerImage,
       });
+
+      maps.event.addListener(marker, "click", () => {
+        window.dispatchEvent(
+          new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
+            detail: { placeId: place.id },
+          }),
+        );
+      });
+
+      return marker;
     });
 
     return () => {
       clearMarkers();
     };
-  }, [loadState, places]);
+  }, [loadState, places, selectedPlaceId]);
 
   return (
     <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>

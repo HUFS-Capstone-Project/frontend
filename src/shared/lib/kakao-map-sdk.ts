@@ -42,6 +42,10 @@ export type KakaoMarker = {
   setMap: (map: KakaoMapInstance | null) => void;
 };
 
+type KakaoEvent = {
+  addListener: (target: KakaoMarker, eventName: string, handler: () => void) => void;
+};
+
 export type KakaoMaps = {
   load: (callback: () => void) => void;
   LatLng: new (latitude: number, longitude: number) => KakaoLatLng;
@@ -54,6 +58,7 @@ export type KakaoMaps = {
     options?: KakaoMarkerImageOptions,
   ) => KakaoMarkerImage;
   Marker: new (options: KakaoMarkerOptions) => KakaoMarker;
+  event: KakaoEvent;
 };
 
 export type KakaoNamespace = {
