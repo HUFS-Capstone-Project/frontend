@@ -15,10 +15,7 @@ import {
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
 } from "@/pages/map/map-home-mock";
-import {
-  resolveSavedPlacesBusinessHours,
-  useKoreanNow,
-} from "@/shared/lib/place-business-hours";
+import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import type { RoomFriend } from "@/shared/types/map-home";
 import type { SelectedRoom } from "@/store/room-selection-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";

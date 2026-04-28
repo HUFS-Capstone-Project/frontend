@@ -92,8 +92,7 @@ function buildWeeklyHours(
   return businessHours.weeklySchedule.map((row) => {
     const isToday = row.dayOfWeek === parts.dayOfWeek;
     const label = isToday ? buildTodayLabel(parts) : DAY_LABELS[row.dayOfWeek];
-    const hours =
-      row.openTime && row.closeTime ? `${row.openTime} ~ ${row.closeTime}` : "휴무";
+    const hours = row.openTime && row.closeTime ? `${row.openTime} ~ ${row.closeTime}` : "휴무";
 
     return {
       label,
@@ -122,7 +121,9 @@ export function resolvePlaceBusinessHours(
   }
 
   const parts = getKoreanNowParts(now);
-  const todaySchedule = businessHours.weeklySchedule.find((row) => row.dayOfWeek === parts.dayOfWeek);
+  const todaySchedule = businessHours.weeklySchedule.find(
+    (row) => row.dayOfWeek === parts.dayOfWeek,
+  );
   const weeklyHours = buildWeeklyHours(businessHours, parts);
 
   if (!todaySchedule || !todaySchedule.openTime || !todaySchedule.closeTime) {

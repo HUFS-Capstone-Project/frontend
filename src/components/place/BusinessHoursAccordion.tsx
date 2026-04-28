@@ -16,9 +16,7 @@ function buildStatusSummary(businessHours: ResolvedPlaceBusinessHours): string {
   return businessHours.status;
 }
 
-export function BusinessHoursAccordion({
-  businessHours,
-}: BusinessHoursAccordionProps) {
+export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const todayHours = useMemo(() => {

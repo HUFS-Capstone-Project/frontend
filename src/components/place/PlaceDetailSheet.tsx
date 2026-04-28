@@ -1,13 +1,10 @@
 import { ExternalLink, MapPin } from "lucide-react";
-import { type JSX,useEffect, useMemo } from "react";
+import { type JSX, useEffect, useMemo } from "react";
 
 import { BusinessHoursAccordion } from "@/components/place/BusinessHoursAccordion";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
-import {
-  resolveSavedPlacesBusinessHours,
-  useKoreanNow,
-} from "@/shared/lib/place-business-hours";
+import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { usePlaceDetailStore } from "@/store/placeDetailStore";
 
 export function PlaceDetailSheet(): JSX.Element | null {

@@ -20,7 +20,9 @@ type UsePlaceFilterDataResult = {
   retryLoad: () => Promise<unknown>;
 };
 
-export function usePlaceFilterData(filterDataOverride?: PlaceFilterData | null): UsePlaceFilterDataResult {
+export function usePlaceFilterData(
+  filterDataOverride?: PlaceFilterData | null,
+): UsePlaceFilterDataResult {
   const { data: placeFilterData, isPending, isError, refetch } = usePlaceFilterOptionsQuery();
   const resolvedFilterData = filterDataOverride ?? placeFilterData;
 
