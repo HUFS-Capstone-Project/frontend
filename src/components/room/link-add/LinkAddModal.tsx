@@ -34,7 +34,7 @@ export function LinkAddModal({ room, onClose }: LinkAddModalProps) {
     isSavePending,
     cancelOngoingSubmission,
     submitLink,
-    retryPolling,
+    retryLinkAnalysis,
     saveSucceededResult,
     openMockPlaceScreen,
     confirmMockSelection,
@@ -84,7 +84,7 @@ export function LinkAddModal({ room, onClose }: LinkAddModalProps) {
           result={renderCaptionResult}
           onClose={handleRequestClose}
           onRetry={() => {
-            void retryPolling();
+            void retryLinkAnalysis();
           }}
           onSave={() => {
             void saveSucceededResult();
