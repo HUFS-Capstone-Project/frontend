@@ -6,7 +6,7 @@ import {
   type MapPrimaryCategory,
 } from "@/shared/types/map-home";
 
-import type { Category } from "../api/place-taxonomy-types";
+import type { Category, PlaceFilterData } from "../api/place-taxonomy-types";
 import { usePlaceFilterOptionsQuery } from "./use-place-filter-options-query";
 
 const EMPTY_FILTER_CATEGORIES: Category[] = [];
@@ -20,14 +20,17 @@ type UsePlaceFilterDataResult = {
   retryLoad: () => Promise<unknown>;
 };
 
-export function usePlaceFilterData(): UsePlaceFilterDataResult {
+export function usePlaceFilterData(
+  filterDataOverride?: PlaceFilterData | null,
+): UsePlaceFilterDataResult {
   const { data: placeFilterData, isPending, isError, refetch } = usePlaceFilterOptionsQuery();
+  const resolvedFilterData = filterDataOverride ?? placeFilterData;
 
-  const hasInitialData = Boolean(placeFilterData);
+  const hasInitialData = Boolean(resolvedFilterData);
 
   const filterCategories = useMemo(
-    () => placeFilterData?.categories ?? EMPTY_FILTER_CATEGORIES,
-    [placeFilterData],
+    () => resolvedFilterData?.categories ?? EMPTY_FILTER_CATEGORIES,
+    [resolvedFilterData],
   );
 
   const categories = useMemo(
@@ -53,8 +56,8 @@ export function usePlaceFilterData(): UsePlaceFilterDataResult {
     categories,
     categoryNameByCode,
     filterCategories,
-    isInitialLoading: !hasInitialData && isPending,
-    isInitialError: !hasInitialData && isError,
+    isInitialLoading: !filterDataOverride && !hasInitialData && isPending,
+    isInitialError: !filterDataOverride && !hasInitialData && isError,
     retryLoad,
   };
 }
