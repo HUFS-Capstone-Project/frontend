@@ -29,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "dev/splash", element: <SplashScreenPage /> },
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
+      { path: "dev/list", element: <PlaceListPage preview /> },
       { path: "login", element: <LoginPage /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {
