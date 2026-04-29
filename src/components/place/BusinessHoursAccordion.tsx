@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type { ResolvedPlaceBusinessHours } from "@/shared/types/map-home";
@@ -49,20 +50,35 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
             {todayHours.label} {todayHours.hours}
           </p>
 
-          <div className="mt-3 space-y-2">
-            {businessHours.weeklyHours.map((row) => (
-              <div
-                key={`${row.label}-${row.hours}`}
-                className={cn(
-                  "flex items-center justify-between gap-4 text-sm",
-                  row.isToday ? "font-semibold text-slate-900" : "text-slate-500",
-                )}
-              >
-                <span>{row.label}</span>
-                <span>{row.hours}</span>
-              </div>
-            ))}
-          </div>
+          <button
+            type="button"
+            className="mt-3 flex w-full items-center justify-between gap-3 text-sm font-medium text-slate-700"
+            aria-expanded={isExpanded}
+            onClick={() => setIsExpanded((current) => !current)}
+          >
+            <span>전체 영업시간</span>
+            <ChevronDown
+              className={cn("size-4 transition-transform", isExpanded ? "rotate-180" : "")}
+              aria-hidden
+            />
+          </button>
+
+          {isExpanded ? (
+            <div className="mt-3 space-y-2">
+              {businessHours.weeklyHours.map((row) => (
+                <div
+                  key={`${row.label}-${row.hours}`}
+                  className={cn(
+                    "flex items-center justify-between gap-4 text-sm",
+                    row.isToday ? "font-semibold text-slate-900" : "text-slate-500",
+                  )}
+                >
+                  <span>{row.label}</span>
+                  <span>{row.hours}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>
