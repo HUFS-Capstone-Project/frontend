@@ -34,7 +34,7 @@ export function PlaceDetailSheet(): JSX.Element | null {
       hideHandle
       className="z-40"
       overlayClassName="bg-black/10"
-      panelClassName="min-h-[38dvh] max-h-[45dvh] rounded-t-3xl shadow-xl"
+      panelClassName="rounded-t-3xl shadow-xl"
     >
       <div className="space-y-4 px-5 py-4">
         <div className="mx-auto h-1.5 w-12 rounded-full bg-gray-300" aria-hidden />
