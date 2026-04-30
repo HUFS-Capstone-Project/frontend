@@ -33,14 +33,9 @@ export function CoursePlannerField({
       <button
         type="button"
         onClick={onClick}
-        className="flex h-11 w-full items-center justify-between rounded-lg border border-[#dedede] bg-white px-3 text-left transition-colors hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="focus-visible:ring-ring/50 flex h-11 w-full items-center justify-between rounded-lg border border-[#dedede] bg-white px-3 text-left transition-colors hover:bg-[#fafafa] focus-visible:ring-3 focus-visible:outline-none"
       >
-        <span
-          className={cn(
-            "text-sm",
-            hasValue ? "font-medium text-[#171717]" : "text-[#9ca3af]",
-          )}
-        >
+        <span className={cn("text-sm", hasValue ? "font-medium text-[#171717]" : "text-[#9ca3af]")}>
           {hasValue ? value : placeholder}
         </span>
         <span className="text-[#6b7280]" aria-hidden>

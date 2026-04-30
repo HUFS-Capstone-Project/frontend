@@ -14,9 +14,13 @@ type CourseResultPanelProps = {
   onSelectCourse: (courseId: string) => void;
 };
 
-export function CourseResultPanel({ courses, selectedCourseId, onSelectCourse }: CourseResultPanelProps) {
+export function CourseResultPanel({
+  courses,
+  selectedCourseId,
+  onSelectCourse,
+}: CourseResultPanelProps) {
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
+    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-7 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
       <div className="mx-auto mb-6 h-1 w-14 rounded-full bg-[#d9d9d9]" />
 
       <h1 className="text-lg font-bold text-[#171717]">맞춤 데이트코스 확인하기</h1>
@@ -33,7 +37,7 @@ export function CourseResultPanel({ courses, selectedCourseId, onSelectCourse }:
               type="button"
               onClick={() => onSelectCourse(course.id)}
               className={cn(
-                "flex h-12 items-center justify-between rounded-lg border px-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "focus-visible:ring-ring/50 flex h-12 items-center justify-between rounded-lg border px-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none",
                 selected
                   ? "border-[#f06f6b] bg-[#fff0ee]"
                   : "border-[#dedede] bg-white hover:bg-[#fafafa]",

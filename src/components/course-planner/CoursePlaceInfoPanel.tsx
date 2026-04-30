@@ -16,18 +16,23 @@ type CoursePlaceInfoPanelProps = {
   onEdit: () => void;
 };
 
-export function CoursePlaceInfoPanel({ courseTitle, stops, onBack, onEdit }: CoursePlaceInfoPanelProps) {
+export function CoursePlaceInfoPanel({
+  courseTitle,
+  stops,
+  onBack,
+  onEdit,
+}: CoursePlaceInfoPanelProps) {
   const primaryStop = stops[0];
 
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-5 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
+    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-5 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
       <div className="mx-auto mb-4 h-1 w-14 rounded-full bg-[#d9d9d9]" />
 
       <header className="flex items-center gap-2">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex size-8 items-center justify-center rounded-full text-[#52525b] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full text-[#52525b] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
           aria-label="코스 목록으로 돌아가기"
         >
           <ChevronLeft className="size-4" aria-hidden />
@@ -36,7 +41,7 @@ export function CoursePlaceInfoPanel({ courseTitle, stops, onBack, onEdit }: Cou
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex size-8 items-center justify-center rounded-full text-[#71717a] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full text-[#71717a] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
           aria-label="코스 편집하기"
         >
           <Pencil className="size-3.5" aria-hidden />

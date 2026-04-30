@@ -30,12 +30,13 @@ export function RegionSelectionPanel({
   onConfirm,
 }: RegionSelectionPanelProps) {
   const districts = districtsByCity[selectedCity] ?? districtsByCity["서울"];
-  const confirmLabel = selectedDistrict === "전체"
-    ? `${selectedCity} 전체 설정하기`
-    : `${selectedCity} ${selectedDistrict} 설정하기`;
+  const confirmLabel =
+    selectedDistrict === "전체"
+      ? `${selectedCity} 전체 설정하기`
+      : `${selectedCity} ${selectedDistrict} 설정하기`;
 
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-5 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
+    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-5 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
       <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#d9d9d9]" />
 
       <div className="flex items-center justify-between">
@@ -43,7 +44,7 @@ export function RegionSelectionPanel({
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex size-8 items-center justify-center rounded-full text-[#9ca3af] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full text-[#9ca3af] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
           aria-label="지역설정 닫기"
         >
           <X className="size-4" aria-hidden />
@@ -76,7 +77,9 @@ export function RegionSelectionPanel({
                   onClick={() => onSelectCity(city)}
                   className={cn(
                     "h-11 px-4 text-left text-sm transition-colors",
-                    selected ? "bg-[#fff0ee] font-semibold text-[#f06f6b]" : "text-[#8a8f98] hover:bg-[#fafafa]",
+                    selected
+                      ? "bg-[#fff0ee] font-semibold text-[#f06f6b]"
+                      : "text-[#8a8f98] hover:bg-[#fafafa]",
                   )}
                 >
                   {city}
@@ -100,7 +103,9 @@ export function RegionSelectionPanel({
                   onClick={() => onSelectDistrict(district)}
                   className={cn(
                     "h-11 px-4 text-left text-sm transition-colors",
-                    selected ? "bg-[#ffe6e4] font-semibold text-[#f06f6b]" : "text-[#8a8f98] hover:bg-[#fafafa]",
+                    selected
+                      ? "bg-[#ffe6e4] font-semibold text-[#f06f6b]"
+                      : "text-[#8a8f98] hover:bg-[#fafafa]",
                   )}
                 >
                   {district}
@@ -114,7 +119,7 @@ export function RegionSelectionPanel({
       <button
         type="button"
         onClick={onConfirm}
-        className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-sm font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="focus-visible:ring-ring/50 mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-sm font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:ring-3 focus-visible:outline-none"
       >
         {confirmLabel}
       </button>

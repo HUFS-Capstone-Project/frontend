@@ -40,14 +40,14 @@ export function CourseEditPanel({ title, stops, onBack, onSave }: CourseEditPane
   };
 
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-5 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
+    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-5 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
       <div className="mx-auto mb-4 h-1 w-14 rounded-full bg-[#d9d9d9]" />
 
       <header className="flex items-center gap-2">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex size-8 items-center justify-center rounded-full text-[#52525b] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full text-[#52525b] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
           aria-label="코스 상세로 돌아가기"
         >
           <ChevronLeft className="size-4" aria-hidden />
@@ -60,7 +60,7 @@ export function CourseEditPanel({ title, stops, onBack, onSave }: CourseEditPane
         <input
           value={draftTitle}
           onChange={(event) => setDraftTitle(event.target.value)}
-          className="h-10 rounded-md border border-[#d4d4d8] bg-white px-3 text-sm font-semibold text-[#171717] outline-none transition-colors focus:border-[#f06f6b] focus:ring-3 focus:ring-[#f06f6b]/20"
+          className="h-10 rounded-md border border-[#d4d4d8] bg-white px-3 text-sm font-semibold text-[#171717] transition-colors outline-none focus:border-[#f06f6b] focus:ring-3 focus:ring-[#f06f6b]/20"
           aria-label="코스명"
         />
       </label>
@@ -121,7 +121,7 @@ export function CourseEditPanel({ title, stops, onBack, onSave }: CourseEditPane
         type="button"
         onClick={() => setIsSaveConfirmOpen(true)}
         className={cn(
-          "mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          "focus-visible:ring-ring/50 mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold text-white transition-colors focus-visible:ring-3 focus-visible:outline-none",
           draftStops.length > 0 ? "bg-[#f06f6b] hover:bg-[#e86460]" : "bg-[#d4d4d8]",
         )}
         disabled={draftStops.length === 0}

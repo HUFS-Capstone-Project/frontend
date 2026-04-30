@@ -5,14 +5,23 @@ import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { CourseEditPanel } from "@/components/course-planner/CourseEditPanel";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
-import { CoursePlaceInfoPanel, type CourseStop } from "@/components/course-planner/CoursePlaceInfoPanel";
-import { CoursePlannerMapPreview } from "@/components/course-planner/CoursePlannerMapPreview";
-import { CoursePlannerPanel, type PlaceTypeId } from "@/components/course-planner/CoursePlannerPanel";
-import { CourseResultPanel, type CourseOption } from "@/components/course-planner/CourseResultPanel";
 import {
+  CoursePlaceInfoPanel,
+  type CourseStop,
+} from "@/components/course-planner/CoursePlaceInfoPanel";
+import { CoursePlannerMapPreview } from "@/components/course-planner/CoursePlannerMapPreview";
+import {
+  CoursePlannerPanel,
+  type PlaceTypeId,
+} from "@/components/course-planner/CoursePlannerPanel";
+import {
+  type CourseOption,
+  CourseResultPanel,
+} from "@/components/course-planner/CourseResultPanel";
+import {
+  type DateTimeSelection,
   DateTimeSelectionPanel,
   getDateTimeDisplayValue,
-  type DateTimeSelection,
 } from "@/components/course-planner/DateTimeSelectionPanel";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";

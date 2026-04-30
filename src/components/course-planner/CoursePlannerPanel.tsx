@@ -37,7 +37,7 @@ export function CoursePlannerPanel({
   onReset,
 }: CoursePlannerPanelProps) {
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pb-7 pt-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
+    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-7 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
       <h1 className="text-lg font-bold text-[#171717]">맞춤 데이트코스 설정하기</h1>
 
       <div className="mt-6 grid gap-5">

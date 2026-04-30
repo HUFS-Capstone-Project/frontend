@@ -51,7 +51,8 @@ export function DateTimeSelectionPanel({
   onClose,
   onConfirm,
 }: DateTimeSelectionPanelProps) {
-  const selectedDateOption = dateOptions.find((option) => option.date === selectedDate) ?? dateOptions[19];
+  const selectedDateOption =
+    dateOptions.find((option) => option.date === selectedDate) ?? dateOptions[19];
   const hasTimeRange = selectedStartTime != null && selectedEndTime != null;
   const confirmLabel = hasTimeRange
     ? `${selectedDateOption.date} ${selectedStartTime} ~ ${selectedEndTime} \uc124\uc815\ud558\uae30`
@@ -64,7 +65,7 @@ export function DateTimeSelectionPanel({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex size-7 items-center justify-center rounded-full text-[#454545] transition-colors hover:bg-[#f4f4f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full text-[#454545] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
             aria-label="\ub0a0\uc9dc \ubc0f \uc2dc\uac04 \uc124\uc815 \ub2eb\uae30"
           >
             <ChevronLeft className="size-4" aria-hidden />
@@ -78,14 +79,14 @@ export function DateTimeSelectionPanel({
           <div className="flex items-center gap-1 text-[#2687d9]">
             <button
               type="button"
-              className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:ring-3 focus-visible:outline-none"
               aria-label="\uc774\uc804 \ub2ec"
             >
               <ChevronLeft className="size-4" aria-hidden />
             </button>
             <button
               type="button"
-              className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:ring-3 focus-visible:outline-none"
               aria-label="\ub2e4\uc74c \ub2ec"
             >
               <ChevronRight className="size-4" aria-hidden />
@@ -114,8 +115,10 @@ export function DateTimeSelectionPanel({
                   type="button"
                   onClick={() => onSelectDate(option.date)}
                   className={cn(
-                    "mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                    selected ? "bg-[#7dd3fc] font-bold text-[#0f172a]" : "text-[#171717] hover:bg-[#f1f5f9]",
+                    "focus-visible:ring-ring/50 mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                    selected
+                      ? "bg-[#7dd3fc] font-bold text-[#0f172a]"
+                      : "text-[#171717] hover:bg-[#f1f5f9]",
                   )}
                   aria-label={`${option.date} ${option.weekday}\uc694\uc77c`}
                 >
@@ -136,11 +139,15 @@ export function DateTimeSelectionPanel({
                 onSelectEndTime(null);
               }}
               className={cn(
-                "rounded-full px-2.5 py-1 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                hasTimeRange ? "bg-[#f4f4f5] text-[#71717a] hover:bg-[#e9e9ec]" : "bg-[#fff0ee] text-[#f06f6b]",
+                "focus-visible:ring-ring/50 rounded-full px-2.5 py-1 text-[0.68rem] font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                hasTimeRange
+                  ? "bg-[#f4f4f5] text-[#71717a] hover:bg-[#e9e9ec]"
+                  : "bg-[#fff0ee] text-[#f06f6b]",
               )}
             >
-              {hasTimeRange ? `${selectedStartTime} ~ ${selectedEndTime}` : "\uc2dc\uac04 \uc9c0\uc815 \uc548 \ud568"}
+              {hasTimeRange
+                ? `${selectedStartTime} ~ ${selectedEndTime}`
+                : "\uc2dc\uac04 \uc9c0\uc815 \uc548 \ud568"}
             </button>
           </div>
 
@@ -172,7 +179,7 @@ export function DateTimeSelectionPanel({
           <button
             type="button"
             onClick={onConfirm}
-            className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-xs font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="focus-visible:ring-ring/50 inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-xs font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:ring-3 focus-visible:outline-none"
           >
             {confirmLabel}
           </button>
@@ -202,8 +209,10 @@ function TimeChipRow({ label, selectedTime, options, onSelect }: TimeChipRowProp
               type="button"
               onClick={() => onSelect(time)}
               className={cn(
-                "shrink-0 rounded-md px-2 py-1 text-[0.68rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                selected ? "bg-[#fff0ee] text-[#f06f6b]" : "bg-[#fafafa] text-[#5f5f5f] hover:bg-[#f1f1f1]",
+                "focus-visible:ring-ring/50 shrink-0 rounded-md px-2 py-1 text-[0.68rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                selected
+                  ? "bg-[#fff0ee] text-[#f06f6b]"
+                  : "bg-[#fafafa] text-[#5f5f5f] hover:bg-[#f1f1f1]",
               )}
             >
               {time}
