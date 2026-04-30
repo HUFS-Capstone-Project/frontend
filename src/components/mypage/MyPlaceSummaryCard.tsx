@@ -34,7 +34,9 @@ export function MyPlaceSummaryCard({
         <ChevronRight className="size-4 text-[#222222]" aria-hidden />
       </button>
 
-      <p className="mt-2 text-center text-2xl font-semibold text-[#111111]">{formatCount(totalCount)}개</p>
+      <p className="mt-2 text-center text-2xl font-semibold text-[#111111]">
+        {formatCount(totalCount)}개
+      </p>
 
       <div className="mt-5">
         <p className="text-xs font-medium text-[#222222]">최근 저장 장소</p>
@@ -46,7 +48,9 @@ export function MyPlaceSummaryCard({
               </p>
             ))
           ) : (
-            <p className="truncate py-2 text-xs font-medium text-[#9a9a9a]">나의 장소를 저장해보세요!</p>
+            <p className="truncate py-2 text-xs font-medium text-[#9a9a9a]">
+              나의 장소를 저장해보세요!
+            </p>
           )}
         </div>
       </div>

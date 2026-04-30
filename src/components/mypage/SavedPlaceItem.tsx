@@ -41,7 +41,7 @@ export function SavedPlaceItem({
         <button
           type="button"
           onClick={() => onToggleMenu(place.id)}
-          className="touch-target-min -mr-2 -mt-2 flex shrink-0 items-center justify-center rounded-full text-[#222222]"
+          className="touch-target-min -mt-2 -mr-2 flex shrink-0 items-center justify-center rounded-full text-[#222222]"
         >
           <MoreVertical className="size-4" aria-hidden />
           <span className="sr-only">장소 메뉴 열기</span>
@@ -49,15 +49,22 @@ export function SavedPlaceItem({
       </div>
 
       {place.memo && !isEditing ? (
-        <p className="mt-2 rounded-md bg-[#ffecea] px-3 py-2 text-xs font-medium text-[#333333]">{place.memo}</p>
+        <p className="mt-2 rounded-md bg-[#ffecea] px-3 py-2 text-xs font-medium text-[#333333]">
+          {place.memo}
+        </p>
       ) : null}
 
       {isEditing ? (
-        <SavedPlaceMemoEditor value={memoDraft} onChange={onChangeMemo} onSave={onSaveMemo} onClear={onClearMemo} />
+        <SavedPlaceMemoEditor
+          value={memoDraft}
+          onChange={onChangeMemo}
+          onSave={onSaveMemo}
+          onClear={onClearMemo}
+        />
       ) : null}
 
       {isMenuOpen ? (
-        <div className="absolute right-8 top-9 z-10 w-24 overflow-hidden rounded-md border border-[#e5e5e5] bg-white shadow-[0_8px_20px_rgb(0_0_0_/_0.12)]">
+        <div className="absolute top-9 right-8 z-10 w-24 overflow-hidden rounded-md border border-[#e5e5e5] bg-white shadow-[0_8px_20px_rgb(0_0_0_/_0.12)]">
           <button
             type="button"
             onClick={() => onStartMemo(place)}

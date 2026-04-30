@@ -34,25 +34,23 @@ export function SavedPlaceDetailPage({ place, onBack }: SavedPlaceDetailPageProp
       <section className="relative min-h-[calc(100dvh-5.5rem)] overflow-hidden bg-white">
         <div className="relative h-[29rem] overflow-hidden bg-[#eef3f5]">
           <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ec_0_25%,#ffffff_25%_50%,#e8f0f4_50%_75%,#ffffff_75%)] bg-[length:82px_82px]" />
-          <div className="absolute left-[-4rem] top-72 h-3 w-[34rem] rotate-[-9deg] rounded-full bg-[#2454b7]/75" />
-          <div className="absolute left-[-5rem] top-64 h-3 w-[36rem] rotate-[24deg] rounded-full bg-[#78bed2]/55" />
-          <div className="absolute left-10 top-60 h-12 w-20 rounded-full bg-[#f7d9a3]/45 blur-sm" />
-          <div className="absolute right-2 top-32 h-20 w-24 rounded-full bg-[#d7eadb]/65 blur-sm" />
+          <div className="absolute top-72 left-[-4rem] h-3 w-[34rem] rotate-[-9deg] rounded-full bg-[#2454b7]/75" />
+          <div className="absolute top-64 left-[-5rem] h-3 w-[36rem] rotate-[24deg] rounded-full bg-[#78bed2]/55" />
+          <div className="absolute top-60 left-10 h-12 w-20 rounded-full bg-[#f7d9a3]/45 blur-sm" />
+          <div className="absolute top-32 right-2 h-20 w-24 rounded-full bg-[#d7eadb]/65 blur-sm" />
 
-          {[
-            "left-[22%] top-[48%]",
-            "left-[50%] top-[35%]",
-            "right-[18%] top-[54%]",
-          ].map((position) => (
-            <span
-              key={position}
-              className={`absolute ${position} flex size-8 items-center justify-center rounded-full border border-[#ef7773] bg-white text-[#ef7773] shadow-sm`}
-            >
-              <MapPin className="size-5 fill-current" aria-hidden />
-            </span>
-          ))}
+          {["left-[22%] top-[48%]", "left-[50%] top-[35%]", "right-[18%] top-[54%]"].map(
+            (position) => (
+              <span
+                key={position}
+                className={`absolute ${position} flex size-8 items-center justify-center rounded-full border border-[#ef7773] bg-white text-[#ef7773] shadow-sm`}
+              >
+                <MapPin className="size-5 fill-current" aria-hidden />
+              </span>
+            ),
+          )}
 
-          <div className="relative z-10 bg-[#ef7773] px-5 pb-4 pt-[max(2rem,env(safe-area-inset-top))] text-white">
+          <div className="relative z-10 bg-[#ef7773] px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-4 text-white">
             <div className="flex items-center gap-2 text-base font-semibold">
               <MapPin className="size-5 fill-white" aria-hidden />
               <span>{TEXT.mapTitle}</span>
@@ -60,18 +58,24 @@ export function SavedPlaceDetailPage({ place, onBack }: SavedPlaceDetailPageProp
           </div>
         </div>
 
-        <section className="relative -mt-24 rounded-t-[1.75rem] bg-white px-5 pb-8 pt-4 shadow-[0_-12px_24px_rgb(0_0_0_/_0.06)]">
+        <section className="relative -mt-24 rounded-t-[1.75rem] bg-white px-5 pt-4 pb-8 shadow-[0_-12px_24px_rgb(0_0_0_/_0.06)]">
           <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#d4d4d4]" />
 
           <div className="flex items-center gap-2">
-            <button type="button" onClick={onBack} className="touch-target-min -ml-2 flex items-center justify-center rounded-full">
+            <button
+              type="button"
+              onClick={onBack}
+              className="touch-target-min -ml-2 flex items-center justify-center rounded-full"
+            >
               <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
               <span className="sr-only">{TEXT.backToPlaces}</span>
             </button>
-            <h1 className="min-w-0 flex-1 truncate text-lg font-bold text-[#111111]">{place.name}</h1>
+            <h1 className="min-w-0 flex-1 truncate text-lg font-bold text-[#111111]">
+              {place.name}
+            </h1>
           </div>
 
-          <p className="mt-2 text-xs font-medium leading-relaxed text-[#777777]">{place.address}</p>
+          <p className="mt-2 text-xs leading-relaxed font-medium text-[#777777]">{place.address}</p>
 
           <button
             type="button"

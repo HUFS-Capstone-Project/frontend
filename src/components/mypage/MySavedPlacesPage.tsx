@@ -16,7 +16,12 @@ function formatCount(count: number) {
   return count > 999 ? "999+" : String(count);
 }
 
-export function MySavedPlacesPage({ places, onBack, onChangePlaces, onSelectPlace }: MySavedPlacesPageProps) {
+export function MySavedPlacesPage({
+  places,
+  onBack,
+  onChangePlaces,
+  onSelectPlace,
+}: MySavedPlacesPageProps) {
   const [selectedFilter, setSelectedFilter] = useState<SavedPlaceFilter>("all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
@@ -30,7 +35,8 @@ export function MySavedPlacesPage({ places, onBack, onChangePlaces, onSelectPlac
     return places.filter((place) => place.category === selectedFilter);
   }, [places, selectedFilter]);
 
-  const emptyMessage = places.length === 0 ? "나의 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
+  const emptyMessage =
+    places.length === 0 ? "나의 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
 
   const handleStartMemo = (place: SavedPlace) => {
     setOpenMenuId(null);
@@ -71,12 +77,18 @@ export function MySavedPlacesPage({ places, onBack, onChangePlaces, onSelectPlac
     <main className="bg-background min-h-0 flex-1 overflow-y-auto pb-28">
       <header className="sticky top-0 z-20 bg-white pt-[max(1rem,env(safe-area-inset-top))] shadow-[0_1px_0_rgb(0_0_0_/_0.06)]">
         <div className="flex h-12 items-center px-5">
-          <button type="button" onClick={onBack} className="touch-target-min -ml-3 flex items-center justify-center rounded-full">
+          <button
+            type="button"
+            onClick={onBack}
+            className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
+          >
             <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
             <span className="sr-only">마이페이지로 돌아가기</span>
           </button>
           <h1 className="flex-1 text-center text-base font-bold text-[#111111]">나의 장소</h1>
-          <span className="w-14 text-right text-xs font-semibold text-[#555555]">총 {formatCount(places.length)}개</span>
+          <span className="w-14 text-right text-xs font-semibold text-[#555555]">
+            총 {formatCount(places.length)}개
+          </span>
         </div>
 
         <SavedPlaceCategoryTabs selected={selectedFilter} onSelect={setSelectedFilter} />

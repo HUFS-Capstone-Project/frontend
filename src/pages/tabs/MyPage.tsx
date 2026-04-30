@@ -56,7 +56,12 @@ export default function MyPage() {
   if (view === "places") {
     return (
       <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <MySavedPlacesPage places={places} onBack={() => setView("main")} onChangePlaces={setPlaces} onSelectPlace={setSelectedPlace} />
+        <MySavedPlacesPage
+          places={places}
+          onBack={() => setView("main")}
+          onChangePlaces={setPlaces}
+          onSelectPlace={setSelectedPlace}
+        />
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
       </div>
@@ -66,7 +71,11 @@ export default function MyPage() {
   if (view === "courses") {
     return (
       <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <SavedCourseListPage courses={savedCourses} onBack={() => setView("main")} onSelectCourse={setSelectedCourse} />
+        <SavedCourseListPage
+          courses={savedCourses}
+          onBack={() => setView("main")}
+          onSelectCourse={setSelectedCourse}
+        />
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
       </div>

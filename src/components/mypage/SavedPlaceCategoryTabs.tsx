@@ -19,7 +19,11 @@ type SavedPlaceCategoryTabsProps = {
 
 export function SavedPlaceCategoryTabs({ selected, onSelect }: SavedPlaceCategoryTabsProps) {
   return (
-    <div className="scrollbar-hide flex gap-2 overflow-x-auto px-5 py-3" role="tablist" aria-label="장소 종류 필터">
+    <div
+      className="scrollbar-hide flex gap-2 overflow-x-auto px-5 py-3"
+      role="tablist"
+      aria-label="장소 종류 필터"
+    >
       {filters.map((filter) => {
         const active = selected === filter.id;
         return (

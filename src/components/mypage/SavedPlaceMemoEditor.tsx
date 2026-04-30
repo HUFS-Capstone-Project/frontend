@@ -9,7 +9,12 @@ type SavedPlaceMemoEditorProps = {
   onClear: () => void;
 };
 
-export function SavedPlaceMemoEditor({ value, onChange, onSave, onClear }: SavedPlaceMemoEditorProps) {
+export function SavedPlaceMemoEditor({
+  value,
+  onChange,
+  onSave,
+  onClear,
+}: SavedPlaceMemoEditorProps) {
   return (
     <div className="mt-2 flex items-center rounded-md border border-[#7da4ff] bg-white px-3 py-1.5">
       <input
@@ -28,7 +33,12 @@ export function SavedPlaceMemoEditor({ value, onChange, onSave, onClear }: Saved
         autoFocus
       />
       {value ? (
-        <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClear} className="ml-2 text-[#777777]">
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={onClear}
+          className="ml-2 text-[#777777]"
+        >
           <X className="size-3.5" aria-hidden />
           <span className="sr-only">메모 지우기</span>
         </button>
