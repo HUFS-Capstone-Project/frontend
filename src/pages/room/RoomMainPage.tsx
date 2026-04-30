@@ -49,7 +49,8 @@ export default function RoomMainPage() {
     nickname != null && nickname.trim().length > 0
       ? `${nickname.trim()}님의 데이트 지도`
       : "데이트 지도";
-  const { toastMessage, handleSelectBottomNav, showToast } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
+    useBottomNavController();
   const { actionRoom, openRoomActions, closeRoomActions } = useRoomActionModalHistory();
   const {
     sortedRows,
@@ -121,7 +122,7 @@ export default function RoomMainPage() {
       fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
       bottomNav={
         <>
-          <BottomNavToast message={toastMessage} />
+          <BottomNavToast message={toastMessage} placement={toastPlacement} />
           <BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />
         </>
       }

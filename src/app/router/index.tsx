@@ -32,6 +32,7 @@ export const router = createBrowserRouter([
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "dev/mypage", element: <MyPagePreview /> },
       { path: "login", element: <LoginPage /> },
+      { path: "dev/course", element: <CoursePlannerPage skipRoomGuard /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {
         path: "auth/callback",
