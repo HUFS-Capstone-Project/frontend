@@ -54,7 +54,7 @@ function PlaceListMapHeader() {
 }
 
 export default function PlaceListPage({ preview = false }: PlaceListPageProps) {
-  const { toastMessage, handleSelectBottomNav } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const [activeCategory, setActiveCategory] = useState<PlaceCategoryId>("all");
   const [selectedCity, setSelectedCity] = useState("서울");
   const [selectedDistrict, setSelectedDistrict] = useState("동대문구");
@@ -76,16 +76,16 @@ export default function PlaceListPage({ preview = false }: PlaceListPageProps) {
 
   if (selectedPlace) {
     return (
-      <div className="-m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <PlaceListDetailPage place={selectedPlace} onBack={() => setSelectedPlace(null)} />
-        <BottomNavToast message={toastMessage} />
+        <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
       </div>
     );
   }
 
   return (
-    <div className="-m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       {preview ? <PlaceListMapHeader /> : null}
       <main className="bg-background relative min-h-0 flex-1 overflow-hidden pb-24">
         <PlaceListCategoryTabs
@@ -121,7 +121,7 @@ export default function PlaceListPage({ preview = false }: PlaceListPageProps) {
           <PlaceListEmptyState message={PLACE_LIST_ITEMS.length === 0 ? PLACE_LIST_TEXT.emptySaved : PLACE_LIST_TEXT.emptyFiltered} />
         )}
       </main>
-      <BottomNavToast message={toastMessage} />
+      <BottomNavToast message={toastMessage} placement={toastPlacement} />
       <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
     </div>
   );

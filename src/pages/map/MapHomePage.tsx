@@ -44,7 +44,7 @@ export function MapHomePageContent({
   filterDataOverride = null,
 }: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
-  const { toastMessage, handleSelectBottomNav } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const now = useKoreanNow();
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
@@ -126,8 +126,8 @@ export function MapHomePageContent({
         </div>
       </main>
 
-      <div className="relative shrink-0">
-        <BottomNavToast message={toastMessage} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+        <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <FriendFloatingMenu
           friends={fabFriends}
           open={friendMenuOpen}

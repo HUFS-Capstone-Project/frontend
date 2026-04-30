@@ -16,22 +16,30 @@ const NAV_PATH_BY_ID: Record<BottomNavId, string> = {
 
 const ROOM_SCOPED_NAVS: BottomNavId[] = ["list", "map", "course"];
 
+export type BottomNavToastPlacement = "top" | "bottom";
+
+type ToastState = {
+  message: string;
+  durationMs: number;
+  placement: BottomNavToastPlacement;
+};
+
 export function useBottomNavController() {
   const navigate = useNavigate();
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
-  const [toastMessage, setToastMessage] = useState("");
+  const [toastState, setToastState] = useState<ToastState | null>(null);
 
   useEffect(() => {
-    if (!toastMessage) return;
-    const timer = window.setTimeout(() => setToastMessage(""), 1500);
+    if (!toastState?.message) return;
+    const timer = window.setTimeout(() => setToastState(null), toastState.durationMs);
     return () => window.clearTimeout(timer);
-  }, [toastMessage]);
+  }, [toastState]);
 
   const handleSelectBottomNav = useCallback(
     (id: BottomNavId) => {
       const needsRoom = ROOM_SCOPED_NAVS.includes(id);
       if (needsRoom && !selectedRoom) {
-        setToastMessage(ROOM_REQUIRED_TOAST);
+        setToastState({ message: ROOM_REQUIRED_TOAST, durationMs: 1500, placement: "bottom" });
         return;
       }
 
@@ -40,12 +48,16 @@ export function useBottomNavController() {
     [navigate, selectedRoom],
   );
 
-  const showToast = useCallback((message: string) => {
-    setToastMessage(message);
-  }, []);
+  const showToast = useCallback(
+    (message: string, durationMs = 1500, placement: BottomNavToastPlacement = "bottom") => {
+      setToastState({ message, durationMs, placement });
+    },
+    [],
+  );
 
   return {
-    toastMessage,
+    toastMessage: toastState?.message ?? "",
+    toastPlacement: toastState?.placement ?? "bottom",
     handleSelectBottomNav,
     showToast,
   };

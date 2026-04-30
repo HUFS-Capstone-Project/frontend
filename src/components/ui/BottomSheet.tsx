@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 const BOTTOM_SHEET_TRANSITION_MS = 240;
 const DRAG_CLOSE_THRESHOLD = 96;
 
+/** 패널(드래그 핸들 포함) 최대 높이 — 모든 BottomSheet 기본값 (상단 여백 최소) */
+const BOTTOM_SHEET_PANEL_MAX_HEIGHT_CLASS = "max-h-[calc(100dvh-0.5rem)]";
+
 export type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
@@ -13,7 +16,14 @@ export type BottomSheetProps = {
   className?: string;
   overlayClassName?: string;
   panelClassName?: string;
+  contentClassName?: string;
   hideHandle?: boolean;
+  enableHistory?: boolean;
+  /**
+   * true면 시트 패널 높이가 콘텐츠만큼 올라가고(max까지), 넘치는 부분만 본문에서 스크롤한다.
+   * false면 본문이 남은 영역을 채우듯 늘어나며(레거시) 스크롤한다.
+   */
+  intrinsicPanelHeight?: boolean;
 };
 
 export function BottomSheet({
@@ -23,13 +33,17 @@ export function BottomSheet({
   className,
   overlayClassName,
   panelClassName,
+  contentClassName,
   hideHandle = false,
+  enableHistory = true,
+  intrinsicPanelHeight = false,
 }: BottomSheetProps) {
   const { isRendered, isVisible, requestClose } = useOverlayFlowController({
     open,
     onClose,
     historyStateKey: "bottomSheet",
     transitionMs: BOTTOM_SHEET_TRANSITION_MS,
+    enableHistory,
   });
 
   const [dragOffsetY, setDragOffsetY] = useState(0);
@@ -116,7 +130,9 @@ export function BottomSheet({
       <section
         className={cn(
           "bg-background relative z-10 mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-t-[1.7rem]",
-          "shadow-sheet max-h-[calc(100dvh-3.5rem)]",
+          "shadow-sheet",
+          BOTTOM_SHEET_PANEL_MAX_HEIGHT_CLASS,
+          intrinsicPanelHeight && "h-fit",
           isDragging ? "transition-none" : "transition-[transform,opacity] duration-240 ease-out",
           panelClassName,
         )}
@@ -131,14 +147,20 @@ export function BottomSheet({
         onClick={(event) => event.stopPropagation()}
       >
         {!hideHandle ? (
-          <div className="px-5 pt-2 pb-2">
+          <div className="px-6 pt-2 pb-2">
             <div className="bg-muted-foreground/25 mx-auto h-1 w-16 rounded-full" />
           </div>
         ) : null}
 
         <div
           ref={scrollContainerRef}
-          className="scrollbar-hide min-h-0 flex-1 overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+          className={cn(
+            "scrollbar-hide pb-[max(2rem,env(safe-area-inset-bottom))]",
+            intrinsicPanelHeight
+              ? "max-h-[calc(100dvh-5.5rem)] flex-none overflow-y-auto"
+              : "min-h-0 flex-1 overflow-y-auto",
+            contentClassName,
+          )}
         >
           {children}
         </div>

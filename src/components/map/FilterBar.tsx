@@ -25,6 +25,7 @@ function CategoryChipSkeletonList() {
 }
 
 export function FilterBar({
+  hideTagPanel = false,
   categories,
   categoryNameByCode,
   filterCategories,
@@ -42,6 +43,7 @@ export function FilterBar({
   onCloseTagPanel,
 }: MapFilterBarProps) {
   const highlightCtx = { activeCategories, focusedCategory };
+  const panelOpenForUi = hideTagPanel ? false : isTagPanelOpen;
 
   return (
     <div>
@@ -63,9 +65,9 @@ export function FilterBar({
                     : (categoryNameByCode[category] ?? category)
                 }
                 highlighted={getMapCategoryChipHighlighted(category, highlightCtx)}
-                panelFocused={isTagPanelOpen && focusedCategory === category}
+                panelFocused={panelOpenForUi && focusedCategory === category}
                 selectedTagCount={
-                  category === MAP_ALL_CATEGORY_FILTER_CHIP
+                  hideTagPanel || category === MAP_ALL_CATEGORY_FILTER_CHIP
                     ? 0
                     : (selectedTagCountByCategory[category] ?? 0)
                 }
@@ -89,15 +91,17 @@ export function FilterBar({
         </div>
       ) : null}
 
-      <FilterPanel
-        isOpen={!isCategoryLoading && isTagPanelOpen}
-        focusedCategory={focusedCategory}
-        filterCategories={filterCategories}
-        selectedTagKeysByCategory={selectedTagKeysByCategory}
-        onToggleTagInCategory={onToggleTagInCategory}
-        onResetFocusedCategoryTags={onResetFocusedCategoryTags}
-        onClose={onCloseTagPanel}
-      />
+      {!hideTagPanel ? (
+        <FilterPanel
+          isOpen={!isCategoryLoading && isTagPanelOpen}
+          focusedCategory={focusedCategory}
+          filterCategories={filterCategories}
+          selectedTagKeysByCategory={selectedTagKeysByCategory}
+          onToggleTagInCategory={onToggleTagInCategory}
+          onResetFocusedCategoryTags={onResetFocusedCategoryTags}
+          onClose={onCloseTagPanel}
+        />
+      ) : null}
     </div>
   );
 }

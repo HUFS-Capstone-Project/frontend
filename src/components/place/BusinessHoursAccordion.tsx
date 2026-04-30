@@ -28,8 +28,8 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
   if (!businessHours) {
     return (
       <section className="space-y-1">
-        <p className="text-sm font-semibold text-slate-900">영업시간</p>
-        <p className="text-sm text-slate-500">정보 없음</p>
+        <p className="text-foreground text-xs font-semibold">영업시간</p>
+        <p className="text-muted-foreground text-sm">정보 없음</p>
       </section>
     );
   }
@@ -37,22 +37,24 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-slate-900">영업시간</p>
-        <p className="text-sm font-semibold text-slate-900">{buildStatusSummary(businessHours)}</p>
+        <p className="text-foreground text-xs font-semibold">영업시간</p>
+        <p className="text-foreground text-sm font-semibold">{buildStatusSummary(businessHours)}</p>
         {businessHours.holidayNotice ? (
-          <p className="text-sm text-slate-500">{businessHours.holidayNotice}</p>
+          <p className="text-muted-foreground text-[0.75rem] leading-snug">
+            {businessHours.holidayNotice}
+          </p>
         ) : null}
       </div>
 
       {todayHours ? (
-        <div className="border-t border-slate-100 pt-3">
-          <p className="text-sm font-semibold text-slate-900">
+        <div className="border-border border-t pt-3">
+          <p className="text-foreground text-sm font-semibold">
             {todayHours.label} {todayHours.hours}
           </p>
 
           <button
             type="button"
-            className="mt-3 flex w-full items-center justify-between gap-3 text-sm font-medium text-slate-700"
+            className="text-foreground hover:text-foreground/80 mt-3 flex w-full items-center justify-between gap-3 text-xs font-semibold"
             aria-expanded={isExpanded}
             onClick={() => setIsExpanded((current) => !current)}
           >
@@ -69,8 +71,8 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
                 <div
                   key={`${row.label}-${row.hours}`}
                   className={cn(
-                    "flex items-center justify-between gap-4 text-sm",
-                    row.isToday ? "font-semibold text-slate-900" : "text-slate-500",
+                    "flex items-center justify-between gap-4 text-xs leading-snug",
+                    row.isToday ? "text-foreground font-semibold" : "text-muted-foreground",
                   )}
                 >
                   <span>{row.label}</span>

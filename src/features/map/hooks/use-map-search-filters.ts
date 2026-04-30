@@ -15,6 +15,11 @@ type UseMapSearchFiltersOptions = {
   places: SavedPlace[];
   filterCategories: Category[];
   initialFocusedCategory?: MapPrimaryCategory | null;
+  /**
+   * true면 태그 UI 없이 카테고리 칩만 사용한다.
+   * 선택한 주 카테고리로만 필터하며(place.category), 세부 태그는 무시한다.
+   */
+  categoriesOnly?: boolean;
 };
 
 type UseMapSearchFiltersResult = {
@@ -64,6 +69,7 @@ export function useMapSearchFilters({
   places,
   filterCategories,
   initialFocusedCategory = null,
+  categoriesOnly = false,
 }: UseMapSearchFiltersOptions): UseMapSearchFiltersResult {
   const [keyword, setKeyword] = useState("");
   const [focusedCategoryState, setFocusedCategoryState] = useState<MapPrimaryCategory | null>(null);
@@ -95,6 +101,10 @@ export function useMapSearchFilters({
   );
 
   const focusedCategory = useMemo(() => {
+    if (categoriesOnly) {
+      return null;
+    }
+
     if (focusedCategoryState && categoryCodeSet.has(focusedCategoryState)) {
       return focusedCategoryState;
     }
@@ -108,7 +118,13 @@ export function useMapSearchFilters({
     }
 
     return null;
-  }, [categoryCodeSet, focusedCategoryState, initialFocusedCategory, isInitialFocusDismissed]);
+  }, [
+    categoriesOnly,
+    categoryCodeSet,
+    focusedCategoryState,
+    initialFocusedCategory,
+    isInitialFocusDismissed,
+  ]);
 
   const selectedCategories = useMemo(() => {
     const normalized = selectedCategoriesState.filter((category) => categoryCodeSet.has(category));
@@ -118,6 +134,7 @@ export function useMapSearchFilters({
     }
 
     if (
+      !categoriesOnly &&
       !isInitialFocusDismissed &&
       initialFocusedCategory &&
       categoryCodeSet.has(initialFocusedCategory)
@@ -126,7 +143,13 @@ export function useMapSearchFilters({
     }
 
     return normalized;
-  }, [categoryCodeSet, initialFocusedCategory, isInitialFocusDismissed, selectedCategoriesState]);
+  }, [
+    categoriesOnly,
+    categoryCodeSet,
+    initialFocusedCategory,
+    isInitialFocusDismissed,
+    selectedCategoriesState,
+  ]);
 
   const selectedTagKeysByCategory = useMemo(
     () => normalizeSelectedTagKeysByCategory(selectedTagKeysByCategoryState, primaryCategories),
@@ -148,6 +171,19 @@ export function useMapSearchFilters({
         return;
       }
 
+      if (categoriesOnly) {
+        setFocusedCategoryState(null);
+        setSelectedCategoriesState((previous) => {
+          const normalized = previous.filter((current) => categoryCodeSet.has(current));
+          const isSelected = normalized.includes(category);
+          if (!isSelected) {
+            return [...normalized, category];
+          }
+          return normalized.filter((current) => current !== category);
+        });
+        return;
+      }
+
       setSelectedCategoriesState((previous) => {
         const normalized = previous.filter((current) => categoryCodeSet.has(current));
         const isSelected = normalized.includes(category);
@@ -166,7 +202,7 @@ export function useMapSearchFilters({
         return normalized;
       });
     },
-    [categoryCodeSet, focusedCategory, primaryCategories],
+    [categoriesOnly, categoryCodeSet, focusedCategory, primaryCategories],
   );
 
   const closeTagPanel = useCallback(() => {
@@ -232,13 +268,15 @@ export function useMapSearchFilters({
     [selectedTagCountByCategory],
   );
 
-  // 카테고리 chip active 조건: “상세 태그가 1개 이상 선택된 카테고리”
+  // 카테고리 chip active: 기본은 “해당 카테고리에 태그 1개 이상”; categoriesOnly는 선택한 주 카테고리만
   const activeCategories = useMemo(
     () =>
-      selectedCategories.filter(
-        (category) => (selectedTagKeysByCategory[category] ?? []).length > 0,
-      ),
-    [selectedCategories, selectedTagKeysByCategory],
+      categoriesOnly
+        ? selectedCategories
+        : selectedCategories.filter(
+            (category) => (selectedTagKeysByCategory[category] ?? []).length > 0,
+          ),
+    [categoriesOnly, selectedCategories, selectedTagKeysByCategory],
   );
 
   const selectedCategorySet = useMemo(() => new Set(activeCategories), [activeCategories]);
@@ -258,19 +296,23 @@ export function useMapSearchFilters({
           return false;
         }
 
-        const categoryTagKeys = selectedTagKeysByCategory[placeCategoryCode] ?? [];
-        if (categoryTagKeys.length > 0) {
-          const allTagKey = allTagKeyByCategory[placeCategoryCode];
-          const hasAllTagSelected = Boolean(allTagKey && categoryTagKeys.includes(allTagKey));
+        if (!categoriesOnly) {
+          const categoryTagKeys = selectedTagKeysByCategory[placeCategoryCode] ?? [];
+          if (categoryTagKeys.length > 0) {
+            const allTagKey = allTagKeyByCategory[placeCategoryCode];
+            const hasAllTagSelected = Boolean(allTagKey && categoryTagKeys.includes(allTagKey));
 
-          if (!hasAllTagSelected) {
-            if (!place.tagKeys || place.tagKeys.length === 0) {
-              return false;
-            }
+            if (!hasAllTagSelected) {
+              if (!place.tagKeys || place.tagKeys.length === 0) {
+                return false;
+              }
 
-            const hasMatchedTag = categoryTagKeys.some((tagKey) => place.tagKeys?.includes(tagKey));
-            if (!hasMatchedTag) {
-              return false;
+              const hasMatchedTag = categoryTagKeys.some((tagKey) =>
+                place.tagKeys?.includes(tagKey),
+              );
+              if (!hasMatchedTag) {
+                return false;
+              }
             }
           }
         }
@@ -286,6 +328,7 @@ export function useMapSearchFilters({
   }, [
     activeCategories.length,
     allTagKeyByCategory,
+    categoriesOnly,
     categoryCodeSet,
     keyword,
     places,
