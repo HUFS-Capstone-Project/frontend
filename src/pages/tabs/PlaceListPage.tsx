@@ -3,10 +3,6 @@ import { useMemo, useState } from "react";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
-import { PlaceListCategoryTabs } from "@/components/place-list/PlaceListCategoryTabs";
-import { PlaceListDetailPage } from "@/components/place-list/PlaceListDetailPage";
-import { PlaceListEmptyState } from "@/components/place-list/PlaceListEmptyState";
-import { PlaceListItem } from "@/components/place-list/PlaceListItem";
 import {
   PLACE_CATEGORY_TABS,
   PLACE_LIST_ITEMS,
@@ -14,6 +10,10 @@ import {
   type PlaceCategoryId,
   type PlaceListItemData,
 } from "@/components/place-list/place-list-mock-data";
+import { PlaceListCategoryTabs } from "@/components/place-list/PlaceListCategoryTabs";
+import { PlaceListDetailPage } from "@/components/place-list/PlaceListDetailPage";
+import { PlaceListEmptyState } from "@/components/place-list/PlaceListEmptyState";
+import { PlaceListItem } from "@/components/place-list/PlaceListItem";
 import { RegionFilterPanel } from "@/components/place-list/RegionFilterPanel";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 
@@ -26,17 +26,17 @@ function PlaceListMapHeader() {
     <section className="relative h-[13.5rem] shrink-0 overflow-hidden bg-[#eef3f5]">
       <div className="absolute inset-0 opacity-80">
         <div className="absolute inset-0 bg-[linear-gradient(135deg,#f3f4f6_0_25%,#ffffff_25%_50%,#edf2f7_50%_75%,#ffffff_75%)] bg-[length:82px_82px]" />
-        <div className="absolute left-[-5rem] top-32 h-3 w-[34rem] rotate-[-12deg] rounded-full bg-[#2f5fce]/70" />
-        <div className="absolute left-[-6rem] top-24 h-4 w-[34rem] rotate-[28deg] rounded-full bg-[#8cc3d8]/65" />
-        <span className="absolute left-[38%] top-[45%] flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#f47f7b] shadow-sm">
+        <div className="absolute top-32 left-[-5rem] h-3 w-[34rem] rotate-[-12deg] rounded-full bg-[#2f5fce]/70" />
+        <div className="absolute top-24 left-[-6rem] h-4 w-[34rem] rotate-[28deg] rounded-full bg-[#8cc3d8]/65" />
+        <span className="absolute top-[45%] left-[38%] flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#f47f7b] shadow-sm">
           <MapPin className="size-4 fill-white text-white" aria-hidden />
         </span>
-        <span className="absolute right-[20%] top-[62%] flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#f47f7b] shadow-sm">
+        <span className="absolute top-[62%] right-[20%] flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#f47f7b] shadow-sm">
           <MapPin className="size-4 fill-white text-white" aria-hidden />
         </span>
       </div>
 
-      <div className="relative z-10 bg-[#f47f7b] px-4 pb-4 pt-9 text-white">
+      <div className="relative z-10 bg-[#f47f7b] px-4 pt-9 pb-4 text-white">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <MapPin className="size-5 fill-white" aria-hidden />
           <span>{PLACE_LIST_TEXT.mapTitle}</span>
@@ -63,13 +63,16 @@ export default function PlaceListPage({ preview = false }: PlaceListPageProps) {
   const [selectedPlace, setSelectedPlace] = useState<PlaceListItemData | null>(null);
 
   const regionLabel =
-    selectedCity === "전체" && selectedDistrict === "전체" ? PLACE_LIST_TEXT.regionDefault : `${selectedCity} ${selectedDistrict}`;
+    selectedCity === "전체" && selectedDistrict === "전체"
+      ? PLACE_LIST_TEXT.regionDefault
+      : `${selectedCity} ${selectedDistrict}`;
 
   const filteredPlaces = useMemo(() => {
     return PLACE_LIST_ITEMS.filter((place) => {
       const matchesCategory = activeCategory === "all" || place.category === activeCategory;
       const matchesCity = selectedCity === "전체" || place.region.includes(selectedCity);
-      const matchesDistrict = selectedDistrict === "전체" || place.region.includes(selectedDistrict);
+      const matchesDistrict =
+        selectedDistrict === "전체" || place.region.includes(selectedDistrict);
       return matchesCategory && matchesCity && matchesDistrict;
     });
   }, [activeCategory, selectedCity, selectedDistrict]);
@@ -118,7 +121,13 @@ export default function PlaceListPage({ preview = false }: PlaceListPageProps) {
             ))}
           </div>
         ) : (
-          <PlaceListEmptyState message={PLACE_LIST_ITEMS.length === 0 ? PLACE_LIST_TEXT.emptySaved : PLACE_LIST_TEXT.emptyFiltered} />
+          <PlaceListEmptyState
+            message={
+              PLACE_LIST_ITEMS.length === 0
+                ? PLACE_LIST_TEXT.emptySaved
+                : PLACE_LIST_TEXT.emptyFiltered
+            }
+          />
         )}
       </main>
       <BottomNavToast message={toastMessage} placement={toastPlacement} />

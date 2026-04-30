@@ -39,7 +39,15 @@ export const PLACE_CATEGORY_TABS: PlaceCategoryTab[] = [
 
 export const REGION_CITIES = ["전체", "서울", "경기", "인천", "부산", "대구", "대전"];
 
-export const REGION_DISTRICTS = ["전체", "강남구", "강동구", "강북구", "강서구", "관악구", "동대문구"];
+export const REGION_DISTRICTS = [
+  "전체",
+  "강남구",
+  "강동구",
+  "강북구",
+  "강서구",
+  "관악구",
+  "동대문구",
+];
 
 export const PLACE_LIST_ITEMS: PlaceListItemData[] = [
   {

@@ -18,7 +18,10 @@ export function PlaceListCategoryTabs({
   onSelect,
 }: PlaceListCategoryTabsProps) {
   return (
-    <nav className="border-border bg-background flex h-11 shrink-0 items-center overflow-x-auto border-b px-4" aria-label="장소 목록 필터">
+    <nav
+      className="border-border bg-background flex h-11 shrink-0 items-center overflow-x-auto border-b px-4"
+      aria-label="장소 목록 필터"
+    >
       <button
         type="button"
         onClick={onRegionClick}
@@ -41,7 +44,9 @@ export function PlaceListCategoryTabs({
             )}
           >
             {tab.label}
-            {selected ? <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[#5d7df5]" /> : null}
+            {selected ? (
+              <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[#5d7df5]" />
+            ) : null}
           </button>
         );
       })}
