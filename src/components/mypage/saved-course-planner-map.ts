@@ -1,7 +1,7 @@
-import type { CourseStop as PlannerCourseStop } from "@/components/course-planner/CoursePlaceInfoPanel";
-import type { SavedCourse, SavedPlace } from "@/components/mypage/mypage-mock-data";
-import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
+import type { SavedPlace } from "@/shared/types/my-page";
 
 function resolvePlaceId(
   stop: { id: string; name: string; address: string },

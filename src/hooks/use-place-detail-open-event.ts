@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/placeDetailStore";
+import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
 
 type PlaceDetailOpenEvent = CustomEvent<{
   placeId: string;

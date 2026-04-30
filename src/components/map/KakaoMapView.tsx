@@ -9,7 +9,7 @@ import {
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
-import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/placeDetailStore";
+import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
 
 export type KakaoMapViewProps = {
   appKey?: string;

@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 import LoginPage from "./LoginPage";
@@ -24,7 +25,7 @@ export default function RootIndexPage() {
   if (!accessToken) return null;
 
   if (!hasCompletedOnboarding) {
-    return <Navigate to="/onboarding/nickname" replace />;
+    return <Navigate to={APP_ROUTES.onboardingNickname} replace />;
   }
 
   return <RoomMainPage />;

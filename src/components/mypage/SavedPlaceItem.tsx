@@ -2,8 +2,8 @@
 import { useCallback, useRef } from "react";
 
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
+import type { SavedPlace } from "@/shared/types/my-page";
 
-import type { SavedPlace } from "./mypage-mock-data";
 import { SavedPlaceMemoEditor } from "./SavedPlaceMemoEditor";
 
 type SavedPlaceItemProps = {

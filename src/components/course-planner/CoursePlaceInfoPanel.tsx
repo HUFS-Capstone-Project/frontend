@@ -20,18 +20,10 @@ import { useCallback, useState } from "react";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
 import { cn } from "@/lib/utils";
-import { usePlaceDetailStore } from "@/store/placeDetailStore";
+import type { CourseStop } from "@/shared/types/course";
+import { usePlaceDetailStore } from "@/store/place-detail-store";
 
-export type CourseStop = {
-  id: string;
-  /** 지도 저장 장소 ID (`SAVED_PLACE_MOCKS`) — 핀 탭과 동일한 장소 정보 시트 연동 */
-  placeId: string;
-  name: string;
-  address: string;
-  category: string;
-  walkingTime: string;
-  hours: string;
-};
+export type { CourseStop };
 
 type CoursePlaceInfoPanelProps = {
   courseTitle: string;

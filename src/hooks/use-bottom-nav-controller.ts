@@ -1,20 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import type { BottomNavId } from "@/components/common/BottomNavigationBar";
+import {
+  BOTTOM_NAV_ROUTE_BY_ID,
+  type BottomNavId,
+  isRoomScopedBottomNav,
+} from "@/shared/config/navigation";
+import { BOTTOM_NAV_TEXT } from "@/shared/config/text";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
-
-const ROOM_REQUIRED_TOAST = "방을 먼저 선택해주세요.";
-
-const NAV_PATH_BY_ID: Record<BottomNavId, string> = {
-  list: "/list",
-  room: "/room",
-  map: "/map",
-  course: "/course",
-  mypage: "/mypage",
-};
-
-const ROOM_SCOPED_NAVS: BottomNavId[] = ["list", "map", "course"];
 
 export type BottomNavToastPlacement = "top" | "bottom";
 
@@ -37,13 +30,16 @@ export function useBottomNavController() {
 
   const handleSelectBottomNav = useCallback(
     (id: BottomNavId) => {
-      const needsRoom = ROOM_SCOPED_NAVS.includes(id);
-      if (needsRoom && !selectedRoom) {
-        setToastState({ message: ROOM_REQUIRED_TOAST, durationMs: 1500, placement: "bottom" });
+      if (isRoomScopedBottomNav(id) && !selectedRoom) {
+        setToastState({
+          message: BOTTOM_NAV_TEXT.roomRequiredToast,
+          durationMs: 1500,
+          placement: "bottom",
+        });
         return;
       }
 
-      navigate(NAV_PATH_BY_ID[id]);
+      navigate(BOTTOM_NAV_ROUTE_BY_ID[id]);
     },
     [navigate, selectedRoom],
   );

@@ -41,7 +41,7 @@ export function MyProfileHeader({ nickname, profileImageUrl, className }: MyProf
           <User className="size-5" strokeWidth={2} />
         </span>
       )}
-      <p className="text-foreground text-[1rem] font-semibold">{nickname}님</p>
+      <p className="text-foreground text-[1rem] font-semibold">{nickname}</p>
     </header>
   );
 }

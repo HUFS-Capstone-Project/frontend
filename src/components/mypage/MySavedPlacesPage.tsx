@@ -9,28 +9,23 @@ import {
   weightedMapCenter,
 } from "@/components/mypage/map-places-from-my-saved";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
-import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
-import { FALLBACK_PLACE_FILTER_DATA } from "@/features/map/lib/fallback-place-filter-data";
+import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
+import { SAVED_PLACE_BY_ID } from "@/shared/mocks/place-mocks";
 import {
-  MAP_ALL_CATEGORY_FILTER_CHIP,
-  type MapPrimaryCategory,
   type SavedPlace as MapSavedPlace,
 } from "@/shared/types/map-home";
-import { usePlaceDetailStore } from "@/store/placeDetailStore";
+import type { SavedPlace } from "@/shared/types/my-page";
+import { usePlaceDetailStore } from "@/store/place-detail-store";
 
-import type { SavedPlace } from "./mypage-mock-data";
 import { SavedPlaceItem } from "./SavedPlaceItem";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
-
-const MOCK_BY_ID = new Map(SAVED_PLACE_MOCKS.map((place) => [place.id, place]));
 
 type MySavedPlacesPageProps = {
   places: SavedPlace[];
@@ -51,41 +46,18 @@ export function MySavedPlacesPage({
 }: MySavedPlacesPageProps) {
   const now = useKoreanNow();
   const {
-    filterCategories: apiFilterCategories,
-    isInitialLoading: isTaxonomyLoading,
-    isInitialError: isTaxonomyError,
+    filterCategories,
+    categories,
+    categoryNameByCode,
+    isCategoryLoading,
+    isCategoryError,
     retryLoad,
-  } = usePlaceFilterData();
-
-  const filterCategories = useMemo(() => {
-    if (apiFilterCategories.length > 0) return apiFilterCategories;
-    if (isTaxonomyLoading && !isTaxonomyError) return [];
-    return FALLBACK_PLACE_FILTER_DATA.categories;
-  }, [apiFilterCategories, isTaxonomyError, isTaxonomyLoading]);
-
-  const categories = useMemo(
-    () => [MAP_ALL_CATEGORY_FILTER_CHIP, ...filterCategories.map((category) => category.code)],
-    [filterCategories],
-  );
-
-  const categoryNameByCode = useMemo(
-    () =>
-      filterCategories.reduce(
-        (accumulator, category) => {
-          accumulator[category.code as MapPrimaryCategory] = category.name;
-          return accumulator;
-        },
-        {} as Record<MapPrimaryCategory, string>,
-      ),
-    [filterCategories],
-  );
-
-  const isCategoryLoading = filterCategories.length === 0 && isTaxonomyLoading && !isTaxonomyError;
+  } = usePlaceFilterViewModel();
 
   const mergedForFilter = useMemo(
     (): MapSavedPlace[] =>
       places.map((place) => {
-        const mock = MOCK_BY_ID.get(place.id);
+        const mock = SAVED_PLACE_BY_ID.get(place.id);
         return {
           id: place.id,
           name: place.name,
@@ -250,7 +222,7 @@ export function MySavedPlacesPage({
               categoryNameByCode={categoryNameByCode}
               filterCategories={filterCategories}
               isCategoryLoading={isCategoryLoading}
-              isCategoryError={Boolean(isTaxonomyError && apiFilterCategories.length === 0)}
+              isCategoryError={isCategoryError}
               onRetryLoadCategories={() => {
                 void retryLoad();
               }}

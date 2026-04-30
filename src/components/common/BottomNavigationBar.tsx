@@ -1,8 +1,9 @@
 import { House, Map, MapPinned, Menu, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import type { BottomNavId } from "@/shared/config/navigation";
 
-export type BottomNavId = "list" | "room" | "map" | "course" | "mypage";
+export type { BottomNavId };
 
 export type BottomNavigationBarProps = {
   activeId: BottomNavId;

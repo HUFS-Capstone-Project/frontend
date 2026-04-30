@@ -5,6 +5,7 @@ import { GoogleLoginButton } from "@/features/auth/components/GoogleLoginButton"
 import { LoginCopy, type LoginCopyVariant } from "@/features/auth/components/LoginCopy";
 import { handleGoogleLogin } from "@/features/auth/lib/google-login";
 import { loginPageInnerClassName, loginPageRootClassName } from "@/lib/login-layout";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 const LOGIN_COPY_VARIANT: LoginCopyVariant = "marketing";
@@ -37,7 +38,12 @@ export default function LoginPage() {
   const sectionA11y = SECTION_ACCESSIBILITY[LOGIN_COPY_VARIANT];
 
   if (isLoggedIn && accessToken) {
-    return <Navigate to={hasCompletedOnboarding ? "/room" : "/onboarding/nickname"} replace />;
+    return (
+      <Navigate
+        to={hasCompletedOnboarding ? APP_ROUTES.room : APP_ROUTES.onboardingNickname}
+        replace
+      />
+    );
   }
 
   return (

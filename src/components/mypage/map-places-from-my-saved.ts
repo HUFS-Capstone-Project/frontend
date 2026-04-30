@@ -1,7 +1,6 @@
-import { MAP_INITIAL_CENTER, SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
+import { MAP_INITIAL_CENTER, SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
-
-import type { SavedPlace as MySavedPlace } from "./mypage-mock-data";
+import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 
 type MapPin = Pick<MapSavedPlace, "id" | "latitude" | "longitude">;
 

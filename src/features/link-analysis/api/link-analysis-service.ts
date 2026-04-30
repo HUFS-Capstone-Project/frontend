@@ -1,6 +1,6 @@
-import { api, isApiError } from "@/shared/api/axios";
-import { ensureCsrfCookie } from "@/shared/api/web-auth-client";
-import { getCookie, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from "@/shared/lib/cookie";
+import { API_PATHS } from "@/shared/api/api-paths";
+import { api } from "@/shared/api/axios";
+import { getXsrfHeader, withCsrfRetry } from "@/shared/api/csrf";
 
 import { toLinkAnalysis, toLinkAnalysisRequestResult } from "../model/link-analysis-types";
 import type {
@@ -12,18 +12,14 @@ import type {
   RequestLinkAnalysisRequest,
 } from "../types";
 
-const API_PATHS = {
-  rooms: "/v1/rooms",
-} as const;
-
 export const linkAnalysisService = {
   requestLinkAnalysis: async (
     roomId: string,
     payload: RequestLinkAnalysisRequest,
   ): Promise<LinkAnalysisRequestResult> => {
-    return withCsrf(async () => {
+    return withCsrfRetry(async () => {
       const res = await api.post<LinkAnalysisCommonResponse<LinkAnalysisRequestResultDto>>(
-        `${API_PATHS.rooms}/${roomId}/links/analyze`,
+        API_PATHS.rooms.analyzeLink(roomId),
         payload,
         {
           withCredentials: true,
@@ -37,42 +33,8 @@ export const linkAnalysisService = {
 
   getLinkAnalysis: async (roomId: string, linkId: number): Promise<LinkAnalysis> => {
     const res = await api.get<LinkAnalysisCommonResponse<LinkAnalysisDto>>(
-      `${API_PATHS.rooms}/${roomId}/links/${linkId}/analysis`,
+      API_PATHS.rooms.linkAnalysis(roomId, linkId),
     );
     return toLinkAnalysis(res.data.data);
   },
 };
-
-async function withCsrf<T>(request: () => Promise<T>): Promise<T> {
-  await ensureCsrfCookie();
-
-  try {
-    return await request();
-  } catch (error) {
-    if (isCsrfForbidden(error)) {
-      await ensureCsrfCookie({ forceRefresh: true });
-      return request();
-    }
-
-    throw error;
-  }
-}
-
-function getXsrfHeader(): Record<string, string> | undefined {
-  const token = getCookie(XSRF_COOKIE_NAME);
-  if (!token) {
-    return undefined;
-  }
-
-  return {
-    [XSRF_HEADER_NAME]: token,
-  };
-}
-
-function isCsrfForbidden(error: unknown): boolean {
-  if (!isApiError(error)) {
-    return false;
-  }
-
-  return error.status === 403 || error.code === "E403_FORBIDDEN";
-}

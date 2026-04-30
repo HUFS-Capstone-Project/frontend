@@ -2,14 +2,7 @@ import { useState } from "react";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
-import { type CourseStop as PlannerCourseStop } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { MyAccountActions } from "@/components/mypage/MyAccountActions";
-import {
-  type SavedCourse,
-  savedCourses as seedSavedCourses,
-  type SavedPlace,
-  savedPlaces as initialSavedPlaces,
-} from "@/components/mypage/mypage-mock-data";
 import { MyPlaceSummaryCard } from "@/components/mypage/MyPlaceSummaryCard";
 import { MyProfileHeader } from "@/components/mypage/MyProfileHeader";
 import { MySavedCoursesPage } from "@/components/mypage/MySavedCoursesPage";
@@ -20,8 +13,12 @@ import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useUserMeQuery } from "@/features/users";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
+import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
+import { savedPlaces as initialSavedPlaces } from "@/shared/mocks/my-page-mocks";
+import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
+import type { SavedPlace } from "@/shared/types/my-page";
 import { useAuthStore } from "@/store/auth-store";
-import { usePlaceDetailStore } from "@/store/placeDetailStore";
+import { usePlaceDetailStore } from "@/store/place-detail-store";
 
 type MyPageView = "main" | "places" | "courses";
 

@@ -1,6 +1,7 @@
 ﻿import type { ReactNode } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 type ProtectedRouteProps = {
@@ -15,7 +16,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={APP_ROUTES.login} replace />;
   }
 
   return children ?? <Outlet />;

@@ -213,3 +213,5 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     },
   },
 ];
+
+export const SAVED_PLACE_BY_ID = new Map(SAVED_PLACE_MOCKS.map((place) => [place.id, place]));

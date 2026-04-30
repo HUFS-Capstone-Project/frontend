@@ -2,8 +2,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 
-import type { CourseStop } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { cn } from "@/lib/utils";
+import type { CourseStop } from "@/shared/types/course";
 
 const DELETE_STRIP_W_CLASS = "w-[76px]";
 

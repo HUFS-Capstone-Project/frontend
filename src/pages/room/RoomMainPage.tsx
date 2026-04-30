@@ -10,6 +10,7 @@ import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { APP_ROUTES } from "@/shared/config/routes";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -81,7 +82,7 @@ export default function RoomMainPage() {
   const handleRoomNavigate = useCallback(
     (row: FriendRoomRow) => {
       selectRoom({ id: row.id, name: row.displayName, memberCount: row.memberCount });
-      navigate("/map");
+      navigate(APP_ROUTES.map);
     },
     [navigate, selectRoom],
   );
@@ -117,15 +118,11 @@ export default function RoomMainPage() {
   }, [openAddRoom]);
 
   return (
-    <RoomMainShell
+    <>
+      <RoomMainShell
       header={<RoomMainHeader title={roomMainHeaderTitle} />}
       fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
-      bottomNav={
-        <>
-          <BottomNavToast message={toastMessage} placement={toastPlacement} />
-          <BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />
-        </>
-      }
+      bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
     >
       <FriendRoomList
         rows={sortedRows}
@@ -180,6 +177,8 @@ export default function RoomMainPage() {
           <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
         </Suspense>
       ) : null}
-    </RoomMainShell>
+      </RoomMainShell>
+      <BottomNavToast message={toastMessage} placement={toastPlacement} />
+    </>
   );
 }

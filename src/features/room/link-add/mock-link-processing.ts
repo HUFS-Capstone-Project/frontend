@@ -1,5 +1,5 @@
 import type { MockPlaceCandidate } from "@/features/room/link-add/types";
-import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 
 export function buildMockPlacesFromCaption(caption: string | null): MockPlaceCandidate[] {
   const captionTokens =

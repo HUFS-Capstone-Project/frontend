@@ -1,12 +1,9 @@
-﻿import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import type { CourseOption } from "@/shared/types/course";
 
-export type CourseOption = {
-  id: string;
-  title: string;
-  description: string;
-};
+export type { CourseOption };
 
 type CourseResultPanelProps = {
   courses: CourseOption[];

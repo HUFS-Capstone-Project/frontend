@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 
 import { SearchField } from "@/components/common/SearchField";
+import { COURSE_DISTRICTS_BY_CITY, COURSE_REGION_CITIES } from "@/features/course-planner/constants";
 import { cn } from "@/lib/utils";
 
 type RegionSelectionPanelProps = {
@@ -12,16 +13,6 @@ type RegionSelectionPanelProps = {
   onConfirm: () => void;
 };
 
-const cities = ["서울", "경기", "인천", "부산", "대구", "대전"];
-const districtsByCity: Record<string, string[]> = {
-  서울: ["전체", "강남구", "강동구", "강북구", "강서구", "관악구", "동대문구"],
-  경기: ["전체", "성남시", "수원시", "고양시", "용인시", "하남시"],
-  인천: ["전체", "남동구", "연수구", "부평구", "서구", "중구"],
-  부산: ["전체", "해운대구", "수영구", "부산진구", "동래구", "남구"],
-  대구: ["전체", "중구", "동구", "서구", "수성구", "달서구"],
-  대전: ["전체", "서구", "유성구", "중구", "동구", "대덕구"],
-};
-
 export function RegionSelectionPanel({
   selectedCity,
   selectedDistrict,
@@ -30,7 +21,7 @@ export function RegionSelectionPanel({
   onClose,
   onConfirm,
 }: RegionSelectionPanelProps) {
-  const districts = districtsByCity[selectedCity] ?? districtsByCity["서울"];
+  const districts = COURSE_DISTRICTS_BY_CITY[selectedCity] ?? COURSE_DISTRICTS_BY_CITY["서울"];
 
   return (
     <section className="bg-background px-6 pt-8 pb-0">
@@ -61,7 +52,7 @@ export function RegionSelectionPanel({
             시/도
           </div>
           <div className="grid">
-            {cities.map((city) => {
+            {COURSE_REGION_CITIES.map((city) => {
               const selected = city === selectedCity;
               return (
                 <button

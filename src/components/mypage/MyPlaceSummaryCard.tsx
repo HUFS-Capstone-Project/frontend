@@ -1,8 +1,7 @@
 ﻿import { ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-import type { RecentPlace } from "./mypage-mock-data";
+import type { RecentPlace } from "@/shared/types/my-page";
 
 type MyPlaceSummaryCardProps = {
   totalCount: number;

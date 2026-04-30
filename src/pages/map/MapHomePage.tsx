@@ -10,12 +10,13 @@ import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { APP_ROUTES } from "@/shared/config/routes";
+import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import {
   MAP_INITIAL_CENTER,
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
-} from "@/pages/map/map-home-mock";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
+} from "@/shared/mocks/place-mocks";
 import type { RoomFriend } from "@/shared/types/map-home";
 import type { SelectedRoom } from "@/store/room-selection-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -83,7 +84,7 @@ export function MapHomePageContent({
   );
 
   if (!selectedRoom) {
-    return <Navigate to="/room" replace />;
+    return <Navigate to={APP_ROUTES.room} replace />;
   }
 
   return (

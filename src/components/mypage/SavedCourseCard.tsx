@@ -1,8 +1,7 @@
 ﻿import { ChevronRight, Heart, UsersRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-import type { SavedCourse } from "./mypage-mock-data";
+import type { SavedCourse } from "@/shared/types/course";
 
 type SavedCourseCardProps = {
   course: SavedCourse;

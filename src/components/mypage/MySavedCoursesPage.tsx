@@ -1,10 +1,7 @@
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Pin, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
-import {
-  CoursePlaceInfoPanel,
-  type CourseStop as PlannerCourseStop,
-} from "@/components/course-planner/CoursePlaceInfoPanel";
+import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
 import {
@@ -14,7 +11,6 @@ import {
   MAP_FILTER_PANEL_BASE_CLASS,
 } from "@/components/map/chip-style";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
-import type { SavedCourse, SavedPlace } from "@/components/mypage/mypage-mock-data";
 import {
   mapPlacesFromSavedCourses,
   savedCourseToPlannerStops,
@@ -23,9 +19,11 @@ import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { useRoomsQuery } from "@/features/room";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { MAP_INITIAL_CENTER } from "@/pages/map/map-home-mock";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
-import { usePlaceDetailStore } from "@/store/placeDetailStore";
+import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
+import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
+import type { SavedPlace } from "@/shared/types/my-page";
+import { usePlaceDetailStore } from "@/store/place-detail-store";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>

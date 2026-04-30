@@ -7,6 +7,7 @@ import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import { userQueryKeys } from "@/features/users";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 export function useLogout() {
@@ -28,7 +29,7 @@ export function useLogout() {
     } finally {
       logout();
       queryClient.removeQueries({ queryKey: userQueryKeys.me() });
-      navigate("/", { replace: true });
+      navigate(APP_ROUTES.root, { replace: true });
     }
   }, [logout, navigate, queryClient]);
 
@@ -40,7 +41,7 @@ export function useLogout() {
     } finally {
       logout();
       queryClient.removeQueries({ queryKey: userQueryKeys.me() });
-      navigate("/", { replace: true });
+      navigate(APP_ROUTES.root, { replace: true });
     }
   }, [logout, navigate, queryClient]);
 
