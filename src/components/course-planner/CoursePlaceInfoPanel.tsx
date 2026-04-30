@@ -39,6 +39,8 @@ type CoursePlaceInfoPanelProps = {
   onBack: () => void;
   /** `fromEditMode`: 편집 후 저장이면 상위에서 상세 화면만 갱신, 아니면 신규 저장 플로우(예: 플래너 초기화) */
   onSave: (nextTitle: string, nextStops: CourseStop[], fromEditMode: boolean) => void;
+  /** true면 조회 모드에서 「데이트코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
+  hideNewCourseSaveButton?: boolean;
 };
 
 export function CoursePlaceInfoPanel({
@@ -46,6 +48,7 @@ export function CoursePlaceInfoPanel({
   stops,
   onBack,
   onSave,
+  hideNewCourseSaveButton = false,
 }: CoursePlaceInfoPanelProps) {
   const openDetail = usePlaceDetailStore((s) => s.openDetail);
 
@@ -104,49 +107,50 @@ export function CoursePlaceInfoPanel({
   const displayStops = isEditing ? draftStops : stops;
 
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
-      <header className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            if (isEditing) {
-              handleCancelEdit();
-              return;
-            }
-            onBack();
-          }}
-          className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-          aria-label={isEditing ? "편집 취소" : "코스 목록으로 돌아가기"}
-        >
-          <ChevronLeft className="size-4" aria-hidden />
-        </button>
+    <section
+      className={cn(
+        "bg-background px-6 pt-8",
+        hideNewCourseSaveButton && !isEditing
+          ? "pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))]"
+          : "pb-0",
+      )}
+    >
+      {isEditing ? (
+        <header className="w-full">
+          <input
+            value={draftTitle}
+            onChange={(event) => setDraftTitle(event.target.value)}
+            className="text-foreground placeholder:text-muted-foreground border-border focus:border-primary w-full border-b bg-transparent pt-0.5 pb-2 text-lg leading-snug font-semibold transition-colors outline-none"
+            placeholder="코스 이름"
+            aria-label="코스 이름 편집"
+          />
+        </header>
+      ) : (
+        <header className="flex w-full items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+            aria-label="코스 목록으로 돌아가기"
+          >
+            <ChevronLeft className="size-4" aria-hidden />
+          </button>
 
-        <div className="flex min-w-0 flex-1 items-center gap-1">
-          {isEditing ? (
-            <input
-              value={draftTitle}
-              onChange={(event) => setDraftTitle(event.target.value)}
-              className="text-foreground placeholder:text-muted-foreground border-border focus:border-primary min-w-0 flex-1 shrink border-b bg-transparent pt-0.5 pb-2 text-lg leading-snug font-semibold transition-colors outline-none"
-              placeholder="코스 이름"
-              aria-label="코스 이름 편집"
-            />
-          ) : (
-            <>
-              <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
-                {courseTitle}
-              </h1>
-              <button
-                type="button"
-                onClick={handleStartEdit}
-                className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-                aria-label="코스 편집하기"
-              >
-                <Pencil className="size-3.5" aria-hidden />
-              </button>
-            </>
-          )}
-        </div>
-      </header>
+          <div className="flex min-w-0 flex-1 items-center gap-1">
+            <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
+              {courseTitle}
+            </h1>
+            <button
+              type="button"
+              onClick={handleStartEdit}
+              className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+              aria-label="코스 편집하기"
+            >
+              <Pencil className="size-3.5" aria-hidden />
+            </button>
+          </div>
+        </header>
+      )}
 
       <div className="mt-6 flex flex-col gap-5">
         {isEditing ? (
@@ -214,7 +218,7 @@ export function CoursePlaceInfoPanel({
       </div>
 
       {isEditing ? (
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex w-full gap-2">
           <button
             type="button"
             onClick={handleCancelEdit}
@@ -233,7 +237,7 @@ export function CoursePlaceInfoPanel({
             수정하기
           </button>
         </div>
-      ) : (
+      ) : hideNewCourseSaveButton ? null : (
         <button
           type="button"
           onClick={() => setIsSaveConfirmOpen(true)}

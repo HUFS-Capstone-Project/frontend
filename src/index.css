@@ -166,7 +166,7 @@ body {
     );
   }
 
-  /** FAB를 하단 네비 바로 위에 띄울 때 (부모는 `relative shrink-0`) */
+  /** FAB를 하단 네비 바로 위에 띄울 때 (부모는 하단 오버레이 `absolute bottom-0` 래퍼) */
   .bottom-fab-above-nav {
     bottom: calc(100% + var(--room-fab-gap-above-nav));
   }

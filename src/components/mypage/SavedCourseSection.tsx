@@ -1,49 +1,52 @@
-﻿import type { SavedCourse } from "./mypage-mock-data";
+﻿import { ChevronRight } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import type { SavedCourse } from "./mypage-mock-data";
 import { SavedCourseCard } from "./SavedCourseCard";
+
+const PREVIEW_COUNT = 3;
 
 type SavedCourseSectionProps = {
   courses: SavedCourse[];
-  visibleCount: number;
-  onShowMore: () => void;
-  onShowAll: () => void;
+  onOpenFullList: () => void;
   onSelectCourse: (course: SavedCourse) => void;
 };
 
 export function SavedCourseSection({
   courses,
-  visibleCount,
-  onShowMore,
-  onShowAll,
+  onOpenFullList,
   onSelectCourse,
 }: SavedCourseSectionProps) {
-  const visibleCourses = courses.slice(0, visibleCount);
+  const previewCourses = courses.slice(0, PREVIEW_COUNT);
   const hasCourses = courses.length > 0;
-  const hasHiddenCourses = visibleCount < courses.length;
-  const actionLabel = hasHiddenCourses ? "5개 더보기" : "코스 전체보기";
 
   return (
     <section className="mt-6">
-      <h2 className="text-sm font-semibold text-[#111111]">저장된 데이트 코스</h2>
-
-      {hasCourses ? (
-        <>
-          <div className="mt-3 space-y-2">
-            {visibleCourses.map((course) => (
-              <SavedCourseCard key={course.id} course={course} onSelect={onSelectCourse} />
-            ))}
-          </div>
-
+      <div className={cn("flex items-center gap-3", hasCourses && "justify-between")}>
+        <h2 className="text-foreground min-w-0 shrink text-base font-semibold tracking-tight">
+          저장된 데이트 코스
+        </h2>
+        {hasCourses ? (
           <button
             type="button"
-            onClick={hasHiddenCourses ? onShowMore : onShowAll}
-            className="mt-3 flex h-9 w-full items-center justify-center rounded-lg border border-[#e8e8e8] bg-white text-xs font-semibold text-[#222222] active:bg-[#f7f7f7]"
+            onClick={onOpenFullList}
+            className="text-muted-foreground/50 hover:text-muted-foreground touch-target-min inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-1 text-xs font-semibold transition-colors"
           >
-            {actionLabel}
-            <span className="ml-1 text-sm">⌄</span>
+            더보기
+            <ChevronRight className="size-3.5" aria-hidden />
           </button>
-        </>
+        ) : null}
+      </div>
+
+      {hasCourses ? (
+        <div className="mt-3 space-y-2">
+          {previewCourses.map((course) => (
+            <SavedCourseCard key={course.id} course={course} onSelect={onSelectCourse} />
+          ))}
+        </div>
       ) : (
-        <div className="flex min-h-[16rem] items-center justify-center text-xs font-medium text-[#9a9a9a]">
+        <div className="text-muted-foreground border-border/60 bg-muted/15 mt-4 flex min-h-40 items-center justify-center rounded-xl border border-dashed text-xs font-medium">
           데이트 코스를 저장해보세요!
         </div>
       )}

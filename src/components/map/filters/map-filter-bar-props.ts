@@ -3,6 +3,8 @@ import type { MapCategoryFilterChip, MapPrimaryCategory } from "@/shared/types/m
 
 /** 지도 검색 오버레이 내부에서 사용하는 FilterBar/Panel의 렌더링 상태 Props */
 export type MapFilterBarProps = {
+  /** true면 상세 태그 패널을 렌더하지 않고 카테고리 칩만 표시한다. */
+  hideTagPanel?: boolean;
   categories: MapCategoryFilterChip[];
   categoryNameByCode: Record<MapPrimaryCategory, string>;
   filterCategories: Category[];

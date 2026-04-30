@@ -126,7 +126,7 @@ export function MapHomePageContent({
         </div>
       </main>
 
-      <div className="relative shrink-0">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <FriendFloatingMenu
           friends={fabFriends}

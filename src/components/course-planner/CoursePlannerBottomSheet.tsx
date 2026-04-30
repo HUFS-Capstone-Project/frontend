@@ -14,12 +14,7 @@ export function CoursePlannerBottomSheet({
   children,
 }: CoursePlannerBottomSheetProps) {
   return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      panelClassName="max-h-[calc(100dvh-2rem)]"
-      enableHistory={false}
-    >
+    <BottomSheet open={open} onClose={onClose} intrinsicPanelHeight enableHistory={false}>
       {children}
     </BottomSheet>
   );

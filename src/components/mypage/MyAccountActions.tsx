@@ -5,7 +5,7 @@
 
 export function MyAccountActions({ onLogout, onWithdraw }: MyAccountActionsProps) {
   return (
-    <div className="mt-6 flex justify-center gap-2 pb-8">
+    <div className="mt-6 flex justify-center gap-2 pb-4">
       <button
         type="button"
         onClick={onLogout}

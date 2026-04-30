@@ -28,10 +28,13 @@ export function MyPlaceSummaryCard({
       <button
         type="button"
         onClick={onOpenPlaces}
-        className="touch-target-min flex w-full items-center justify-between text-left"
+        className="group touch-target-min flex w-full items-center justify-between gap-3 text-left"
       >
         <h2 className="text-[0.95rem] font-semibold text-[#111111]">나의 장소</h2>
-        <ChevronRight className="size-4 text-[#222222]" aria-hidden />
+        <span className="text-muted-foreground/50 group-hover:text-muted-foreground inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-1 text-xs font-semibold transition-colors">
+          더보기
+          <ChevronRight className="size-3.5" aria-hidden />
+        </span>
       </button>
 
       <p className="mt-2 text-center text-2xl font-semibold text-[#111111]">

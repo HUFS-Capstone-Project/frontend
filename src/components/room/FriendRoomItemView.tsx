@@ -35,7 +35,7 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
       role="button"
       tabIndex={0}
       className={cn(
-        "transition-interaction-row px-page grid origin-center grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3.5 gap-y-px rounded-xl py-3",
+        "transition-interaction-row px-page grid origin-center grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3.5 gap-y-px rounded-xl py-4",
         "focus-visible:ring-ring focus-visible:ring-offset-background cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         "hover:bg-muted/30 active:bg-muted/40 active:scale-[0.995]",
       )}
