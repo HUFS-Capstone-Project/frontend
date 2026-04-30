@@ -13,7 +13,9 @@ export type BottomSheetProps = {
   className?: string;
   overlayClassName?: string;
   panelClassName?: string;
+  contentClassName?: string;
   hideHandle?: boolean;
+  enableHistory?: boolean;
 };
 
 export function BottomSheet({
@@ -23,13 +25,16 @@ export function BottomSheet({
   className,
   overlayClassName,
   panelClassName,
+  contentClassName,
   hideHandle = false,
+  enableHistory = true,
 }: BottomSheetProps) {
   const { isRendered, isVisible, requestClose } = useOverlayFlowController({
     open,
     onClose,
     historyStateKey: "bottomSheet",
     transitionMs: BOTTOM_SHEET_TRANSITION_MS,
+    enableHistory,
   });
 
   const [dragOffsetY, setDragOffsetY] = useState(0);
@@ -138,7 +143,10 @@ export function BottomSheet({
 
         <div
           ref={scrollContainerRef}
-          className="scrollbar-hide min-h-0 flex-1 overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+          className={cn(
+            "scrollbar-hide min-h-0 flex-1 overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+            contentClassName,
+          )}
         >
           {children}
         </div>

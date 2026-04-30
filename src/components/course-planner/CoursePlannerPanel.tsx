@@ -1,44 +1,36 @@
-﻿import { CalendarDays, Coffee, Flag, MoreHorizontal, Utensils } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
+import { CoursePlaceTagSelector } from "@/components/course-planner/CoursePlaceTagSelector";
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
 import { CoursePlannerField } from "@/components/course-planner/CoursePlannerField";
-import { PlaceTypeChip } from "@/components/course-planner/PlaceTypeChip";
-
-export type PlaceTypeId = "restaurant" | "cafe" | "activity" | "etc";
+import type { MapFilterBarProps } from "@/components/map/filters/map-filter-bar-props";
 
 type CoursePlannerPanelProps = {
   regionValue: string;
   dateTimeValue: string;
-  selectedPlaceTypeIds: PlaceTypeId[];
   canGenerate: boolean;
+  placeFilterBarProps: MapFilterBarProps;
   onOpenRegionSelect: () => void;
   onOpenDateTimeSelect: () => void;
-  onTogglePlaceType: (placeTypeId: PlaceTypeId) => void;
   onGenerate: () => void;
   onReset: () => void;
 };
 
-const placeTypes: Array<{ id: PlaceTypeId; label: string; icon: React.ReactNode }> = [
-  { id: "restaurant", label: "맛집", icon: <Utensils className="size-3.5" /> },
-  { id: "cafe", label: "카페", icon: <Coffee className="size-3.5" /> },
-  { id: "activity", label: "놀거리", icon: <Flag className="size-3.5" /> },
-  { id: "etc", label: "기타", icon: <MoreHorizontal className="size-3.5" /> },
-];
-
 export function CoursePlannerPanel({
   regionValue,
   dateTimeValue,
-  selectedPlaceTypeIds,
   canGenerate,
+  placeFilterBarProps,
   onOpenRegionSelect,
   onOpenDateTimeSelect,
-  onTogglePlaceType,
   onGenerate,
   onReset,
 }: CoursePlannerPanelProps) {
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-7 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
-      <h1 className="text-lg font-bold text-[#171717]">맞춤 데이트코스 설정하기</h1>
+    <section className="bg-background px-6 pt-8 pb-0">
+      <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
+        맞춤 데이트코스 설정하기
+      </h1>
 
       <div className="mt-6 grid gap-5">
         <CoursePlannerField
@@ -58,18 +50,8 @@ export function CoursePlannerPanel({
         />
 
         <div className="grid gap-2">
-          <span className="text-sm font-semibold text-[#171717]">장소 종류</span>
-          <div className="flex flex-wrap gap-2">
-            {placeTypes.map((type) => (
-              <PlaceTypeChip
-                key={type.id}
-                label={type.label}
-                icon={type.icon}
-                selected={selectedPlaceTypeIds.includes(type.id)}
-                onClick={() => onTogglePlaceType(type.id)}
-              />
-            ))}
-          </div>
+          <span className="text-foreground text-sm font-semibold">장소 종류</span>
+          <CoursePlaceTagSelector {...placeFilterBarProps} />
         </div>
       </div>
 

@@ -1,225 +1,209 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
+import { AmPmTimeWheelGroup } from "@/components/course-planner/AmPmTimeWheelGroup";
+import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
 import { cn } from "@/lib/utils";
 
-export type DateTimeSelection = {
-  date: string;
-  weekday: string;
-  startTime: string | null;
-  endTime: string | null;
-};
+const weekdayLabels = ["일", "월", "화", "수", "목", "금", "토"];
 
-type DateTimeSelectionPanelProps = {
-  selectedDate: string;
-  selectedStartTime: string | null;
-  selectedEndTime: string | null;
-  onSelectDate: (date: string) => void;
-  onSelectStartTime: (time: string | null) => void;
-  onSelectEndTime: (time: string | null) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-};
+function parseDateAnchor(value: string | null) {
+  if (!value) return new Date();
 
-const weekdayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const weekdaysKo = ["\uc77c", "\uc6d4", "\ud654", "\uc218", "\ubaa9", "\uae08", "\ud1a0"];
-const monthLabel = "April 2026";
-const monthStartBlankCount = 3;
-const dateOptions = Array.from({ length: 30 }, (_, index) => {
-  const day = index + 1;
-  const date = `2026.04.${String(day).padStart(2, "0")}`;
-  const weekday = weekdaysKo[new Date(2026, 3, day).getDay()];
-  return { date, day, weekday };
-});
-const startTimeOptions = ["11:00", "12:00", "13:00", "14:00", "15:00"];
-const endTimeOptions = ["18:00", "19:00", "20:00", "21:00"];
+  const match = /^(\d{4})\.(\d{2})\.(\d{2})$/.exec(value);
+  if (!match) return new Date();
 
-export function getDateTimeDisplayValue(selection: DateTimeSelection | null) {
-  if (!selection) return "";
-  if (!selection.startTime || !selection.endTime) {
-    return `${selection.date} ${selection.weekday}\uc694\uc77c`;
-  }
-  return `${selection.date} ${selection.weekday}\uc694\uc77c ${selection.startTime} ~ ${selection.endTime}`;
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
 }
 
-export function DateTimeSelectionPanel({
-  selectedDate,
-  selectedStartTime,
-  selectedEndTime,
-  onSelectDate,
-  onSelectStartTime,
-  onSelectEndTime,
-  onClose,
-  onConfirm,
-}: DateTimeSelectionPanelProps) {
-  const selectedDateOption =
-    dateOptions.find((option) => option.date === selectedDate) ?? dateOptions[19];
-  const hasTimeRange = selectedStartTime != null && selectedEndTime != null;
-  const confirmLabel = hasTimeRange
-    ? `${selectedDateOption.date} ${selectedStartTime} ~ ${selectedEndTime} \uc124\uc815\ud558\uae30`
-    : `${selectedDateOption.date} \uc124\uc815\ud558\uae30`;
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function formatDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}.${month}.${day}`;
+}
+
+function getMonthMatrixBase(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  return {
+    year,
+    month,
+    startBlankCount: firstDay.getDay(),
+    dayCount: lastDay.getDate(),
+  };
+}
+
+type DateCalendarPanelProps = {
+  selectedDate: string | null;
+  onSelectDate: (date: string) => void;
+};
+
+/** 날짜만 선택하는 캘린더 카드 */
+export function DateCalendarPanel({ selectedDate, onSelectDate }: DateCalendarPanelProps) {
+  const parsedAnchorDate = useMemo(() => parseDateAnchor(selectedDate), [selectedDate]);
+  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(parsedAnchorDate));
+
+  useEffect(() => {
+    if (selectedDate !== null) return;
+    const id = requestAnimationFrame(() => {
+      const now = new Date();
+      setVisibleMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [selectedDate]);
+
+  const { year, month, startBlankCount, dayCount } = useMemo(
+    () => getMonthMatrixBase(visibleMonth),
+    [visibleMonth],
+  );
+  const monthLabel = `${visibleMonth.getFullYear()}년 ${visibleMonth.getMonth() + 1}월`;
+
+  const moveMonth = (offset: number) => {
+    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  };
 
   return (
-    <section className="relative z-30 -mt-44 flex justify-center px-4 pb-7">
-      <div className="w-[280px] overflow-hidden rounded-xl bg-white shadow-[0_18px_50px_rgba(15,23,42,0.22)] ring-1 ring-black/5">
-        <header className="flex items-center justify-between px-3.5 py-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full text-[#454545] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
-            aria-label="\ub0a0\uc9dc \ubc0f \uc2dc\uac04 \uc124\uc815 \ub2eb\uae30"
-          >
-            <ChevronLeft className="size-4" aria-hidden />
-          </button>
+    <div className="border-border bg-card overflow-hidden rounded-xl border">
+      <header className="flex items-center justify-between px-3.5 py-4">
+        <button
+          type="button"
+          onClick={() => moveMonth(-1)}
+          className="text-primary hover:bg-primary/10 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+          aria-label="이전 달"
+        >
+          <ChevronLeft className="size-4" aria-hidden />
+        </button>
 
-          <div className="flex items-center gap-1 text-sm font-bold text-[#252525]">
-            <span>{monthLabel}</span>
-            <ChevronRight className="size-3.5 text-[#2687d9]" aria-hidden />
-          </div>
-
-          <div className="flex items-center gap-1 text-[#2687d9]">
-            <button
-              type="button"
-              className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:ring-3 focus-visible:outline-none"
-              aria-label="\uc774\uc804 \ub2ec"
-            >
-              <ChevronLeft className="size-4" aria-hidden />
-            </button>
-            <button
-              type="button"
-              className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-[#eef7ff] focus-visible:ring-3 focus-visible:outline-none"
-              aria-label="\ub2e4\uc74c \ub2ec"
-            >
-              <ChevronRight className="size-4" aria-hidden />
-            </button>
-          </div>
-        </header>
-
-        <div className="px-3.5 pb-2">
-          <div className="grid grid-cols-7 text-center text-[0.58rem] font-semibold text-[#a3a3a3]">
-            {weekdayLabels.map((weekday) => (
-              <span key={weekday} className="py-1">
-                {weekday}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-1 grid grid-cols-7 gap-y-1 text-center">
-            {Array.from({ length: monthStartBlankCount }).map((_, index) => (
-              <span key={`blank-${index}`} aria-hidden />
-            ))}
-            {dateOptions.map((option) => {
-              const selected = option.date === selectedDateOption.date;
-              return (
-                <button
-                  key={option.date}
-                  type="button"
-                  onClick={() => onSelectDate(option.date)}
-                  className={cn(
-                    "focus-visible:ring-ring/50 mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
-                    selected
-                      ? "bg-[#7dd3fc] font-bold text-[#0f172a]"
-                      : "text-[#171717] hover:bg-[#f1f5f9]",
-                  )}
-                  aria-label={`${option.date} ${option.weekday}\uc694\uc77c`}
-                >
-                  {option.day}
-                </button>
-              );
-            })}
-          </div>
+        <div className="text-foreground flex items-center gap-1 text-sm font-bold">
+          <span>{monthLabel}</span>
         </div>
 
-        <div className="border-t border-[#ededed] px-3.5 py-2.5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-[#303030]">Time</span>
-            <button
-              type="button"
-              onClick={() => {
-                onSelectStartTime(null);
-                onSelectEndTime(null);
-              }}
-              className={cn(
-                "focus-visible:ring-ring/50 rounded-full px-2.5 py-1 text-[0.68rem] font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
-                hasTimeRange
-                  ? "bg-[#f4f4f5] text-[#71717a] hover:bg-[#e9e9ec]"
-                  : "bg-[#fff0ee] text-[#f06f6b]",
-              )}
-            >
-              {hasTimeRange
-                ? `${selectedStartTime} ~ ${selectedEndTime}`
-                : "\uc2dc\uac04 \uc9c0\uc815 \uc548 \ud568"}
-            </button>
-          </div>
+        <button
+          type="button"
+          onClick={() => moveMonth(1)}
+          className="text-primary hover:bg-primary/10 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+          aria-label="다음 달"
+        >
+          <ChevronRight className="size-4" aria-hidden />
+        </button>
+      </header>
 
-          <div className="mt-2 grid gap-1.5">
-            <TimeChipRow
-              label="\uc2dc\uc791"
-              selectedTime={selectedStartTime}
-              options={startTimeOptions}
-              onSelect={(time) => {
-                onSelectStartTime(time);
-                if (!selectedEndTime || time >= selectedEndTime) {
-                  onSelectEndTime("21:00");
-                }
-              }}
-            />
-            <TimeChipRow
-              label="\uc885\ub8cc"
-              selectedTime={selectedEndTime}
-              options={endTimeOptions}
-              onSelect={(time) => {
-                if (selectedStartTime && time <= selectedStartTime) return;
-                onSelectEndTime(time);
-              }}
-            />
-          </div>
+      <div className="px-3.5 pt-1 pb-4">
+        <div className="text-muted-foreground grid grid-cols-7 py-0.5 text-center text-[0.65rem] font-semibold">
+          {weekdayLabels.map((weekday) => (
+            <span key={weekday} className="py-1.5">
+              {weekday}
+            </span>
+          ))}
         </div>
 
-        <div className="px-3.5 pb-3">
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="focus-visible:ring-ring/50 inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-xs font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:ring-3 focus-visible:outline-none"
-          >
-            {confirmLabel}
-          </button>
+        <div className="mt-1.5 grid grid-cols-7 gap-y-1.5 text-center">
+          {Array.from({ length: startBlankCount }).map((_, index) => (
+            <span key={`blank-${year}-${month}-${index}`} aria-hidden />
+          ))}
+          {Array.from({ length: dayCount }).map((_, index) => {
+            const day = index + 1;
+            const date = new Date(year, month, day);
+            const dateValue = formatDateValue(date);
+            const selected = selectedDate !== null && dateValue === selectedDate;
+
+            return (
+              <button
+                key={dateValue}
+                type="button"
+                onClick={() => onSelectDate(dateValue)}
+                className={cn(
+                  "focus-visible:ring-ring/50 mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                  selected
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : "text-foreground hover:bg-muted/60",
+                )}
+                aria-label={date.toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  weekday: "long",
+                })}
+              >
+                {day}
+              </button>
+            );
+          })}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
-type TimeChipRowProps = {
-  label: string;
-  selectedTime: string | null;
-  options: string[];
-  onSelect: (time: string) => void;
+type DateTimeWheelsPanelProps = {
+  selectedDate: string | null;
+  selectedStartTime: string | null;
+  selectedEndTime: string | null;
+  onSelectStartTime: (time: string | null) => void;
+  onSelectEndTime: (time: string | null) => void;
 };
 
-function TimeChipRow({ label, selectedTime, options, onSelect }: TimeChipRowProps) {
+/** 시작·종료 시간 휠 (날짜가 정해진 뒤 단계 화면에서만 사용) */
+export function DateTimeWheelsPanel({
+  selectedDate,
+  selectedStartTime,
+  selectedEndTime,
+  onSelectStartTime,
+  onSelectEndTime,
+}: DateTimeWheelsPanelProps) {
+  const showStartWheels = selectedDate !== null;
+  const showEndWheels = showStartWheels && isHmString(selectedStartTime);
+
+  if (!showStartWheels) return null;
+
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="w-7 shrink-0 text-[0.65rem] font-semibold text-[#8a8a8a]">{label}</span>
-      <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto pb-0.5">
-        {options.map((time) => {
-          const selected = time === selectedTime;
-          return (
-            <button
-              key={time}
-              type="button"
-              onClick={() => onSelect(time)}
-              className={cn(
-                "focus-visible:ring-ring/50 shrink-0 rounded-md px-2 py-1 text-[0.68rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
-                selected
-                  ? "bg-[#fff0ee] text-[#f06f6b]"
-                  : "bg-[#fafafa] text-[#5f5f5f] hover:bg-[#f1f1f1]",
-              )}
-            >
-              {time}
-            </button>
-          );
-        })}
-      </div>
+    <div className="grid grid-cols-2 gap-3">
+      <AmPmTimeWheelGroup
+        label="우리 언제 만날까?"
+        value={selectedStartTime}
+        onChange={(time) => {
+          onSelectStartTime(time);
+          if (time === null) {
+            onSelectEndTime(null);
+            return;
+          }
+          if (
+            isHmString(selectedEndTime) &&
+            isHmString(time) &&
+            !isEndAfterStart(time, selectedEndTime)
+          ) {
+            onSelectEndTime(null);
+          }
+        }}
+      />
+      {showEndWheels ? (
+        <AmPmTimeWheelGroup
+          label="언제까지 함께할까?"
+          value={selectedEndTime}
+          onChange={(time) => {
+            if (
+              time !== null &&
+              isHmString(selectedStartTime) &&
+              !isEndAfterStart(selectedStartTime, time)
+            ) {
+              onSelectEndTime(null);
+              return;
+            }
+            onSelectEndTime(time);
+          }}
+        />
+      ) : (
+        <div className="min-w-0" aria-hidden />
+      )}
     </div>
   );
 }

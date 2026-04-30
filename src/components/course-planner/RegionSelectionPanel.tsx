@@ -1,5 +1,6 @@
-﻿import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
+import { SearchField } from "@/components/common/SearchField";
 import { cn } from "@/lib/utils";
 
 type RegionSelectionPanelProps = {
@@ -30,41 +31,33 @@ export function RegionSelectionPanel({
   onConfirm,
 }: RegionSelectionPanelProps) {
   const districts = districtsByCity[selectedCity] ?? districtsByCity["서울"];
-  const confirmLabel =
-    selectedDistrict === "전체"
-      ? `${selectedCity} 전체 설정하기`
-      : `${selectedCity} ${selectedDistrict} 설정하기`;
 
   return (
-    <section className="relative z-20 -mt-9 rounded-t-[28px] bg-white px-4 pt-5 pb-7 shadow-[0_-16px_40px_rgba(15,23,42,0.08)]">
-      <div className="mx-auto mb-5 h-1 w-14 rounded-full bg-[#d9d9d9]" />
-
+    <section className="bg-background px-6 pt-8 pb-0">
       <div className="flex items-center justify-between">
-        <h1 className="text-base font-bold text-[#171717]">지역설정</h1>
+        <h1 className="text-foreground text-base font-bold">지역설정</h1>
         <button
           type="button"
           onClick={onClose}
-          className="focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full text-[#9ca3af] transition-colors hover:bg-[#f4f4f5] focus-visible:ring-3 focus-visible:outline-none"
+          className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
           aria-label="지역설정 닫기"
         >
           <X className="size-4" aria-hidden />
         </button>
       </div>
 
-      <label className="mt-4 flex h-11 items-center gap-2 rounded-lg border border-[#dedede] bg-white px-3">
-        <input
-          value={selectedDistrict === "전체" ? selectedCity : selectedDistrict}
-          readOnly
-          className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#171717] outline-none placeholder:text-[#9ca3af]"
-          placeholder="지역명 검색"
-          aria-label="지역명 검색"
-        />
-        <Search className="size-4 text-[#6b7280]" aria-hidden />
-      </label>
+      <SearchField
+        value={selectedDistrict === "전체" ? selectedCity : selectedDistrict}
+        readOnly
+        className="mt-4"
+        inputClassName="h-11 rounded-lg pe-10"
+        placeholder="지역명 검색"
+        aria-label="지역명 검색"
+      />
 
-      <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-lg border border-[#eeeeee]">
-        <div className="border-r border-[#eeeeee]">
-          <div className="border-b border-[#eeeeee] py-2 text-center text-xs font-medium text-[#52525b]">
+      <div className="border-border mt-4 grid grid-cols-2 overflow-hidden rounded-lg border">
+        <div className="border-border border-r">
+          <div className="border-border text-muted-foreground border-b py-2 text-center text-xs font-medium">
             시/도
           </div>
           <div className="grid">
@@ -78,8 +71,8 @@ export function RegionSelectionPanel({
                   className={cn(
                     "h-11 px-4 text-left text-sm transition-colors",
                     selected
-                      ? "bg-[#fff0ee] font-semibold text-[#f06f6b]"
-                      : "text-[#8a8f98] hover:bg-[#fafafa]",
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted/35",
                   )}
                 >
                   {city}
@@ -90,7 +83,7 @@ export function RegionSelectionPanel({
         </div>
 
         <div>
-          <div className="border-b border-[#eeeeee] py-2 text-center text-xs font-medium text-[#52525b]">
+          <div className="border-border text-muted-foreground border-b py-2 text-center text-xs font-medium">
             시/구/군
           </div>
           <div className="grid">
@@ -104,8 +97,8 @@ export function RegionSelectionPanel({
                   className={cn(
                     "h-11 px-4 text-left text-sm transition-colors",
                     selected
-                      ? "bg-[#ffe6e4] font-semibold text-[#f06f6b]"
-                      : "text-[#8a8f98] hover:bg-[#fafafa]",
+                      ? "bg-primary/15 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted/35",
                   )}
                 >
                   {district}
@@ -119,9 +112,9 @@ export function RegionSelectionPanel({
       <button
         type="button"
         onClick={onConfirm}
-        className="focus-visible:ring-ring/50 mt-5 inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#f06f6b] text-sm font-semibold text-white transition-colors hover:bg-[#e86460] focus-visible:ring-3 focus-visible:outline-none"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/50 mt-4 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none"
       >
-        {confirmLabel}
+        설정하기
       </button>
     </section>
   );

@@ -25,20 +25,25 @@ export function CoursePlannerField({
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <span className="text-sm font-semibold text-[#171717]">
+      <span className="text-foreground text-sm font-semibold">
         {label}
-        {required ? <span className="ml-0.5 text-[#f06f6b]">*</span> : null}
+        {required ? <span className="text-primary ml-0.5">*</span> : null}
       </span>
 
       <button
         type="button"
         onClick={onClick}
-        className="focus-visible:ring-ring/50 flex h-11 w-full items-center justify-between rounded-lg border border-[#dedede] bg-white px-3 text-left transition-colors hover:bg-[#fafafa] focus-visible:ring-3 focus-visible:outline-none"
+        className="border-border bg-background hover:bg-muted/35 focus-visible:ring-ring/50 flex h-11 w-full items-center justify-between rounded-lg border px-3 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none"
       >
-        <span className={cn("text-sm", hasValue ? "font-medium text-[#171717]" : "text-[#9ca3af]")}>
+        <span
+          className={cn(
+            "text-sm",
+            hasValue ? "text-foreground font-medium" : "text-muted-foreground",
+          )}
+        >
           {hasValue ? value : placeholder}
         </span>
-        <span className="text-[#6b7280]" aria-hidden>
+        <span className="text-muted-foreground" aria-hidden>
           {icon ?? "›"}
         </span>
       </button>
