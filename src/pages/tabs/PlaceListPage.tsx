@@ -15,9 +15,12 @@ export default function PlaceListPage() {
 
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <main className="bg-background min-h-0 flex-1" />
-      <BottomNavToast message={toastMessage} placement={toastPlacement} />
-      <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
+      <main className="bg-background min-h-0 flex-1 overflow-hidden" />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+        <BottomNavToast message={toastMessage} placement={toastPlacement} />
+        <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
+      </div>
     </div>
   );
 }

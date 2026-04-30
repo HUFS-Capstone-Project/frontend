@@ -45,10 +45,15 @@ function getMonthMatrixBase(date: Date) {
 type DateCalendarPanelProps = {
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  className?: string;
 };
 
 /** 날짜만 선택하는 캘린더 카드 */
-export function DateCalendarPanel({ selectedDate, onSelectDate }: DateCalendarPanelProps) {
+export function DateCalendarPanel({
+  selectedDate,
+  onSelectDate,
+  className,
+}: DateCalendarPanelProps) {
   const parsedAnchorDate = useMemo(() => parseDateAnchor(selectedDate), [selectedDate]);
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(parsedAnchorDate));
 
@@ -72,7 +77,7 @@ export function DateCalendarPanel({ selectedDate, onSelectDate }: DateCalendarPa
   };
 
   return (
-    <div className="border-border bg-card overflow-hidden rounded-xl border">
+    <div className={cn("border-border bg-card overflow-hidden rounded-xl border", className)}>
       <header className="flex items-center justify-between px-3.5 py-4">
         <button
           type="button"

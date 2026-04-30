@@ -1,32 +1,29 @@
-﻿import type { MockPlaceCandidate } from "@/features/room/link-add/types";
+import type { MockPlaceCandidate } from "@/features/room/link-add/types";
+import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
 
 export function buildMockPlacesFromCaption(caption: string | null): MockPlaceCandidate[] {
-  if (!caption || caption.trim().length === 0) {
+  const captionTokens =
+    caption
+      ?.toLowerCase()
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length > 1) ?? [];
+
+  if (captionTokens.length === 0) {
     return getMockPlaces();
   }
 
-  const seeds = caption
-    .split(" ")
-    .map((word) => word.trim())
-    .filter((word) => word.length > 1)
-    .slice(0, 3);
+  const matchedPlaces = SAVED_PLACE_MOCKS.filter((place) =>
+    captionTokens.some((token) =>
+      `${place.name} ${place.address} ${place.category}`.toLowerCase().includes(token),
+    ),
+  );
 
-  if (seeds.length === 0) {
-    return getMockPlaces();
-  }
-
-  return seeds.map((seed, index) => ({
-    id: `mock-place-${index + 1}`,
-    name: `${seed} 추천 장소 ${index + 1}`,
-  }));
+  return toMockPlaceCandidates(matchedPlaces.length > 0 ? matchedPlaces : SAVED_PLACE_MOCKS);
 }
 
 export function getMockPlaces(): MockPlaceCandidate[] {
-  return [
-    { id: "mock-place-1", name: "사사노하" },
-    { id: "mock-place-2", name: "원할머니 보쌈" },
-    { id: "mock-place-3", name: "승원" },
-  ];
+  return toMockPlaceCandidates(SAVED_PLACE_MOCKS);
 }
 
 export async function confirmMockPlaceSelection(params: {
@@ -37,6 +34,15 @@ export async function confirmMockPlaceSelection(params: {
   return {
     selectedPlaceId: params.placeId,
   };
+}
+
+function toMockPlaceCandidates(
+  places: Pick<(typeof SAVED_PLACE_MOCKS)[number], "id" | "name">[],
+): MockPlaceCandidate[] {
+  return places.map((place) => ({
+    id: place.id,
+    name: place.name,
+  }));
 }
 
 function delay(ms: number): Promise<void> {
