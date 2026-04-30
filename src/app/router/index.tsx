@@ -30,7 +30,7 @@ export const router = createBrowserRouter([
       { path: "dev/splash", element: <SplashScreenPage /> },
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
-      { path: "dev/list", element: <PlaceListPage preview /> },
+      { path: "dev/list", element: <PlaceListPage /> },
       { path: "dev/mypage", element: <MyPagePreview /> },
       { path: "login", element: <LoginPage /> },
       { path: "dev/course", element: <CoursePlannerPage skipRoomGuard /> },
