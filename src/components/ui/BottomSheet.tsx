@@ -136,7 +136,7 @@ export function BottomSheet({
         onClick={(event) => event.stopPropagation()}
       >
         {!hideHandle ? (
-          <div className="px-5 pt-2 pb-2">
+          <div className="px-6 pt-2 pb-2">
             <div className="bg-muted-foreground/25 mx-auto h-1 w-16 rounded-full" />
           </div>
         ) : null}
@@ -144,7 +144,7 @@ export function BottomSheet({
         <div
           ref={scrollContainerRef}
           className={cn(
-            "scrollbar-hide min-h-0 flex-1 overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+            "scrollbar-hide min-h-0 flex-1 overflow-y-auto pb-[max(2rem,env(safe-area-inset-bottom))]",
             contentClassName,
           )}
         >

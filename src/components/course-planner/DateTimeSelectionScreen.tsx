@@ -37,9 +37,7 @@ export function DateTimeSelectionScreen({
   onClose,
   onConfirm,
 }: DateTimeSelectionScreenProps) {
-  const [step, setStep] = useState<DateTimeStep>(() =>
-    selectedDate !== null ? "time" : "date",
-  );
+  const [step, setStep] = useState<DateTimeStep>(() => (selectedDate !== null ? "time" : "date"));
 
   useEffect(() => {
     if (selectedDate !== null) return;

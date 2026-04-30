@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
+import type { BottomNavId } from "@/components/common/BottomNavigationBar";
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import {
@@ -9,7 +10,6 @@ import {
   isEndAfterStart,
   isHmString,
 } from "@/components/course-planner/course-date-time";
-import { CourseEditPanel } from "@/components/course-planner/CourseEditPanel";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import {
   CoursePlaceInfoPanel,
@@ -25,6 +25,7 @@ import {
 import { DateTimeSelectionScreen } from "@/components/course-planner/DateTimeSelectionScreen";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
 import { MapHeader } from "@/components/map/MapHeader";
+import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
@@ -33,7 +34,7 @@ import MyHomePage_WithDetail from "@/pages/MyHomePage_WithDetail";
 import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
-type CoursePlannerMode = "form" | "region" | "datetime" | "loading" | "result" | "detail" | "edit";
+type CoursePlannerMode = "form" | "region" | "datetime" | "loading" | "result" | "detail";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
@@ -41,14 +42,15 @@ const KakaoMapView = lazy(() =>
 );
 
 const mockCourses: CourseOption[] = [
-  { id: "course-1", title: "코스 1", description: "캠퍼스 산책부터 감동까지" },
-  { id: "course-2", title: "코스 2", description: "카페와 전시를 가볍게" },
-  { id: "course-3", title: "코스 3", description: "저녁까지 이어지는 여유 코스" },
+  { id: "course-1", title: "코스 1", description: "균형 있게 구성된 코스" },
+  { id: "course-2", title: "코스 2", description: "릴스 좋아요 순으로 구성된 인기 코스" },
+  { id: "course-3", title: "코스 3", description: "최근 등록된 장소로 구성된 코스" },
 ];
 
 const mockStops: CourseStop[] = [
   {
     id: "hufs-seoul",
+    placeId: "place-1",
     name: "한국외국어대학교 서울캠퍼스",
     address: "서울 동대문구 이문로 107",
     category: "대학 · 캠퍼스",
@@ -57,6 +59,7 @@ const mockStops: CourseStop[] = [
   },
   {
     id: "gangneung",
+    placeId: "place-2",
     name: "감동",
     address: "회기로 25길 10-13 1층",
     category: "맛집",
@@ -65,6 +68,7 @@ const mockStops: CourseStop[] = [
   },
   {
     id: "oegwan-street",
+    placeId: "place-3",
     name: "사르스트 외대점",
     address: "회기로 23길 2",
     category: "카페",
@@ -77,9 +81,11 @@ type CoursePlannerPageProps = {
   skipRoomGuard?: boolean;
 };
 
-function CourseDevMapBackground() {
-  const { toastMessage, handleSelectBottomNav } = useBottomNavController();
-
+function CourseDevMapBackground({
+  onSelectBottomNav,
+}: {
+  onSelectBottomNav: (id: BottomNavId) => void;
+}) {
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <MapHeader title="데이트 지도" />
@@ -96,8 +102,7 @@ function CourseDevMapBackground() {
       </main>
 
       <div className="relative shrink-0">
-        <BottomNavToast message={toastMessage} />
-        <BottomNavigationBar activeId="map" onSelect={handleSelectBottomNav} />
+        <BottomNavigationBar activeId="map" onSelect={onSelectBottomNav} />
       </div>
     </div>
   );
@@ -106,6 +111,8 @@ function CourseDevMapBackground() {
 export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlannerPageProps) {
   const navigate = useNavigate();
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
+  const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
+    useBottomNavController();
   const [mode, setMode] = useState<CoursePlannerMode>("form");
   const [regionValue, setRegionValue] = useState("");
   const [draftCity, setDraftCity] = useState("서울");
@@ -114,10 +121,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
   const [draftDate, setDraftDate] = useState<string | null>(null);
   const [draftStartTime, setDraftStartTime] = useState<string | null>(null);
   const [draftEndTime, setDraftEndTime] = useState<string | null>(null);
-  const [selectedCourseId, setSelectedCourseId] = useState(mockCourses[0]?.id ?? "");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
   const [courseTitle, setCourseTitle] = useState(mockCourses[0]?.title ?? "코스 1");
   const [courseStops, setCourseStops] = useState<CourseStop[]>(mockStops);
-  const [completionNoticeVisible, setCompletionNoticeVisible] = useState(false);
   const {
     categories,
     categoryNameByCode,
@@ -145,22 +151,13 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     if (mode !== "loading") return;
 
     const timerId = window.setTimeout(() => {
-      setCompletionNoticeVisible(true);
+      showToast("데이트코스가 완성되었습니다", 3200);
+      setSelectedCourseId("");
       setMode("result");
     }, 900);
 
     return () => window.clearTimeout(timerId);
-  }, [mode]);
-
-  useEffect(() => {
-    if (!completionNoticeVisible) return;
-
-    const timerId = window.setTimeout(() => {
-      setCompletionNoticeVisible(false);
-    }, 5000);
-
-    return () => window.clearTimeout(timerId);
-  }, [completionNoticeVisible]);
+  }, [mode, showToast]);
 
   const applyDateTimeFromDrafts = useCallback(() => {
     if (!draftDate) {
@@ -231,7 +228,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     setDraftStartTime(null);
     setDraftEndTime(null);
     toggleCategory(MAP_ALL_CATEGORY_FILTER_CHIP);
-    setCompletionNoticeVisible(false);
+    setSelectedCourseId("");
+    setCourseTitle(mockCourses[0]?.title ?? "코스 1");
+    setCourseStops(mockStops);
     setMode("form");
   };
 
@@ -248,14 +247,16 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     setMode("detail");
   };
 
-  const handleSaveCourseEdit = (nextTitle: string, nextStops: CourseStop[]) => {
-    setCourseTitle(nextTitle);
-    setCourseStops(nextStops);
-    setCompletionNoticeVisible(true);
-    setMode("detail");
+  const handleSaveCourse = (nextTitle: string, nextStops: CourseStop[], fromEditMode: boolean) => {
+    showToast("코스가 저장되었습니다", 3200);
+    if (fromEditMode) {
+      setCourseTitle(nextTitle);
+      setCourseStops(nextStops);
+      return;
+    }
+    handleResetPlanner();
   };
 
-  const statusMessage = completionNoticeVisible ? "데이트코스가 완성되었습니다" : undefined;
   const placeFilterBarProps = {
     categories,
     categoryNameByCode,
@@ -278,15 +279,15 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
 
   return (
     <>
-      {selectedRoom ? <MyHomePage_WithDetail /> : <CourseDevMapBackground />}
+      {selectedRoom ? (
+        <MyHomePage_WithDetail />
+      ) : (
+        <CourseDevMapBackground onSelectBottomNav={handleSelectBottomNav} />
+      )}
 
-      {statusMessage ? (
-        <div className="px-page pointer-events-none fixed inset-x-0 top-4 z-80">
-          <div className="bg-primary text-primary-foreground mx-auto max-w-lg rounded-sm px-4 py-2 text-center text-xs font-semibold shadow-sm">
-            {statusMessage}
-          </div>
-        </div>
-      ) : null}
+      <BottomNavToast message={toastMessage} placement={toastPlacement} />
+
+      {skipRoomGuard && !selectedRoom ? <PlaceDetailSheet /> : null}
 
       <CoursePlannerBottomSheet open onClose={handleDismissCourse}>
         {mode === "region" ? (
@@ -326,7 +327,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           />
         ) : null}
 
-        {mode === "loading" ? <CourseGenerationLoadingPanel /> : null}
+        {mode === "loading" ? (
+          <CourseGenerationLoadingPanel roomName={selectedRoom?.name ?? "방"} />
+        ) : null}
 
         {mode === "result" ? (
           <CourseResultPanel
@@ -340,17 +343,11 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           <CoursePlaceInfoPanel
             courseTitle={courseTitle}
             stops={courseStops}
-            onBack={() => setMode("result")}
-            onEdit={() => setMode("edit")}
-          />
-        ) : null}
-
-        {mode === "edit" ? (
-          <CourseEditPanel
-            title={courseTitle}
-            stops={courseStops}
-            onBack={() => setMode("detail")}
-            onSave={handleSaveCourseEdit}
+            onBack={() => {
+              setSelectedCourseId("");
+              setMode("result");
+            }}
+            onSave={handleSaveCourse}
           />
         ) : null}
       </CoursePlannerBottomSheet>

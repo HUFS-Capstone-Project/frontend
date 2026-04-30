@@ -7,7 +7,7 @@ import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 export default function PlaceListPage() {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
-  const { toastMessage, handleSelectBottomNav } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
 
   if (!selectedRoom) {
     return <Navigate to="/room" replace />;
@@ -16,7 +16,7 @@ export default function PlaceListPage() {
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <main className="bg-background min-h-0 flex-1" />
-      <BottomNavToast message={toastMessage} />
+      <BottomNavToast message={toastMessage} placement={toastPlacement} />
       <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
     </div>
   );

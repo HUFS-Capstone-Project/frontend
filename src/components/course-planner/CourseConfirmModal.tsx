@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 import { RoomModalShell } from "@/components/room/RoomModalShell";
 import { useOverlayFlowController } from "@/features/room/hooks";
 import { cn } from "@/lib/utils";
@@ -35,17 +37,20 @@ export function CourseConfirmModal({
     return null;
   }
 
-  return (
+  return createPortal(
     <RoomModalShell visible={isVisible} onOverlayClick={requestClose} className="z-90">
-      <div className="px-5 py-6 text-center">
-        <p className="text-foreground text-sm font-semibold">{title}</p>
-        <p className="text-muted-foreground mt-1 text-xs leading-5">{description}</p>
+      <div className="px-6 pt-8 pb-5">
+        <h2 className="text-foreground text-center text-base leading-snug font-bold">{title}</h2>
+        <p className="text-foreground mt-2 text-center text-xs leading-relaxed">{description}</p>
       </div>
-      <div className="border-border/70 grid grid-cols-2 border-t">
+      <div className="border-border/50 flex border-t">
         <button
           type="button"
           onClick={requestClose}
-          className="border-border/70 text-muted-foreground hover:bg-muted/30 h-11 border-r text-sm font-medium transition-colors"
+          className={cn(
+            "flex-1 py-4 text-xs font-medium transition-colors",
+            "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
+          )}
         >
           취소
         </button>
@@ -53,13 +58,14 @@ export function CourseConfirmModal({
           type="button"
           onClick={onConfirm}
           className={cn(
-            "hover:bg-muted/30 h-11 text-sm font-semibold transition-colors",
-            variant === "danger" ? "text-destructive" : "text-primary",
+            "hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-xs font-medium transition-colors",
+            variant === "danger" ? "text-destructive" : "text-foreground",
           )}
         >
           {confirmLabel}
         </button>
       </div>
-    </RoomModalShell>
+    </RoomModalShell>,
+    document.body,
   );
 }
