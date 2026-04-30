@@ -30,6 +30,7 @@ export const router = createBrowserRouter([
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "dev/course", element: <CoursePlannerPage skipRoomGuard /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {
         path: "auth/callback",
