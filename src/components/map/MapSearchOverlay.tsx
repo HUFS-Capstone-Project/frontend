@@ -1,22 +1,32 @@
 import { memo, useRef } from "react";
 
+import type { MapSearchSuggestion } from "@/features/map/utils/map-search";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 
 import { SearchField } from "../common/SearchField";
 import { MAP_SEARCH_INPUT_GLASS_CLASS } from "./chip-style";
 import { FilterBar } from "./FilterBar";
 import type { MapFilterBarProps } from "./filters/map-filter-bar-props";
+import { MapSearchSuggestions } from "./MapSearchSuggestions";
 
 export type MapSearchOverlayProps = MapFilterBarProps & {
   placeholder: string;
   keyword: string;
+  searchSuggestions: MapSearchSuggestion[];
+  isSearchSuggestionsOpen: boolean;
   onKeywordChange: (keyword: string) => void;
+  onSubmitSearch: () => void;
+  onSelectSearchPlace: (placeId: string) => void;
 };
 
 export const MapSearchOverlay = memo(function MapSearchOverlay({
   placeholder,
   keyword,
+  searchSuggestions,
+  isSearchSuggestionsOpen,
   onKeywordChange,
+  onSubmitSearch,
+  onSelectSearchPlace,
   onCloseTagPanel,
   isTagPanelOpen,
   ...filterBarProps
@@ -33,11 +43,17 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
           value={keyword}
           placeholder={placeholder}
           onChange={(event) => onKeywordChange(event.target.value)}
+          onSubmitSearch={onSubmitSearch}
           inputClassName={MAP_SEARCH_INPUT_GLASS_CLASS}
+        />
+        <MapSearchSuggestions
+          open={isSearchSuggestionsOpen}
+          suggestions={searchSuggestions}
+          onSelectPlace={onSelectSearchPlace}
         />
       </div>
 
-      <div className="pointer-events-auto">
+      <div className={isSearchSuggestionsOpen ? "hidden" : "pointer-events-auto"}>
         <FilterBar
           {...filterBarProps}
           onCloseTagPanel={onCloseTagPanel}

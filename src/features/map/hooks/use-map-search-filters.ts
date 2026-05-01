@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import type { Category } from "@/features/map/api/place-taxonomy-types";
+import { includesMapSearchText, normalizeMapSearchText } from "@/features/map/utils/map-search";
 import {
   MAP_ALL_CATEGORY_FILTER_CHIP,
   type MapCategoryFilterChip,
@@ -244,7 +245,7 @@ export function useMapSearchFilters({
   const selectedCategorySet = useMemo(() => new Set(activeCategories), [activeCategories]);
 
   const filteredPlaces = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
+    const normalizedKeyword = normalizeMapSearchText(keyword);
     const hasSelectedCategoryFilter = activeCategories.length > 0;
 
     return places.filter((place) => {
@@ -280,8 +281,7 @@ export function useMapSearchFilters({
         return true;
       }
 
-      const searchableText = `${place.name} ${place.address}`.toLowerCase();
-      return searchableText.includes(normalizedKeyword);
+      return includesMapSearchText(`${place.name} ${place.address}`, keyword);
     });
   }, [
     activeCategories.length,

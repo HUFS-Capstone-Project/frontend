@@ -20,6 +20,42 @@ export type KakaoMarkerImage = {
 
 export type KakaoMapInstance = {
   setCenter: (position: KakaoLatLng) => void;
+  setBounds: (bounds: KakaoLatLngBounds) => void;
+  setLevel: (level: number) => void;
+};
+
+export type KakaoLatLngBounds = {
+  extend: (position: KakaoLatLng) => void;
+};
+
+export type KakaoGeocodeResult = {
+  x: string;
+  y: string;
+  place_name?: string;
+  address_name?: string;
+  road_address_name?: string;
+};
+
+export type KakaoGeocoder = {
+  addressSearch: (
+    keyword: string,
+    callback: (results: KakaoGeocodeResult[], status: string) => void,
+  ) => void;
+};
+
+export type KakaoPlaces = {
+  keywordSearch: (
+    keyword: string,
+    callback: (results: KakaoGeocodeResult[], status: string) => void,
+  ) => void;
+};
+
+export type KakaoServices = {
+  Status: {
+    OK: string;
+  };
+  Geocoder: new () => KakaoGeocoder;
+  Places: new () => KakaoPlaces;
 };
 
 type KakaoMapOptions = {
@@ -43,12 +79,22 @@ export type KakaoMarker = {
 };
 
 type KakaoEvent = {
-  addListener: (target: KakaoMarker, eventName: string, handler: () => void) => void;
+  addListener: (
+    target: KakaoMarker | KakaoMapInstance,
+    eventName: string,
+    handler: () => void,
+  ) => void;
+  removeListener: (
+    target: KakaoMarker | KakaoMapInstance,
+    eventName: string,
+    handler: () => void,
+  ) => void;
 };
 
 export type KakaoMaps = {
   load: (callback: () => void) => void;
   LatLng: new (latitude: number, longitude: number) => KakaoLatLng;
+  LatLngBounds: new () => KakaoLatLngBounds;
   Size: new (width: number, height: number) => KakaoSize;
   Point: new (x: number, y: number) => KakaoPoint;
   Map: new (container: HTMLElement, options: KakaoMapOptions) => KakaoMapInstance;
@@ -59,6 +105,7 @@ export type KakaoMaps = {
   ) => KakaoMarkerImage;
   Marker: new (options: KakaoMarkerOptions) => KakaoMarker;
   event: KakaoEvent;
+  services?: KakaoServices;
 };
 
 export type KakaoNamespace = {
@@ -77,9 +124,14 @@ function getWindowKakao() {
   return window.kakao;
 }
 
+function hasServicesLibrary(kakao: KakaoNamespace | undefined) {
+  return Boolean(kakao?.maps.services);
+}
+
 function buildSdkScriptUrl(appKey: string) {
   const query = new URLSearchParams({
     appkey: appKey,
+    libraries: "services",
     autoload: "false",
   });
   return `${KAKAO_MAP_SDK_URL}?${query.toString()}`;
@@ -88,7 +140,28 @@ function buildSdkScriptUrl(appKey: string) {
 function getOrCreateSdkScript(appKey: string) {
   const existingScript = document.getElementById(KAKAO_MAP_SCRIPT_ID);
   if (existingScript instanceof HTMLScriptElement) {
-    return existingScript;
+    const existingScriptUrl = new URL(existingScript.src);
+    if (!existingScriptUrl.searchParams.get("libraries")?.includes("services")) {
+      existingScript.remove();
+      window.kakao = undefined;
+    } else {
+      return existingScript;
+    }
+  }
+
+  const duplicatedScript = Array.from(document.scripts).find(
+    (script) =>
+      script.src.startsWith(KAKAO_MAP_SDK_URL) &&
+      !new URL(script.src).searchParams.get("libraries")?.includes("services"),
+  );
+  if (duplicatedScript) {
+    duplicatedScript.remove();
+    window.kakao = undefined;
+  }
+
+  const existingServicesScript = document.getElementById(KAKAO_MAP_SCRIPT_ID);
+  if (existingServicesScript instanceof HTMLScriptElement) {
+    return existingServicesScript;
   }
 
   const script = document.createElement("script");
@@ -124,9 +197,15 @@ export function loadKakaoMapSdk(appKey: string): Promise<KakaoNamespace> {
 
   const existingKakao = getWindowKakao();
   if (existingKakao?.maps) {
-    return new Promise((resolve, reject) => {
-      resolveKakaoMapsOrThrow(resolve, reject);
-    });
+    if (!hasServicesLibrary(existingKakao)) {
+      document.getElementById(KAKAO_MAP_SCRIPT_ID)?.remove();
+      window.kakao = undefined;
+      sdkLoadPromise = null;
+    } else {
+      return new Promise((resolve, reject) => {
+        resolveKakaoMapsOrThrow(resolve, reject);
+      });
+    }
   }
 
   if (sdkLoadPromise) {

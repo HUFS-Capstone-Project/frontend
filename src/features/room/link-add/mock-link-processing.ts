@@ -26,6 +26,11 @@ export function getMockPlaces(): MockPlaceCandidate[] {
     { id: "mock-place-1", name: "사사노하" },
     { id: "mock-place-2", name: "원할머니 보쌈" },
     { id: "mock-place-3", name: "승원" },
+    { id: "mock-place-4", name: "수성못관련 레이크파스타" },
+    { id: "mock-place-5", name: "동성로 카츠쿠래" },
+    { id: "mock-place-6", name: "서브웨이 이문점" },
+    { id: "mock-place-7", name: "서브웨이 대구중앙로점" },
+    { id: "mock-place-8", name: "서브웨이 인천송도점" },
   ];
 }
 
