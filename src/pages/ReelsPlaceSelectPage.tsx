@@ -3,15 +3,22 @@ import { useNavigate } from "react-router-dom";
 
 import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
 import { cn } from "@/lib/utils";
-import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/editPlaceStore";
 import { useReelsPlaceSelectStore } from "@/store/reelsPlaceSelectStore";
 import { useRegisterRoomStore } from "@/store/registerRoomStore";
 
 const REELS_LINK_MOCK =
   "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
-const PLACE_RENDER_ORDER = ["place-1", "place-2", "place-3", "place-4", "place-5", "place-9"];
-const SAVED_PLACE_ID = "place-3";
+const PLACE_RENDER_ORDER = [
+  "restaurant-1",
+  "restaurant-2",
+  "restaurant-3",
+  "restaurant-4",
+  "restaurant-5",
+  "cafe-1",
+];
+const SAVED_PLACE_ID = "restaurant-3";
 
 export default function ReelsPlaceSelectPage() {
   const navigate = useNavigate();

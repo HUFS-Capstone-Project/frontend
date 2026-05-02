@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { cn } from "@/lib/utils";
-import { SAVED_PLACE_MOCKS } from "@/pages/map/map-home-mock";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/editPlaceStore";
 
 const REELS_LINK_MOCK =
