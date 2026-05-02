@@ -4,13 +4,11 @@ export const MAP_CHIP_BASE_CLASS =
 export const MAP_CHIP_SELECTED_CLASS = "border-primary bg-primary text-primary-foreground";
 
 /** 지도 검색 입력·카테고리 칩(비선택·패널 포커스) 공통 글래스 — 패널 본문과 동일 불투명도 */
-export const MAP_OVERLAY_GLASS_SURFACE_CLASS =
-  "border-border/35 bg-background/80 backdrop-blur-md";
+export const MAP_OVERLAY_GLASS_SURFACE_CLASS = "border-border/35 bg-background/80 backdrop-blur-md";
 
 export const MAP_CHIP_UNSELECTED_CLASS = `${MAP_OVERLAY_GLASS_SURFACE_CLASS} text-muted-foreground/80 hover:bg-background/85`;
 
-export const MAP_CHIP_PANEL_FOCUS_CLASS =
-  `${MAP_OVERLAY_GLASS_SURFACE_CLASS} text-foreground/80 ring-1 ring-inset ring-foreground/12 hover:bg-background/85 dark:ring-white/15`;
+export const MAP_CHIP_PANEL_FOCUS_CLASS = `${MAP_OVERLAY_GLASS_SURFACE_CLASS} text-foreground/80 ring-1 ring-inset ring-foreground/12 hover:bg-background/85 dark:ring-white/15`;
 
 /** active 칩이면서 태그 패널 포커스일 때 — 코랄 위 대비용 얕은 링 */
 export const MAP_CHIP_PANEL_FOCUS_ON_ACTIVE_CLASS = "ring-2 ring-inset ring-primary-foreground/45";
