@@ -8,8 +8,7 @@ import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useInpersonPlaceStore } from "@/store/inpersonPlaceStore";
 import { useRegisterRoomStore } from "@/store/registerRoomStore";
 
-const REELS_LINK_MOCK =
-  "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
+const REELS_LINK_MOCK = "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
 
 export default function RegisterPlaceInpersonPage() {
   const navigate = useNavigate();
@@ -125,7 +124,7 @@ export default function RegisterPlaceInpersonPage() {
           </label>
 
           {trimmedKeyword ? (
-            <ul className="border-t border-black/5 -mx-5">
+            <ul className="-mx-5 border-t border-black/5">
               {searchResults.length === 0 ? (
                 <li className="text-muted-foreground px-5 py-8 text-center text-sm">
                   검색 결과가 없습니다
