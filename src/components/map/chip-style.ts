@@ -26,9 +26,16 @@ export const MAP_CHIP_BADGE_SELECTED_MOBILE_CLASS =
 export const MAP_CHIP_BADGE_UNSELECTED_MOBILE_CLASS =
   "max-md:absolute max-md:-top-1 max-md:-right-0.5 max-md:z-1 max-md:flex max-md:h-4 max-md:min-w-4 max-md:items-center max-md:justify-center max-md:rounded-full max-md:px-1 max-md:tabular-nums max-md:font-semibold max-md:shadow-sm max-md:border max-md:border-primary/30 max-md:bg-primary max-md:text-primary-foreground";
 
+/** 검색창·검색 제안 패널 공통 글래스 (입력창은 아래 클래스에서 border-width는 기본 input과 함께 사용) */
+export const MAP_SEARCH_GLASS_SURFACE_CLASS =
+  "border-border/55 bg-background/85 backdrop-blur-md";
+
 /** 검색창 한 줄만 — 넓은 글래스 패널 없이 얇게 */
 export const MAP_SEARCH_INPUT_GLASS_CLASS =
-  "border-border/55 bg-background/85 backdrop-blur-md placeholder:text-muted-foreground/90";
+  `${MAP_SEARCH_GLASS_SURFACE_CLASS} placeholder:text-muted-foreground/90`;
+
+/** 검색 제안 드롭다운 패널 (div 래퍼용 — `border` 명시) */
+export const MAP_SEARCH_SUGGESTIONS_PANEL_CLASS = `border ${MAP_SEARCH_GLASS_SURFACE_CLASS}`;
 
 export const MAP_FILTER_PANEL_BASE_CLASS =
   "mt-2 overflow-hidden rounded-2xl border border-border/35 bg-background/88 shadow-filter-panel backdrop-blur-md transition-all duration-200 ease-out";

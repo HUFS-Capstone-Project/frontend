@@ -136,10 +136,10 @@ export function KakaoMapView({
       return;
     }
 
-      const trimmedGeocodeKeyword = geocodeKeyword.trim();
-      if (trimmedGeocodeKeyword && maps.services) {
-        mapInstance.setLevel(level);
-        let disposed = false;
+    const trimmedGeocodeKeyword = geocodeKeyword.trim();
+    if (trimmedGeocodeKeyword && maps.services) {
+      mapInstance.setLevel(level);
+      let disposed = false;
       const normalizeResultText = (value: string | undefined) =>
         (value ?? "").trim().toLowerCase().replace(/\s+/g, "");
       const normalizedKeyword = normalizeResultText(trimmedGeocodeKeyword);

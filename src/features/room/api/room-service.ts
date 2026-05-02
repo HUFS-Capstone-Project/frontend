@@ -52,14 +52,10 @@ export const roomService = {
     payload: UpdateRoomPinRequest,
   ): Promise<RoomActionResult> => {
     return withCsrfRetry(async () => {
-      const res = await api.patch<CommonResponse<null>>(
-        API_PATHS.rooms.pin(roomId),
-        payload,
-        {
-          withCredentials: true,
-          headers: getXsrfHeader(),
-        },
-      );
+      const res = await api.patch<CommonResponse<null>>(API_PATHS.rooms.pin(roomId), payload, {
+        withCredentials: true,
+        headers: getXsrfHeader(),
+      });
       return toRoomActionResult(res.data.message);
     });
   },
@@ -76,10 +72,14 @@ export const roomService = {
 
   createRoom: async (payload: CreateRoomRequest): Promise<CreateRoomResponse> => {
     return withCsrfRetry(async () => {
-      const res = await api.post<CommonResponse<CreateRoomResponse>>(API_PATHS.rooms.root, payload, {
-        withCredentials: true,
-        headers: getXsrfHeader(),
-      });
+      const res = await api.post<CommonResponse<CreateRoomResponse>>(
+        API_PATHS.rooms.root,
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
       return res.data.data;
     });
   },
@@ -96,10 +96,14 @@ export const roomService = {
 
   registerLink: async (payload: RegisterLinkRequest): Promise<RegisterLinkResponse> => {
     return withCsrfRetry(async () => {
-      const res = await api.post<CommonResponse<RegisterLinkResponse>>(API_PATHS.links.root, payload, {
-        withCredentials: true,
-        headers: getXsrfHeader(),
-      });
+      const res = await api.post<CommonResponse<RegisterLinkResponse>>(
+        API_PATHS.links.root,
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
       return res.data.data;
     });
   },

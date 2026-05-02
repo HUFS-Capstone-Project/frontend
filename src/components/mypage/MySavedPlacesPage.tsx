@@ -14,9 +14,7 @@ import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { SAVED_PLACE_BY_ID } from "@/shared/mocks/place-mocks";
-import {
-  type SavedPlace as MapSavedPlace,
-} from "@/shared/types/map-home";
+import { type SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 

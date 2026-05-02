@@ -1,7 +1,10 @@
 import { X } from "lucide-react";
 
 import { SearchField } from "@/components/common/SearchField";
-import { COURSE_DISTRICTS_BY_CITY, COURSE_REGION_CITIES } from "@/features/course-planner/constants";
+import {
+  COURSE_DISTRICTS_BY_CITY,
+  COURSE_REGION_CITIES,
+} from "@/features/course-planner/constants";
 import { cn } from "@/lib/utils";
 
 type RegionSelectionPanelProps = {
