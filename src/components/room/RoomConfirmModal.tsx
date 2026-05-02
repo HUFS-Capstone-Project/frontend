@@ -30,7 +30,7 @@ export function RoomConfirmModal({
         aria-modal="true"
         className="w-full max-w-[332px] rounded-3xl bg-white px-6 py-6 shadow-xl"
       >
-        <p className="text-foreground whitespace-pre-line py-5 text-center text-xl leading-7 font-semibold">
+        <p className="text-foreground py-5 text-center text-xl leading-7 font-semibold whitespace-pre-line">
           {message}
         </p>
 
@@ -38,7 +38,7 @@ export function RoomConfirmModal({
           {cancelLabel ? (
             <button
               type="button"
-              className="bg-muted text-foreground h-13 rounded-2xl text-base font-semibold transition-colors active:bg-muted/80"
+              className="bg-muted text-foreground active:bg-muted/80 h-13 rounded-2xl text-base font-semibold transition-colors"
               onClick={onCancel}
             >
               {cancelLabel}

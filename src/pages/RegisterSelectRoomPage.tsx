@@ -62,10 +62,7 @@ export default function RegisterSelectRoomPage() {
   return (
     <RoomMainShell
       header={
-        <RoomMainHeader
-          title="홍길동님의 데이트 지도"
-          searchPlaceholder="공유하고 싶은 방 선택"
-        />
+        <RoomMainHeader title="홍길동님의 데이트 지도" searchPlaceholder="공유하고 싶은 방 선택" />
       }
       fab={<FloatingActionButton label="방 추가" />}
       bottomNav={<BottomNavigationBar activeId="room" onSelect={() => undefined} />}

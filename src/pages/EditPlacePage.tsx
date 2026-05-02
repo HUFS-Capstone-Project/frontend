@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/editPlaceStore";
 
-const REELS_LINK_MOCK =
-  "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
+const REELS_LINK_MOCK = "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
 
 type EditPlaceLocationState = {
   placeId?: string;
@@ -121,7 +120,7 @@ export default function EditPlacePage() {
               <p className="text-foreground min-w-0 flex-1 truncate text-sm">{REELS_LINK_MOCK}</p>
               <button
                 type="button"
-                className="bg-muted text-foreground h-8 shrink-0 rounded-full px-4 text-sm font-medium transition-colors active:bg-muted/80"
+                className="bg-muted text-foreground active:bg-muted/80 h-8 shrink-0 rounded-full px-4 text-sm font-medium transition-colors"
                 onClick={() => {
                   void handleCopy();
                 }}
@@ -183,7 +182,7 @@ export default function EditPlacePage() {
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            className="bg-muted text-foreground h-14 rounded-2xl text-base font-semibold transition-colors active:bg-muted/80"
+            className="bg-muted text-foreground active:bg-muted/80 h-14 rounded-2xl text-base font-semibold transition-colors"
             onClick={handleBack}
           >
             취소
