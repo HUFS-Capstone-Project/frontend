@@ -1,16 +1,26 @@
 import { Clipboard } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  FLEX_DUAL_ACTION_SLOT_CLASS,
+  FLEX_DUAL_PROMPT_FOOTER_ROW_CLASS,
+} from "@/components/common/action-footer-layout";
+import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { RoomAddDrawer } from "@/components/room/RoomAddDrawer";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { FullScreenOverlayShell } from "@/components/ui/FullScreenOverlayShell";
 import { PillButton } from "@/components/ui/PillButton";
 import { useControlledMaxLengthWarning } from "@/features/onboarding";
+import { LINK_FLOW_PAGE_CLASS } from "@/features/place-flow/link-flow-layout";
+import {
+  PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS,
+  PROMPT_FLOW_ALERT_INLINE_CLASS,
+} from "@/features/place-flow/prompt-flow-layout";
 import { useRoomAddFlow } from "@/features/room";
+import { ROOM_ACTION_MODAL_TRANSITION_MS } from "@/features/room/constants";
 import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 
-const FLOW_TRANSITION_MS = 180;
 const ROOM_NAME_MAX_LENGTH = 20;
 const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
 
@@ -79,7 +89,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
       setRenderStep("none");
       clearFlowState();
       closeFlowTimerRef.current = null;
-    }, FLOW_TRANSITION_MS);
+    }, ROOM_ACTION_MODAL_TRANSITION_MS);
 
     return () => {
       if (closeFlowTimerRef.current) {
@@ -156,10 +166,10 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
         overlayClassName="bg-overlay-scrim-strong md:bg-transparent"
       >
         {renderStep === "createName" ? (
-          <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-16 pb-8">
+          <div className={LINK_FLOW_PAGE_CLASS}>
             <div className="space-y-1">
               <h2 className="text-foreground text-xl leading-tight font-bold">방 이름 정하기</h2>
-              <p className="text-muted-foreground text-sm">생성할 채팅방 제목을 입력해 주세요.</p>
+              <p className="text-muted-foreground text-sm">생성할 방 이름을 정해 주세요</p>
             </div>
 
             <div className="mt-6">
@@ -187,7 +197,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
               />
               <div className="mt-2 min-h-5 px-1">
                 {roomNameError ? (
-                  <p className="text-destructive text-sm" role="alert">
+                  <p className={PROMPT_FLOW_ALERT_INLINE_CLASS} role="alert">
                     {roomNameError}
                   </p>
                 ) : (
@@ -203,25 +213,22 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
               </div>
             </div>
 
-            <div className="mt-auto grid grid-cols-2 gap-2.5 pt-6">
-              <PillButton
-                type="button"
-                variant="outline"
-                className="text-muted-foreground hover:text-muted-foreground"
-                onClick={closeFlow}
-              >
-                취소
-              </PillButton>
-              <PillButton
-                type="button"
-                variant={isCreateSubmitEnabled ? "onboarding" : "onboardingMuted"}
-                disabled={!isCreateSubmitEnabled}
-                onClick={() => {
-                  void submitCreate();
-                }}
-              >
-                {isCreatePending ? "생성 중..." : "생성"}
-              </PillButton>
+            <div className={FLEX_DUAL_PROMPT_FOOTER_ROW_CLASS}>
+              <div className={FLEX_DUAL_ACTION_SLOT_CLASS}>
+                <PlaceFlowCancelPillButton onClick={closeFlow}>취소</PlaceFlowCancelPillButton>
+              </div>
+              <div className={FLEX_DUAL_ACTION_SLOT_CLASS}>
+                <PillButton
+                  type="button"
+                  variant={isCreateSubmitEnabled ? "onboarding" : "onboardingMuted"}
+                  disabled={!isCreateSubmitEnabled}
+                  onClick={() => {
+                    void submitCreate();
+                  }}
+                >
+                  {isCreatePending ? "생성 중..." : "생성"}
+                </PillButton>
+              </div>
             </div>
           </div>
         ) : null}
@@ -277,11 +284,11 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
         ) : null}
 
         {renderStep === "join" ? (
-          <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-16 pb-8">
+          <div className={LINK_FLOW_PAGE_CLASS}>
             <div className="space-y-1">
               <h2 className="text-foreground text-xl leading-tight font-bold">입장코드로 참여</h2>
               <p className="text-muted-foreground text-sm">
-                친구에게 받은 입장코드를 입력해 주세요.
+                친구에게 받은 입장코드를 입력해 주세요
               </p>
             </div>
 
@@ -304,31 +311,28 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
               {inviteCodeError ? (
-                <p className="text-destructive mt-2 px-1 text-sm" role="alert">
+                <p className={PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS} role="alert">
                   {inviteCodeError}
                 </p>
               ) : null}
             </div>
 
-            <div className="mt-auto grid grid-cols-2 gap-2.5 pt-6">
-              <PillButton
-                type="button"
-                variant="outline"
-                className="text-muted-foreground hover:text-muted-foreground"
-                onClick={closeFlow}
-              >
-                취소
-              </PillButton>
-              <PillButton
-                type="button"
-                variant={isJoinSubmitEnabled ? "onboarding" : "onboardingMuted"}
-                disabled={!isJoinSubmitEnabled}
-                onClick={() => {
-                  void submitJoin();
-                }}
-              >
-                {isJoinPending ? "참여 중..." : "참여하기"}
-              </PillButton>
+            <div className={FLEX_DUAL_PROMPT_FOOTER_ROW_CLASS}>
+              <div className={FLEX_DUAL_ACTION_SLOT_CLASS}>
+                <PlaceFlowCancelPillButton onClick={closeFlow}>취소</PlaceFlowCancelPillButton>
+              </div>
+              <div className={FLEX_DUAL_ACTION_SLOT_CLASS}>
+                <PillButton
+                  type="button"
+                  variant={isJoinSubmitEnabled ? "onboarding" : "onboardingMuted"}
+                  disabled={!isJoinSubmitEnabled}
+                  onClick={() => {
+                    void submitJoin();
+                  }}
+                >
+                  {isJoinPending ? "참여 중..." : "참여하기"}
+                </PillButton>
+              </div>
             </div>
           </div>
         ) : null}

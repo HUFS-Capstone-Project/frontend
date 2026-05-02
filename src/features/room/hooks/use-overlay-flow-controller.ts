@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ROOM_ACTION_MODAL_TRANSITION_MS } from "@/features/room/constants";
+
 type UseOverlayFlowControllerOptions = {
   open: boolean;
   onClose: () => void;
   historyStateKey: string;
+  /** 닫기 후 언마운트 지연. 미지정 시 `ROOM_ACTION_MODAL_TRANSITION_MS`(RoomModalShell·모달 크롬 페이드 180ms) */
   transitionMs?: number;
   enableEscape?: boolean;
   enableHistory?: boolean;
@@ -15,8 +18,6 @@ type UseOverlayFlowControllerResult = {
   requestClose: () => void;
 };
 
-const DEFAULT_TRANSITION_MS = 180;
-
 /**
  * 오버레이 공통 제어:
  * - 브라우저 history(back) 닫기
@@ -27,7 +28,7 @@ export function useOverlayFlowController({
   open,
   onClose,
   historyStateKey,
-  transitionMs = DEFAULT_TRANSITION_MS,
+  transitionMs = ROOM_ACTION_MODAL_TRANSITION_MS,
   enableEscape = true,
   enableHistory = true,
 }: UseOverlayFlowControllerOptions): UseOverlayFlowControllerResult {

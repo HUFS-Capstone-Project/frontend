@@ -2,8 +2,14 @@ import type { ReactNode } from "react";
 
 import { useOverlayFlowController } from "@/features/room/hooks/use-overlay-flow-controller";
 import { cn } from "@/lib/utils";
-
-const DEFAULT_TRANSITION_MS = 180;
+import {
+  SHELL_CONTENT_FADE_MS,
+  SHELL_CONTENT_FADE_TRANSITION_STYLE,
+} from "@/shared/config/ui-timing";
+import {
+  FULLSCREEN_FLOW_MODAL_OUTER_CLASSES,
+  FULLSCREEN_FLOW_PANEL_CLASSES,
+} from "@/shared/ui/fullscreen-flow-layout";
 
 export type FullScreenOverlayShellProps = {
   open: boolean;
@@ -24,7 +30,7 @@ export function FullScreenOverlayShell({
   className,
   overlayClassName,
   panelClassName,
-  transitionMs = DEFAULT_TRANSITION_MS,
+  transitionMs = SHELL_CONTENT_FADE_MS,
 }: FullScreenOverlayShellProps) {
   const { isRendered, isVisible, requestClose } = useOverlayFlowController({
     open,
@@ -39,15 +45,16 @@ export function FullScreenOverlayShell({
 
   return (
     <div
-      className={cn("fixed inset-0 z-80 flex items-center justify-center", className)}
+      className={cn(FULLSCREEN_FLOW_MODAL_OUTER_CLASSES, className)}
       role="dialog"
       aria-modal="true"
     >
       <button
         type="button"
         aria-label="닫기"
+        style={SHELL_CONTENT_FADE_TRANSITION_STYLE}
         className={cn(
-          "bg-overlay-scrim absolute inset-0 transition-opacity duration-180 ease-out md:bg-transparent",
+          "bg-overlay-scrim absolute inset-0 md:bg-transparent",
           isVisible ? "opacity-100" : "opacity-0",
           overlayClassName,
         )}
@@ -55,10 +62,10 @@ export function FullScreenOverlayShell({
       />
 
       <section
+        style={SHELL_CONTENT_FADE_TRANSITION_STYLE}
         className={cn(
-          "bg-card relative z-10 flex h-dvh w-full max-w-lg flex-col overflow-hidden",
-          "transition-[opacity,transform] duration-180 ease-out md:max-w-3xl xl:max-w-lg",
-          isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+          FULLSCREEN_FLOW_PANEL_CLASSES,
+          isVisible ? "opacity-100" : "opacity-0",
           panelClassName,
         )}
         onClick={(event) => event.stopPropagation()}

@@ -1,8 +1,9 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, Outlet } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 import { RootLayout } from "@/app/layouts/RootLayout";
 import { OnboardingGate } from "@/app/router/OnboardingGate";
+import { OutletPageTransition } from "@/app/router/OutletPageTransition";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import EditPlacePage from "@/pages/EditPlacePage";
@@ -55,7 +56,7 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <Suspense fallback={null}>
-              <Outlet />
+              <OutletPageTransition />
             </Suspense>
           </ProtectedRoute>
         ),

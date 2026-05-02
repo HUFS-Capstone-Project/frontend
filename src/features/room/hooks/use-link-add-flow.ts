@@ -404,7 +404,7 @@ function validateLinkUrl(value: string): string | null {
   const trimmed = value.trim();
 
   if (trimmed.length === 0) {
-    return "링크를 입력해 주세요.";
+    return "링크를 입력해 주세요";
   }
 
   let parsed: URL;

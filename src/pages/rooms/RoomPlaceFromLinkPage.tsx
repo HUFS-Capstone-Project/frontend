@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
+import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { LinkAddFlowView } from "@/components/room/link-add";
 import type { RoomPlaceFromLinkLocationState } from "@/features/place-flow/edit-place-navigation";
 import { useFriendRoomRowById } from "@/features/room/hooks";
@@ -39,7 +39,7 @@ export default function RoomPlaceFromLinkPage() {
   }
 
   return (
-    <MobileFixedPageShell alignWithOverlay>
+    <FullscreenFlowRouteMount>
       <LinkAddFlowView
         room={room}
         draftSessionId={draftSession}
@@ -47,6 +47,6 @@ export default function RoomPlaceFromLinkPage() {
         onExit={handleExit}
         onPlacesSaved={handlePlacesSaved}
       />
-    </MobileFixedPageShell>
+    </FullscreenFlowRouteMount>
   );
 }

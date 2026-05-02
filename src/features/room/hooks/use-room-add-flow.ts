@@ -259,7 +259,7 @@ export function useRoomAddFlow({
 function validateRoomName(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return "방 이름을 입력해 주세요.";
+    return "방 이름을 입력해 주세요";
   }
 
   if (trimmed.length > ROOM_NAME_MAX_LENGTH) {
@@ -272,11 +272,11 @@ function validateRoomName(value: string): string | null {
 function validateInviteCode(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return "입장코드를 입력해 주세요.";
+    return "입장코드를 입력해 주세요";
   }
 
   if (trimmed.length > INVITE_CODE_MAX_LENGTH) {
-    return "입장코드는 최대 32자까지 입력할 수 있어요.";
+    return "입장코드는 최대 32자까지 입력할 수 있어요";
   }
 
   return null;

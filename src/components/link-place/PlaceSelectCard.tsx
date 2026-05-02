@@ -61,7 +61,7 @@ export function PlaceSelectCard({
 
         {disabled ? (
           <span className="shrink-0 text-xs font-medium whitespace-nowrap text-black/45">
-            이미 저장된 장소입니다
+            저장됨
           </span>
         ) : (
           <button

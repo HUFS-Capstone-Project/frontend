@@ -1,14 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
-import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
-import { SearchField } from "@/components/common/SearchField";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { EditPlaceResultCard } from "@/components/link-place/EditPlaceResultCard";
+import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
+import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearchEmptyRow";
+import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
 import { PillButton } from "@/components/ui/PillButton";
+import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
+import {
+  PROMPT_FLOW_BELOW_HEADLINES_CLASS,
+  PROMPT_FLOW_HEADER_CLASS,
+  PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
+  PROMPT_FLOW_SCROLL_BODY_CLASS,
+} from "@/features/place-flow/prompt-flow-layout";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
@@ -26,7 +35,7 @@ export default function RoomPlaceSearchPage() {
   const reset = useInpersonPlaceStore((state) => state.reset);
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
   const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
-  const [copyLabel, setCopyLabel] = useState("복사");
+  const { copyLabel, copyText } = useCopyFeedback();
 
   useEffect(() => {
     reset();
@@ -52,16 +61,9 @@ export default function RoomPlaceSearchPage() {
     );
   }, [trimmedKeyword]);
 
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(LINK_PREVIEW_MOCK);
-      setCopyLabel("복사됨");
-      window.setTimeout(() => setCopyLabel("복사"), 1500);
-    } catch {
-      setCopyLabel("실패");
-      window.setTimeout(() => setCopyLabel("복사"), 1500);
-    }
-  }, []);
+  const handleCopyLinkPreview = () => {
+    void copyText(LINK_PREVIEW_MOCK);
+  };
 
   const handleCancel = () => {
     reset();
@@ -88,58 +90,46 @@ export default function RoomPlaceSearchPage() {
   }
 
   return (
-    <MobileFixedPageShell alignWithOverlay>
-      <header className="shrink-0 px-6 pt-16">
+    <FullscreenFlowRouteMount>
+      <header className={PROMPT_FLOW_HEADER_CLASS}>
         <PlaceFlowHeadlines
           titleId="inperson-place-title"
           title={PLACE_FLOW_COPY.notFoundTitle}
           subtitle={PLACE_FLOW_COPY.notFoundHint}
         />
 
-        <div className="mt-6 space-y-3 pb-5">
+        <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
           <CopyableLinkBar
             url={LINK_PREVIEW_MOCK}
             copyLabel={copyLabel}
-            onCopy={() => {
-              void handleCopy();
-            }}
+            onCopy={handleCopyLinkPreview}
           />
 
-          <label className="flex min-h-14 items-center gap-2" htmlFor="inperson-place-search">
-            <SearchField
-              id="inperson-place-search"
-              className="min-w-0 flex-1"
-              value={keyword}
-              onChange={(event) => {
-                setKeyword(event.target.value);
-                setSelectedPlace(null);
-              }}
-              placeholder={PLACE_FLOW_COPY.searchPlaceholder}
-              searchButtonLabel={PLACE_FLOW_COPY.searchButton}
-              onSubmitSearch={() => {
-                if (!canSearch) return;
-                if (searchResults.length === 1) {
-                  setSelectedPlace(searchResults[0].id);
-                }
-              }}
-              searchButtonDisabled={!canSearch}
-            />
-          </label>
+          <PlaceFlowSearchFieldRow
+            id="inperson-place-search"
+            value={keyword}
+            onChange={(next) => {
+              setKeyword(next);
+              setSelectedPlace(null);
+            }}
+            placeholder={PLACE_FLOW_COPY.searchPlaceholder}
+            searchButtonLabel={PLACE_FLOW_COPY.searchButton}
+            onSubmitSearch={() => {
+              if (!canSearch) return;
+              if (searchResults.length === 1) {
+                setSelectedPlace(searchResults[0].id);
+              }
+            }}
+            searchButtonDisabled={!canSearch}
+          />
         </div>
       </header>
 
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+      <div className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
         {trimmedKeyword ? (
-          <ul className="border-t border-black/5">
+          <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
             {searchResults.length === 0 ? (
-              <li className="px-1 py-8 text-center">
-                <p className="text-foreground text-base font-semibold">
-                  {PLACE_FLOW_COPY.emptySearchTitle}
-                </p>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {PLACE_FLOW_COPY.emptySearchHint}
-                </p>
-              </li>
+              <PlaceFlowSearchEmptyRow />
             ) : (
               searchResults.map((place) => (
                 <EditPlaceResultCard
@@ -156,14 +146,9 @@ export default function RoomPlaceSearchPage() {
 
       <TwoButtonFooter
         left={
-          <PillButton
-            type="button"
-            variant="outline"
-            className="text-muted-foreground hover:text-muted-foreground"
-            onClick={handleCancel}
-          >
+          <PlaceFlowCancelPillButton onClick={handleCancel}>
             {PLACE_FLOW_COPY.cancel}
-          </PillButton>
+          </PlaceFlowCancelPillButton>
         }
         right={
           <PillButton
@@ -176,6 +161,6 @@ export default function RoomPlaceSearchPage() {
           </PillButton>
         }
       />
-    </MobileFixedPageShell>
+    </FullscreenFlowRouteMount>
   );
 }

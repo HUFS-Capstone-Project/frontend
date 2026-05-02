@@ -19,7 +19,7 @@ export function validateOnboardingRequest(
   const errors: OnboardingClientValidationErrors = {};
 
   if (nickname.length === 0) {
-    errors.nickname = "닉네임을 입력해 주세요.";
+    errors.nickname = "닉네임을 입력해 주세요";
   } else if (nickname.length > NICKNAME_MAX_LENGTH) {
     errors.nickname = `닉네임은 최대 ${NICKNAME_MAX_LENGTH}자까지 가능합니다.`;
   }

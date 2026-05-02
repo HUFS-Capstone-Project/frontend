@@ -9,8 +9,8 @@ import { RoomModalShell } from "./RoomModalShell";
 
 const ROOM_NAME_MAX_LENGTH = 20;
 const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
-const ROOM_NAME_REQUIRED_MESSAGE = "방 이름을 입력해 주세요.";
-const ROOM_NAME_MAX_LENGTH_MESSAGE = "방 이름은 최대 20자까지 입력할 수 있어요.";
+const ROOM_NAME_REQUIRED_MESSAGE = "방 이름을 입력해 주세요";
+const ROOM_NAME_MAX_LENGTH_MESSAGE = "방 이름은 최대 20자까지 입력할 수 있어요";
 
 export type EditRoomNameModalSubmitResult = {
   success: boolean;
@@ -89,7 +89,7 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
       <div className="px-6 pt-8 pb-5">
         <h2 className="text-foreground text-center text-lg leading-snug font-bold">방 이름 변경</h2>
         <p className="text-foreground mt-3 text-center text-sm leading-relaxed">
-          새로운 방 이름을 입력해 주세요.
+          새로운 방 이름을 입력해 주세요
         </p>
 
         <div className="mt-4">

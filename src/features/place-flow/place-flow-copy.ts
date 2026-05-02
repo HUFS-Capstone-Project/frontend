@@ -19,7 +19,7 @@ export const PLACE_FLOW_COPY = {
   saving: "저장 중...",
   save: "저장하기",
   pickPlaces: "장소 선택",
-  noneToSave: "저장할 수 있는 장소가 없어요",
+  noneToSave: "장소 없음",
   retry: "다시 시도",
   linkFromUrl: {
     titleLine1: "링크를 분석해",
@@ -32,6 +32,7 @@ export const PLACE_FLOW_COPY = {
       "어떤 장소들이 숨어 있는지 확인하고 있어요",
       "지도에서 실제 장소와 맞춰보고 있어요",
       "거의 다 찾았어요! 잠시만요...",
+      "정말 끝이 보여요...",
     ],
     /** 다음 문구까지 간격(ms). 매번 min~max 사이에서 무작위로 둬 리듬이 고정되지 않게 함 */
     processingCarouselDelayMs: { min: 1_500, max: 2_000 } as const,

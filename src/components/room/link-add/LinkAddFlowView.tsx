@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { LINK_ADD_FLOW_ROOT_CLASS } from "@/features/place-flow/link-flow-layout";
 import type { LinkAddCandidatesBootstrap } from "@/features/room/hooks";
 import { useLinkAddFlow } from "@/features/room/hooks";
 import { shouldAutoExitToInperson } from "@/features/room/link-add/should-auto-exit-to-inperson";
@@ -198,7 +199,7 @@ export function LinkAddFlowView({
     !autoNavigateToCandidates;
 
   return (
-    <>
+    <div className={LINK_ADD_FLOW_ROOT_CLASS}>
       {renderStep === "input" ? (
         <LinkInputScreen
           url={url}
@@ -233,6 +234,6 @@ export function LinkAddFlowView({
           }}
         />
       ) : null}
-    </>
+    </div>
   );
 }

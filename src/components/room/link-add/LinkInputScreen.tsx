@@ -1,11 +1,14 @@
+import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { PillButton } from "@/components/ui/PillButton";
 import {
   LINK_FLOW_AFTER_HEADLINES_CLASS,
-  LINK_FLOW_FOOTER_GRID_CLASS,
+  LINK_FLOW_DUAL_CTA_ROW_CLASS,
+  LINK_FLOW_DUAL_CTA_SLOT_CLASS,
   LINK_FLOW_HEADLINE_STACK_CLASS,
   LINK_FLOW_PAGE_CLASS,
 } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
+import { PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS } from "@/features/place-flow/prompt-flow-layout";
 
 export type LinkInputScreenProps = {
   url: string;
@@ -49,29 +52,28 @@ export function LinkInputScreen({
           className="border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-full border px-4 text-sm outline-none"
         />
         {urlError ? (
-          <p className="text-destructive mt-2 px-1 text-sm" role="alert">
+          <p className={PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS} role="alert">
             {urlError}
           </p>
         ) : null}
       </div>
 
-      <div className={LINK_FLOW_FOOTER_GRID_CLASS}>
-        <PillButton
-          type="button"
-          variant="outline"
-          className="text-muted-foreground hover:text-muted-foreground"
-          onClick={onCancel}
-        >
-          {PLACE_FLOW_COPY.cancel}
-        </PillButton>
-        <PillButton
-          type="button"
-          variant={isSubmitEnabled ? "onboarding" : "onboardingMuted"}
-          disabled={!isSubmitEnabled}
-          onClick={onSubmit}
-        >
-          확인
-        </PillButton>
+      <div className={LINK_FLOW_DUAL_CTA_ROW_CLASS}>
+        <div className={LINK_FLOW_DUAL_CTA_SLOT_CLASS}>
+          <PlaceFlowCancelPillButton onClick={onCancel}>
+            {PLACE_FLOW_COPY.cancel}
+          </PlaceFlowCancelPillButton>
+        </div>
+        <div className={LINK_FLOW_DUAL_CTA_SLOT_CLASS}>
+          <PillButton
+            type="button"
+            variant={isSubmitEnabled ? "onboarding" : "onboardingMuted"}
+            disabled={!isSubmitEnabled}
+            onClick={onSubmit}
+          >
+            확인
+          </PillButton>
+        </div>
       </div>
     </div>
   );

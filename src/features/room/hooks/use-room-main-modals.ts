@@ -18,16 +18,16 @@ import { useUpdateRoomPinMutation } from "./use-update-room-pin-mutation";
 
 const ROOM_NAME_MAX_LENGTH = 20;
 
-const RENAME_SUCCESS_TOAST = "방 이름이 변경되었습니다.";
-const LEAVE_SUCCESS_TOAST = "방에서 나갔습니다.";
-const PINNED_SUCCESS_TOAST = "방을 상단 고정했습니다.";
-const UNPINNED_SUCCESS_TOAST = "방 상단 고정을 해제했습니다.";
+const RENAME_SUCCESS_TOAST = "방 이름이 변경되었습니다";
+const LEAVE_SUCCESS_TOAST = "방에서 나갔습니다";
+const PINNED_SUCCESS_TOAST = "방을 상단 고정했습니다";
+const UNPINNED_SUCCESS_TOAST = "방 상단 고정을 해제했습니다";
 
-const ROOM_NOT_FOUND_TOAST = "이미 삭제되었거나 존재하지 않는 방입니다.";
-const ROOM_FORBIDDEN_TOAST = "방 접근 권한이 없습니다.";
-const ROOM_NAME_INVALID_TOAST = "방 이름을 다시 확인해 주세요.";
-const ROOM_NAME_REQUIRED_TOAST = "방 이름을 입력해 주세요.";
-const ROOM_NAME_MAX_LENGTH_TOAST = "방 이름은 최대 20자까지 입력할 수 있어요.";
+const ROOM_NOT_FOUND_TOAST = "이미 삭제되었거나 존재하지 않는 방입니다";
+const ROOM_FORBIDDEN_TOAST = "방 접근 권한이 없습니다";
+const ROOM_NAME_INVALID_TOAST = "방 이름을 다시 확인해 주세요";
+const ROOM_NAME_REQUIRED_TOAST = "방 이름을 입력해 주세요";
+const ROOM_NAME_MAX_LENGTH_TOAST = "방 이름은 최대 20자까지 입력할 수 있어요";
 
 export type RenameRoomSubmitResult = {
   success: boolean;

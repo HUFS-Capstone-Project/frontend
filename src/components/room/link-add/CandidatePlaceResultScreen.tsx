@@ -1,15 +1,24 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
 import { PlaceSelectCard } from "@/components/link-place/PlaceSelectCard";
+import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PillButton } from "@/components/ui/PillButton";
 import type { CandidatePlace } from "@/features/link-analysis";
 import { canRetryLinkAnalysis, canSelectCandidatePlace } from "@/features/link-analysis";
+import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { LINK_FLOW_AFTER_HEADLINES_CLASS } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
+import {
+  PROMPT_FLOW_ALERT_IN_SCROLL_CLASS,
+  PROMPT_FLOW_ALERT_INLINE_CLASS,
+  PROMPT_FLOW_COLUMN_CLASS,
+  PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
+  PROMPT_FLOW_SCROLL_INSET_HEADER_CLASS,
+} from "@/features/place-flow/prompt-flow-layout";
 import type { LinkAnalysisResult } from "@/features/room/link-add";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
@@ -46,7 +55,7 @@ export function CandidatePlaceResultScreen({
   const navigate = useNavigate();
   const editingPlaceId = useEditPlaceStore((s) => s.editingPlaceId);
   const selectedResultId = useEditPlaceStore((s) => s.selectedResultId);
-  const [copyLabel, setCopyLabel] = useState("복사");
+  const { copyLabel, copyText } = useCopyFeedback();
 
   const isSucceeded = result.status === "SUCCEEDED";
   const canRetry = canRetryLinkAnalysis(result.status);
@@ -58,17 +67,6 @@ export function CandidatePlaceResultScreen({
     selectedCount,
     selectableCount,
   });
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(result.originalUrl);
-      setCopyLabel("복사됨");
-      window.setTimeout(() => setCopyLabel("복사"), 1500);
-    } catch {
-      setCopyLabel("실패");
-      window.setTimeout(() => setCopyLabel("복사"), 1500);
-    }
-  }, [result.originalUrl]);
 
   const resolveRowDisplay = useCallback(
     (slotId: string, base: SavedPlace): SavedPlace => {
@@ -93,20 +91,9 @@ export function CandidatePlaceResultScreen({
   const showNotFoundHelp = !isSucceeded || rowEntries.length === 0;
   const showSuccessHeader = isSucceeded && rowEntries.length > 0;
 
-  const outlineCancelButton = (
-    <PillButton
-      type="button"
-      variant="outline"
-      className="text-muted-foreground hover:text-muted-foreground"
-      onClick={onClose}
-    >
-      {PLACE_FLOW_COPY.cancel}
-    </PillButton>
-  );
-
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pt-16 pb-3">
+    <div className={PROMPT_FLOW_COLUMN_CLASS}>
+      <div className={PROMPT_FLOW_SCROLL_INSET_HEADER_CLASS}>
         {showSuccessHeader ? (
           <section className="pb-5" aria-labelledby="candidate-place-select-title">
             <PlaceFlowHeadlines
@@ -120,7 +107,7 @@ export function CandidatePlaceResultScreen({
                 url={result.originalUrl}
                 copyLabel={copyLabel}
                 onCopy={() => {
-                  void handleCopy();
+                  void copyText(result.originalUrl);
                 }}
               />
             </div>
@@ -135,7 +122,7 @@ export function CandidatePlaceResultScreen({
               subtitle={PLACE_FLOW_COPY.notFoundHint}
             />
             {result.errorMessage && !isSucceeded ? (
-              <p className="text-destructive text-sm" role="alert">
+              <p className={PROMPT_FLOW_ALERT_INLINE_CLASS} role="alert">
                 {result.errorMessage}
               </p>
             ) : null}
@@ -143,7 +130,7 @@ export function CandidatePlaceResultScreen({
         ) : null}
 
         {isSucceeded && rowEntries.length > 0 ? (
-          <ul className="border-t border-black/5">
+          <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
             {rowEntries.map(({ place, index, slotId, displayPlace }) => {
               const selectable = canSelectCandidatePlace(place);
               const selected =
@@ -180,7 +167,7 @@ export function CandidatePlaceResultScreen({
         ) : null}
 
         {saveError ? (
-          <p className="text-destructive mt-4 px-1 text-sm" role="alert">
+          <p className={PROMPT_FLOW_ALERT_IN_SCROLL_CLASS} role="alert">
             {saveError}
           </p>
         ) : null}
@@ -188,7 +175,11 @@ export function CandidatePlaceResultScreen({
 
       {canShowSaveButton && rowEntries.length > 0 ? (
         <TwoButtonFooter
-          left={outlineCancelButton}
+          left={
+            <PlaceFlowCancelPillButton onClick={onClose}>
+              {PLACE_FLOW_COPY.cancel}
+            </PlaceFlowCancelPillButton>
+          }
           right={
             <PillButton
               type="button"
@@ -202,7 +193,11 @@ export function CandidatePlaceResultScreen({
         />
       ) : showNotFoundHelp && canRetry ? (
         <TwoButtonFooter
-          left={outlineCancelButton}
+          left={
+            <PlaceFlowCancelPillButton onClick={onClose}>
+              {PLACE_FLOW_COPY.cancel}
+            </PlaceFlowCancelPillButton>
+          }
           right={
             <PillButton type="button" variant="onboarding" onClick={onRetry}>
               {PLACE_FLOW_COPY.retry}

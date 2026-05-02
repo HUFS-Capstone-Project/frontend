@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+import {
+  ROOM_MODAL_OVERLAY_TRANSITION_STYLE,
+  ROOM_MODAL_PANEL_TRANSITION_STYLE,
+} from "@/features/room/constants";
 import { cn } from "@/lib/utils";
 
 export type RoomModalShellProps = {
@@ -27,8 +31,9 @@ export function RoomModalShell({
     >
       <button
         type="button"
+        style={ROOM_MODAL_OVERLAY_TRANSITION_STYLE}
         className={cn(
-          "bg-overlay-scrim absolute inset-0 cursor-default border-0 transition-opacity duration-180 ease-out",
+          "bg-overlay-scrim absolute inset-0 cursor-default border-0",
           visible ? "opacity-100" : "opacity-0",
         )}
         aria-label="닫기"
@@ -36,11 +41,14 @@ export function RoomModalShell({
       />
 
       <div
+        style={{
+          transformOrigin: "center",
+          ...ROOM_MODAL_PANEL_TRANSITION_STYLE,
+        }}
         className={cn(
-          "bg-card relative z-10 w-full max-w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-xl shadow-lg transition-[opacity,transform] duration-180 ease-out",
+          "bg-card relative z-10 w-full max-w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-xl shadow-lg",
           visible ? "scale-100 opacity-100" : "scale-[0.98] opacity-0",
         )}
-        style={{ transformOrigin: "center" }}
         onClick={(e) => e.stopPropagation()}
       >
         {children}
