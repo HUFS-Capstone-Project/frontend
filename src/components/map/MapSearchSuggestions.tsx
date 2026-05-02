@@ -50,7 +50,14 @@ export function MapSearchSuggestions({
           ))}
         </ul>
       ) : (
-        <div className="px-5 py-4 text-sm font-medium text-neutral-500">관련 장소가 없음</div>
+        <div className="px-5 py-4 text-center" role="status" aria-live="polite">
+          <p className="text-muted-foreground text-sm leading-snug font-semibold">
+            저장한 장소에서 찾지 못했어요
+          </p>
+          <p className="text-muted-foreground/85 mt-1 text-xs leading-relaxed font-normal">
+            장소 이름·주소·동네 이름을 바꿔 검색해 보세요
+          </p>
+        </div>
       )}
     </div>
   );
