@@ -109,7 +109,7 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
             }
             className={cn(
               "border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-xl border px-4 text-sm outline-none",
-              "focus-visible:ring-ring focus-visible:ring-2",
+              "ring-0 focus:ring-0 focus-visible:ring-0",
               errorMessage ? "border-destructive" : undefined,
             )}
             placeholder="방 이름을 입력해 주세요"
@@ -145,7 +145,7 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
         <button
           type="button"
           className={cn(
-            "flex-1 py-4 text-sm font-medium transition-colors",
+            "flex-1 py-4 text-sm font-medium ring-0 transition-colors outline-none focus-visible:ring-0",
             "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
             isSubmitting ? "cursor-not-allowed opacity-60" : undefined,
           )}
@@ -157,7 +157,7 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
         <button
           type="button"
           className={cn(
-            "text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors",
+            "text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium ring-0 transition-colors outline-none focus-visible:ring-0",
             isSubmitting ? "cursor-not-allowed opacity-80" : undefined,
           )}
           onClick={() => {

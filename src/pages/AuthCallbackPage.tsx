@@ -6,9 +6,9 @@ import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { userQueryKeys, usersApi } from "@/features/users";
 import type { ApiError } from "@/shared/api/axios";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
-const LOGIN_ROUTE = "/login";
 const FALLBACK_ERROR_MESSAGE = "로그인 처리 중 오류가 발생했습니다.";
 const MISSING_TICKET_MESSAGE = "인증 정보가 없습니다. 다시 로그인해 주세요.";
 const BACK_TO_LOGIN_LABEL = "로그인 화면으로 돌아가기";
@@ -49,7 +49,7 @@ export default function AuthCallbackPage() {
   const hasStarted = useRef(false);
 
   const handleBackToLogin = useCallback(() => {
-    void navigate(LOGIN_ROUTE, { replace: true });
+    void navigate(APP_ROUTES.login, { replace: true });
   }, [navigate]);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function AuthCallbackPage() {
         { channel: "web" },
       );
 
-      void navigate(me.onboardingCompleted ? "/room" : "/onboarding/nickname", {
+      void navigate(me.onboardingCompleted ? APP_ROUTES.room : APP_ROUTES.onboardingNickname, {
         replace: true,
       });
     };

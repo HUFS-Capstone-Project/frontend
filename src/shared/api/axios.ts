@@ -4,6 +4,7 @@ import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import type { TokenResponse } from "@/features/auth/types";
+import { API_PATHS } from "@/shared/api/api-paths";
 import type { ApiErrorResponse, ApiFieldError, CommonResponse } from "@/shared/types/api-types";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -108,7 +109,7 @@ api.interceptors.response.use(
 
 async function refreshWebAccessToken(): Promise<string> {
   await ensureCsrfCookie();
-  const res = await webAuthClient.post<CommonResponse<TokenResponse>>("/v1/auth/refresh");
+  const res = await webAuthClient.post<CommonResponse<TokenResponse>>(API_PATHS.auth.refresh);
   return res.data.data.accessToken;
 }
 

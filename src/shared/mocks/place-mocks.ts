@@ -1,0 +1,217 @@
+import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
+
+export const MAP_HOME_TITLE = "친구 1님과의 데이트 지도";
+export const MAP_SEARCH_PLACEHOLDER = "저장해놓은 장소를 검색해보세요";
+
+export const MAP_INITIAL_CENTER: MapCoordinate = {
+  latitude: 37.5935,
+  longitude: 127.0567,
+};
+
+export const SAVED_PLACE_MOCKS: SavedPlace[] = [
+  // 맛집
+  {
+    id: "restaurant-1",
+    name: "영화장",
+    category: "맛집",
+    tagKeys: ["맛집-중식"],
+    latitude: 37.5973,
+    longitude: 127.0606,
+    address: "서울 동대문구 이문로 107",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "매주 월요일 휴무",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: null, closeTime: null },
+        { dayOfWeek: 2, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 3, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 4, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 5, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 6, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 0, openTime: "11:30", closeTime: "21:00" },
+      ],
+    },
+  },
+  {
+    id: "restaurant-2",
+    name: "카츠이로하",
+    category: "맛집",
+    tagKeys: ["맛집-일식"],
+    latitude: 37.5915,
+    longitude: 127.0567,
+    address: "서울 동대문구 회기로 173",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "브레이크타임 있음",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 2, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 3, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 4, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 5, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 6, openTime: "11:30", closeTime: "21:00" },
+        { dayOfWeek: 0, openTime: "11:30", closeTime: "20:30" },
+      ],
+    },
+  },
+  {
+    id: "restaurant-3",
+    name: "79번지국수집",
+    category: "맛집",
+    tagKeys: ["맛집-한식"],
+    latitude: 37.596,
+    longitude: 127.062,
+    address: "서울 동대문구 이문로 79",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "연중무휴",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 2, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 3, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 4, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 5, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 6, openTime: "10:00", closeTime: "21:00" },
+        { dayOfWeek: 0, openTime: "10:00", closeTime: "21:00" },
+      ],
+    },
+  },
+
+  // 카페
+  {
+    id: "cafe-1",
+    name: "카페양귀비",
+    category: "카페",
+    tagKeys: ["카페-디저트"],
+    latitude: 37.5948,
+    longitude: 127.0607,
+    address: "서울 동대문구 이문로 85",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "디저트 소진 시 마감",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "12:00", closeTime: "21:00" },
+        { dayOfWeek: 2, openTime: "12:00", closeTime: "21:00" },
+        { dayOfWeek: 3, openTime: "12:00", closeTime: "21:00" },
+        { dayOfWeek: 4, openTime: "12:00", closeTime: "21:00" },
+        { dayOfWeek: 5, openTime: "12:00", closeTime: "22:00" },
+        { dayOfWeek: 6, openTime: "12:00", closeTime: "22:00" },
+        { dayOfWeek: 0, openTime: "12:00", closeTime: "20:00" },
+      ],
+    },
+  },
+  {
+    id: "cafe-2",
+    name: "컴투레스트",
+    category: "카페",
+    tagKeys: ["카페-커피"],
+    latitude: 37.5912,
+    longitude: 127.057,
+    address: "서울 동대문구 회기로 171",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "매주 화요일 휴무",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "11:00", closeTime: "22:00" },
+        { dayOfWeek: 2, openTime: null, closeTime: null },
+        { dayOfWeek: 3, openTime: "11:00", closeTime: "22:00" },
+        { dayOfWeek: 4, openTime: "11:00", closeTime: "22:00" },
+        { dayOfWeek: 5, openTime: "11:00", closeTime: "23:00" },
+        { dayOfWeek: 6, openTime: "12:00", closeTime: "23:00" },
+        { dayOfWeek: 0, openTime: "12:00", closeTime: "21:00" },
+      ],
+    },
+  },
+  {
+    id: "cafe-3",
+    name: "커피힐",
+    category: "카페",
+    tagKeys: ["카페-커피"],
+    latitude: 37.5925,
+    longitude: 127.0585,
+    address: "서울 동대문구 회기로 165",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "연중무휴",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "10:00", closeTime: "22:00" },
+        { dayOfWeek: 2, openTime: "10:00", closeTime: "22:00" },
+        { dayOfWeek: 3, openTime: "10:00", closeTime: "22:00" },
+        { dayOfWeek: 4, openTime: "10:00", closeTime: "22:00" },
+        { dayOfWeek: 5, openTime: "10:00", closeTime: "23:00" },
+        { dayOfWeek: 6, openTime: "11:00", closeTime: "23:00" },
+        { dayOfWeek: 0, openTime: "11:00", closeTime: "21:00" },
+      ],
+    },
+  },
+
+  // 놀거리
+  {
+    id: "activity-1",
+    name: "경희대학교 캠퍼스",
+    category: "놀거리",
+    tagKeys: ["놀거리-산책"],
+    latitude: 37.5964,
+    longitude: 127.0527,
+    address: "서울 동대문구 경희대로 26",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "상시 개방",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 2, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 3, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 4, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 5, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 6, openTime: "00:00", closeTime: "23:59" },
+        { dayOfWeek: 0, openTime: "00:00", closeTime: "23:59" },
+      ],
+    },
+  },
+  {
+    id: "activity-2",
+    name: "홍릉수목원",
+    category: "놀거리",
+    tagKeys: ["놀거리-산책"],
+    latitude: 37.5907,
+    longitude: 127.0446,
+    address: "서울 동대문구 회기로 57",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "월요일 휴무",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: null, closeTime: null },
+        { dayOfWeek: 2, openTime: "09:00", closeTime: "18:00" },
+        { dayOfWeek: 3, openTime: "09:00", closeTime: "18:00" },
+        { dayOfWeek: 4, openTime: "09:00", closeTime: "18:00" },
+        { dayOfWeek: 5, openTime: "09:00", closeTime: "18:00" },
+        { dayOfWeek: 6, openTime: "09:00", closeTime: "17:00" },
+        { dayOfWeek: 0, openTime: "09:00", closeTime: "17:00" },
+      ],
+    },
+  },
+  {
+    id: "activity-3",
+    name: "회기 파전골목",
+    category: "놀거리",
+    tagKeys: ["놀거리-먹거리"],
+    latitude: 37.5902,
+    longitude: 127.0563,
+    address: "서울 동대문구 회기로 190 일대",
+    reelsUrl: null,
+    businessHours: {
+      holidayNotice: "매장별 상이",
+      weeklySchedule: [
+        { dayOfWeek: 1, openTime: "17:00", closeTime: "24:00" },
+        { dayOfWeek: 2, openTime: "17:00", closeTime: "24:00" },
+        { dayOfWeek: 3, openTime: "17:00", closeTime: "24:00" },
+        { dayOfWeek: 4, openTime: "17:00", closeTime: "24:00" },
+        { dayOfWeek: 5, openTime: "17:00", closeTime: "01:00" },
+        { dayOfWeek: 6, openTime: "17:00", closeTime: "01:00" },
+        { dayOfWeek: 0, openTime: "17:00", closeTime: "23:00" },
+      ],
+    },
+  },
+];
+
+export const SAVED_PLACE_BY_ID = new Map(SAVED_PLACE_MOCKS.map((place) => [place.id, place]));

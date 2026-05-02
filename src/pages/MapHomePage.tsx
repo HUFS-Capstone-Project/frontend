@@ -1,7 +1,7 @@
 import { type JSX } from "react";
 
 import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
-import MyHomePage_WithDetail from "@/pages/MyHomePage_WithDetail";
+import MapHomeWithDetail from "@/pages/map/MapHomeWithDetail";
 
 type MapHomePageProps = {
   defaultFilterPanelOpen?: boolean;
@@ -13,7 +13,7 @@ export default function MapHomePage({
   filterDataOverride = null,
 }: MapHomePageProps): JSX.Element {
   return (
-    <MyHomePage_WithDetail
+    <MapHomeWithDetail
       defaultFilterPanelOpen={defaultFilterPanelOpen}
       filterDataOverride={filterDataOverride}
     />

@@ -19,6 +19,7 @@ import {
   validateOnboardingRequest,
 } from "@/features/onboarding";
 import { isApiError } from "@/shared/api/axios";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 type TermsLocationState = {
@@ -40,7 +41,7 @@ export default function TermsAgreementPage() {
 
   useEffect(() => {
     if (!nicknameOk) {
-      void navigate("/onboarding/nickname", { replace: true });
+      void navigate(APP_ROUTES.onboardingNickname, { replace: true });
     }
   }, [nicknameOk, navigate]);
 
@@ -70,7 +71,7 @@ export default function TermsAgreementPage() {
 
     if (hasClientValidationErrors(clientValidationErrors)) {
       if (clientValidationErrors.nickname) {
-        void navigate("/onboarding/nickname", {
+        void navigate(APP_ROUTES.onboardingNickname, {
           replace: true,
           state: {
             nickname: nicknameFromPrev,
@@ -92,19 +93,19 @@ export default function TermsAgreementPage() {
 
     onboardingMutation.mutate(request, {
       onSuccess: () => {
-        void navigate("/", { replace: true });
+        void navigate(APP_ROUTES.root, { replace: true });
       },
       onError: (error) => {
         if (isApiError(error)) {
           if (error.status === 401 || error.code === "E401_UNAUTHORIZED") {
             logout();
-            void navigate("/login", { replace: true });
+            void navigate(APP_ROUTES.login, { replace: true });
             return;
           }
 
           const mappedFieldErrors = mapOnboardingFieldErrors(error.fieldErrors);
           if (mappedFieldErrors.nickname) {
-            void navigate("/onboarding/nickname", {
+            void navigate(APP_ROUTES.onboardingNickname, {
               replace: true,
               state: {
                 nickname: nicknameFromPrev,

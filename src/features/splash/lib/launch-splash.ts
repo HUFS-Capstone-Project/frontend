@@ -1,4 +1,4 @@
-const LAUNCH_SPLASH_SESSION_KEY = "udidura:launch-splash-shown";
+import { STORAGE_KEYS } from "@/shared/config/storage";
 
 let hasShownInMemory = false;
 
@@ -11,7 +11,7 @@ export function hasShownLaunchSplash(): boolean {
   if (hasShownInMemory) return true;
 
   try {
-    const stored = window.sessionStorage.getItem(LAUNCH_SPLASH_SESSION_KEY);
+    const stored = window.sessionStorage.getItem(STORAGE_KEYS.launchSplashShown);
     if (stored === "1") {
       hasShownInMemory = true;
       return true;
@@ -27,7 +27,7 @@ export function hasShownLaunchSplash(): boolean {
 export function markLaunchSplashShown(): void {
   hasShownInMemory = true;
   try {
-    window.sessionStorage.setItem(LAUNCH_SPLASH_SESSION_KEY, "1");
+    window.sessionStorage.setItem(STORAGE_KEYS.launchSplashShown, "1");
   } catch {
     // no-op
   }

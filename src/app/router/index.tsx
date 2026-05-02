@@ -13,6 +13,7 @@ import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
+import { APP_ROUTES } from "@/shared/config/routes";
 
 const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
@@ -29,8 +30,32 @@ export const router = createBrowserRouter([
       { path: "dev/splash", element: <SplashScreenPage /> },
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
+      {
+        path: "dev/list",
+        element: (
+          <Suspense fallback={null}>
+            <PlaceListPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "dev/mypage",
+        element: (
+          <Suspense fallback={null}>
+            <MyPage />
+          </Suspense>
+        ),
+      },
       { path: "login", element: <LoginPage /> },
-      { path: "app", element: <Navigate to="/" replace /> },
+      {
+        path: "dev/course",
+        element: (
+          <Suspense fallback={null}>
+            <CoursePlannerPage skipRoomGuard />
+          </Suspense>
+        ),
+      },
+      { path: "app", element: <Navigate to={APP_ROUTES.root} replace /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,

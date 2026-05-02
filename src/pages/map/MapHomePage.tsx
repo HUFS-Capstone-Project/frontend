@@ -1,13 +1,4 @@
-import {
-  type JSX,
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type JSX, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
@@ -26,17 +17,15 @@ import {
   isMapLocationSearch,
 } from "@/features/map/utils/map-search";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { APP_ROUTES } from "@/shared/config/routes";
+import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import {
   MAP_INITIAL_CENTER,
   MAP_SEARCH_PLACEHOLDER,
   SAVED_PLACE_MOCKS,
-} from "@/pages/map/map-home-mock";
-import {
-  resolveSavedPlacesBusinessHours,
-  useKoreanNow,
-} from "@/shared/lib/place-business-hours";
+} from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, RoomFriend, SavedPlace } from "@/shared/types/map-home";
-import { PLACE_DETAIL_OPEN_EVENT } from "@/store/placeDetailStore";
+import { PLACE_DETAIL_OPEN_EVENT } from "@/store/place-detail-store";
 import type { SelectedRoom } from "@/store/room-selection-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
@@ -73,7 +62,7 @@ export function MapHomePageContent({
   filterDataOverride = null,
 }: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
-  const { toastMessage, handleSelectBottomNav } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [selectedSearchPlaceId, setSelectedSearchPlaceId] = useState<string | null>(null);
@@ -124,8 +113,7 @@ export function MapHomePageContent({
     () => buildMapSearchSuggestions(places, searchInput),
     [places, searchInput],
   );
-  const isSearchSuggestionsOpen =
-    searchInput.trim().length > 0 && !isSearchSuggestionDismissed;
+  const isSearchSuggestionsOpen = searchInput.trim().length > 0 && !isSearchSuggestionDismissed;
   const clearSearchKeepViewport = useCallback(() => {
     if (!appliedKeyword && !searchInput && !selectedSearchPlaceId) {
       return;
@@ -167,14 +155,11 @@ export function MapHomePageContent({
     searchHistoryPushedRef.current = true;
   }, []);
 
-  const handleKeywordChange = useCallback(
-    (nextKeyword: string) => {
-      setSelectedSearchPlaceId(null);
-      setIsSearchSuggestionDismissed(nextKeyword.trim().length === 0);
-      setSearchInput(nextKeyword);
-    },
-    [],
-  );
+  const handleKeywordChange = useCallback((nextKeyword: string) => {
+    setSelectedSearchPlaceId(null);
+    setIsSearchSuggestionDismissed(nextKeyword.trim().length === 0);
+    setSearchInput(nextKeyword);
+  }, []);
 
   const handleSubmitSearch = useCallback(() => {
     const nextKeyword = searchInput.trim();
@@ -265,7 +250,7 @@ export function MapHomePageContent({
   }, [clearSearchKeepViewport, handleCloseTagPanel]);
 
   if (!selectedRoom) {
-    return <Navigate to="/room" replace />;
+    return <Navigate to={APP_ROUTES.room} replace />;
   }
 
   return (
@@ -316,8 +301,8 @@ export function MapHomePageContent({
         </div>
       </main>
 
-      <div className="relative shrink-0">
-        <BottomNavToast message={toastMessage} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+        <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <FriendFloatingMenu
           friends={fabFriends}
           open={friendMenuOpen}

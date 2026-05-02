@@ -3,9 +3,9 @@ import { type JSX, useEffect } from "react";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { MapHomePageContent } from "@/pages/map/MapHomePage";
-import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/placeDetailStore";
+import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
 
-type MyHomePageWithDetailProps = {
+type MapHomeWithDetailProps = {
   defaultFilterPanelOpen?: boolean;
   filterDataOverride?: PlaceFilterData | null;
 };
@@ -14,10 +14,10 @@ type PlaceDetailOpenEvent = CustomEvent<{
   placeId: string;
 }>;
 
-export default function MyHomePage_WithDetail({
+export default function MapHomeWithDetail({
   defaultFilterPanelOpen = false,
   filterDataOverride = null,
-}: MyHomePageWithDetailProps): JSX.Element {
+}: MapHomeWithDetailProps): JSX.Element {
   const openDetail = usePlaceDetailStore((state) => state.openDetail);
 
   useEffect(() => {

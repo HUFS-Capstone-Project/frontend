@@ -5,7 +5,7 @@ export type RoomAddDrawerProps = {
 
 export function RoomAddDrawer({ onSelectCreate, onSelectJoin }: RoomAddDrawerProps) {
   return (
-    <div className="px-6 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <div className="px-6 pt-8 pb-0">
       <h2 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
         방 추가하기
       </h2>
