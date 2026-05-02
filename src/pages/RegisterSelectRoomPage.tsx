@@ -23,14 +23,11 @@ export default function RegisterSelectRoomPage() {
   const selectedRoomId = useRegisterRoomStore((state) => state.selectedRoomId);
   const selectedPlaceCount = useRegisterRoomStore((state) => state.selectedPlaceCount);
   const confirmModalOpen = useRegisterRoomStore((state) => state.confirmModalOpen);
-  const successModalOpen = useRegisterRoomStore((state) => state.successModalOpen);
   const roomPlaceCountDeltas = useRegisterRoomStore((state) => state.roomPlaceCountDeltas);
   const setSelectedPlaces = useRegisterRoomStore((state) => state.setSelectedPlaces);
   const setSelectedRoom = useRegisterRoomStore((state) => state.setSelectedRoom);
   const openConfirm = useRegisterRoomStore((state) => state.openConfirm);
   const closeConfirm = useRegisterRoomStore((state) => state.closeConfirm);
-  const openSuccess = useRegisterRoomStore((state) => state.openSuccess);
-  const closeSuccess = useRegisterRoomStore((state) => state.closeSuccess);
   const completeRegister = useRegisterRoomStore((state) => state.completeRegister);
 
   useEffect(() => {
@@ -80,19 +77,9 @@ export default function RegisterSelectRoomPage() {
         confirmLabel="확인"
         onCancel={closeConfirm}
         onConfirm={() => {
-          closeConfirm();
-          openSuccess();
-        }}
-      />
-
-      <RoomConfirmModal
-        open={successModalOpen}
-        message="등록되었습니다"
-        confirmLabel="확인"
-        onConfirm={() => {
-          closeSuccess();
-          completeRegister();
-          navigate("/room");
+          if (completeRegister()) {
+            navigate("/room", { state: { showPlacesRegisteredToast: true } });
+          }
         }}
       />
     </RoomMainShell>

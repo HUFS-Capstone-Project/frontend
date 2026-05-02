@@ -1,4 +1,5 @@
 import { PillButton } from "@/components/ui/PillButton";
+import { RoundSelectionCheck } from "@/components/ui/RoundSelectionCheck";
 import type { MockPlaceCandidate } from "@/features/room/link-add";
 import { cn } from "@/lib/utils";
 
@@ -52,12 +53,7 @@ export function PlaceSelectionScreen({
                 onClick={() => onSelectPlace(place.id)}
               >
                 <span className="text-foreground">{place.name}</span>
-                <span
-                  className={cn(
-                    "border-border inline-flex h-5 w-5 rounded-full border",
-                    checked && "border-primary bg-primary",
-                  )}
-                />
+                <RoundSelectionCheck selected={checked} />
               </button>
             </li>
           );

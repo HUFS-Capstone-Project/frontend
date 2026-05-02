@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
-import { cn } from "@/lib/utils";
+import { PillButton } from "@/components/ui/PillButton";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/editPlaceStore";
 import { useReelsPlaceSelectStore } from "@/store/reelsPlaceSelectStore";
@@ -60,7 +60,7 @@ export default function ReelsPlaceSelectPage() {
   return (
     <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white">
       <header className="shrink-0 px-5 pt-40">
-        <section className="space-y-5 pb-[76px]" aria-labelledby="reels-place-select-title">
+        <section className="space-y-3 pb-5" aria-labelledby="reels-place-select-title">
           <div className="space-y-1">
             <h1
               id="reels-place-select-title"
@@ -88,8 +88,8 @@ export default function ReelsPlaceSelectPage() {
         </section>
       </header>
 
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-4">
-        <ul className="space-y-3">
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-3">
+        <ul className="border-t border-black/5">
           {placeRows.map(({ slotId, place }) => {
             const disabled = slotId === SAVED_PLACE_ID;
             return (
@@ -114,22 +114,18 @@ export default function ReelsPlaceSelectPage() {
       </div>
 
       <div className="shrink-0 bg-white px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]">
-        <div className="grid grid-cols-2 gap-3">
-          <button
+        <div className="grid grid-cols-2 gap-2.5">
+          <PillButton
             type="button"
-            className="bg-muted text-foreground active:bg-muted/80 h-14 rounded-2xl text-base font-semibold transition-colors"
+            variant="outline"
+            className="text-muted-foreground hover:text-muted-foreground"
             onClick={clearSelection}
           >
             취소
-          </button>
-          <button
+          </PillButton>
+          <PillButton
             type="button"
-            className={cn(
-              "h-14 rounded-2xl text-base font-semibold transition-colors disabled:cursor-not-allowed",
-              canConfirm
-                ? "bg-[#ffd2d0] text-[#241918] active:bg-[#ffc4c1]"
-                : "bg-muted text-foreground",
-            )}
+            variant={canConfirm ? "onboarding" : "onboardingMuted"}
             disabled={!canConfirm}
             onClick={() => {
               setSelectedPlacesForRegister(selectedPlaceIds);
@@ -142,7 +138,7 @@ export default function ReelsPlaceSelectPage() {
             }}
           >
             확인
-          </button>
+          </PillButton>
         </div>
       </div>
     </main>
