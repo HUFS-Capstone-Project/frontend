@@ -76,7 +76,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
       ],
     },
   },
-  
+
   {
     id: "restaurant-4",
     name: "페어링테이블",
