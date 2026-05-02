@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
@@ -11,8 +11,10 @@ import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { APP_ROUTES } from "@/shared/config/routes";
+import { REGISTER_SELECT_ROOM_TEXT } from "@/shared/config/text";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
+import { useRegisterRoomStore } from "@/store/registerRoomStore";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 const RoomActionModal = lazy(() =>
@@ -42,9 +44,15 @@ const EditRoomNameModal = lazy(() =>
   })),
 );
 
+type RoomMainLocationState = {
+  showPlacesRegisteredToast?: boolean;
+};
+
 export default function RoomMainPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const selectRoom = useRoomSelectionStore((s) => s.selectRoom);
+  const roomPlaceCountDeltas = useRegisterRoomStore((state) => state.roomPlaceCountDeltas);
   const nickname = useAuthStore((s) => s.nickname);
   const roomMainHeaderTitle =
     nickname != null && nickname.trim().length > 0
@@ -78,6 +86,21 @@ export default function RoomMainPage() {
   const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
   const [isLinkAddModalLoaded, setIsLinkAddModalLoaded] = useState(linkAddRoom != null);
   const [isRoomAddModalLoaded, setIsRoomAddModalLoaded] = useState(isAddRoomOpen);
+
+  useEffect(() => {
+    const state = (location.state ?? null) as RoomMainLocationState | null;
+    if (!state?.showPlacesRegisteredToast) {
+      return;
+    }
+
+    showToast(REGISTER_SELECT_ROOM_TEXT.placesRegisteredToast, 2000);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate, showToast]);
+
+  const displayRows = sortedRows.map((row) => ({
+    ...row,
+    placeCount: row.placeCount + (roomPlaceCountDeltas[row.id] ?? 0),
+  }));
 
   const handleRoomNavigate = useCallback(
     (row: FriendRoomRow) => {
@@ -125,7 +148,7 @@ export default function RoomMainPage() {
         bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
       >
         <FriendRoomList
-          rows={sortedRows}
+          rows={displayRows}
           onRoomNavigate={handleRoomNavigate}
           onOpenRoomActions={handleOpenRoomActions}
         />

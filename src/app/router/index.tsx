@@ -7,11 +7,14 @@ import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import DevClickPlacePage from "@/pages/dev/DevClickPlacePage";
 import DevSelectOptionPage from "@/pages/dev/DevSelectOptionPage";
+import EditPlacePage from "@/pages/EditPlacePage";
 import EntryPage from "@/pages/EntryPage";
 import LoginPage from "@/pages/LoginPage";
 import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
+import ReelsPlaceSelectPage from "@/pages/ReelsPlaceSelectPage";
+import RegisterSelectRoomPage from "@/pages/RegisterSelectRoomPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
 import { APP_ROUTES } from "@/shared/config/routes";
 
@@ -30,6 +33,9 @@ export const router = createBrowserRouter([
       { path: "dev/splash", element: <SplashScreenPage /> },
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
+      { path: "dev/register_place", element: <ReelsPlaceSelectPage /> },
+      { path: "edit_place", element: <EditPlacePage /> },
+      { path: "register-select-room", element: <RegisterSelectRoomPage /> },
       {
         path: "dev/list",
         element: (

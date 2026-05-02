@@ -29,6 +29,7 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
   onKeyDown,
 }: FriendRoomItemViewProps) {
   const pinned = Boolean(row.isPinned);
+  const placeCountText = row.placeCount >= 1000 ? "1k+개 장소" : `${row.placeCount}개 장소`;
 
   return (
     <div
@@ -78,7 +79,7 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
 
       <div className="col-start-3 row-span-2 row-start-1 flex shrink-0 flex-col items-center justify-center self-center">
         <span className="text-room-meta text-primary cursor-pointer text-center">
-          {row.placeCount}개 장소
+          {placeCountText}
         </span>
       </div>
     </div>

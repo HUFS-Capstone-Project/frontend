@@ -6,3 +6,7 @@ export const PLACE_LIST_TEXT = {
 export const BOTTOM_NAV_TEXT = {
   roomRequiredToast: "방을 먼저 선택해주세요.",
 } as const;
+
+export const REGISTER_SELECT_ROOM_TEXT = {
+  placesRegisteredToast: "등록되었습니다",
+} as const;

@@ -1,4 +1,4 @@
-﻿import { MoreVertical } from "lucide-react";
+﻿import { MapPin, MoreVertical } from "lucide-react";
 import { useCallback, useRef } from "react";
 
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
@@ -47,7 +47,10 @@ export function SavedPlaceItem({
       <div className="flex gap-3">
         <button type="button" onClick={() => onSelect(place)} className="min-w-0 flex-1 text-left">
           <h3 className="truncate text-sm font-semibold text-[#222222]">{place.name}</h3>
-          <p className="mt-1 truncate text-[0.68rem] font-medium text-[#777777]">{place.address}</p>
+          <p className="mt-1 flex min-w-0 items-center gap-1.5 font-medium">
+            <MapPin className="size-4 shrink-0 text-neutral-400" aria-hidden />
+            <span className="min-w-0 truncate text-[0.68rem] text-[#777777]">{place.address}</span>
+          </p>
         </button>
 
         {!readOnly ? (
