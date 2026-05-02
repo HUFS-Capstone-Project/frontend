@@ -5,7 +5,7 @@ export type { FriendRoomRow } from "@/shared/types/room";
 export const FRIEND_ROOM_MOCK_ROWS: FriendRoomRow[] = [
   {
     id: "1",
-    displayName: "내꺼♥️",
+    displayName: "내꺼♥",
     memberCount: 2,
     placeCount: 5,
     isPinned: true,

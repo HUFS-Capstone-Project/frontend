@@ -12,6 +12,7 @@ import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
+import { useRegisterRoomStore } from "@/store/registerRoomStore";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 const RoomActionModal = lazy(() =>
@@ -44,6 +45,7 @@ const EditRoomNameModal = lazy(() =>
 export default function RoomMainPage() {
   const navigate = useNavigate();
   const selectRoom = useRoomSelectionStore((s) => s.selectRoom);
+  const roomPlaceCountDeltas = useRegisterRoomStore((state) => state.roomPlaceCountDeltas);
   const nickname = useAuthStore((s) => s.nickname);
   const roomMainHeaderTitle =
     nickname != null && nickname.trim().length > 0
@@ -76,6 +78,10 @@ export default function RoomMainPage() {
   const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
   const [isLinkAddModalLoaded, setIsLinkAddModalLoaded] = useState(linkAddRoom != null);
   const [isRoomAddModalLoaded, setIsRoomAddModalLoaded] = useState(isAddRoomOpen);
+  const displayRows = sortedRows.map((row) => ({
+    ...row,
+    placeCount: row.placeCount + (roomPlaceCountDeltas[row.id] ?? 0),
+  }));
 
   const handleRoomNavigate = useCallback(
     (row: FriendRoomRow) => {
@@ -127,7 +133,7 @@ export default function RoomMainPage() {
       }
     >
       <FriendRoomList
-        rows={sortedRows}
+        rows={displayRows}
         onRoomNavigate={handleRoomNavigate}
         onOpenRoomActions={handleOpenRoomActions}
       />
