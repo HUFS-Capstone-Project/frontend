@@ -1,24 +1,20 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 
 import { RootLayout } from "@/app/layouts/RootLayout";
 import { OnboardingGate } from "@/app/router/OnboardingGate";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
-import DevClickPlacePage from "@/pages/dev/DevClickPlacePage";
-import DevSelectOptionPage from "@/pages/dev/DevSelectOptionPage";
 import EditPlacePage from "@/pages/EditPlacePage";
 import EntryPage from "@/pages/EntryPage";
+import LinkPlaceSelectPage from "@/pages/LinkPlaceSelectPage";
 import LoginPage from "@/pages/LoginPage";
 import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
-import ReelsPlaceSelectPage from "@/pages/ReelsPlaceSelectPage";
 import RoomLinkCandidatesPage from "@/pages/rooms/RoomLinkCandidatesPage";
 import RoomPlaceFromLinkPage from "@/pages/rooms/RoomPlaceFromLinkPage";
 import RoomPlaceSearchPage from "@/pages/rooms/RoomPlaceSearchPage";
-import SplashScreenPage from "@/pages/SplashScreenPage";
-import { APP_ROUTES } from "@/shared/config/routes";
 
 const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
@@ -32,38 +28,9 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <EntryPage /> },
-      { path: "dev/splash", element: <SplashScreenPage /> },
-      { path: "dev/click_place", element: <DevClickPlacePage /> },
-      { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
-      { path: "dev/register_place", element: <ReelsPlaceSelectPage /> },
-      { path: "edit_place", element: <EditPlacePage /> },
-      { path: "register-place-inperson", element: <Navigate to={APP_ROUTES.room} replace /> },
-      {
-        path: "dev/list",
-        element: (
-          <Suspense fallback={null}>
-            <PlaceListPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "dev/mypage",
-        element: (
-          <Suspense fallback={null}>
-            <MyPage />
-          </Suspense>
-        ),
-      },
+      { path: "places/register/from-link", element: <LinkPlaceSelectPage /> },
+      { path: "places/edit", element: <EditPlacePage /> },
       { path: "login", element: <LoginPage /> },
-      {
-        path: "dev/course",
-        element: (
-          <Suspense fallback={null}>
-            <CoursePlannerPage skipRoomGuard />
-          </Suspense>
-        ),
-      },
-      { path: "app", element: <Navigate to={APP_ROUTES.root} replace /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,
@@ -93,7 +60,6 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          { path: "room", element: <RoomMainPage /> },
           {
             path: "rooms/:roomId/places/search",
             element: <RoomPlaceSearchPage />,
@@ -106,10 +72,11 @@ export const router = createBrowserRouter([
             path: "rooms/:roomId/links/:linkId/candidates",
             element: <RoomLinkCandidatesPage />,
           },
-          { path: "map", element: <MapHomePage />, loader: mapHomeLoader },
-          { path: "list", element: <PlaceListPage /> },
-          { path: "course", element: <CoursePlannerPage /> },
-          { path: "mypage", element: <MyPage /> },
+          { path: "places/map", element: <MapHomePage />, loader: mapHomeLoader },
+          { path: "places", element: <PlaceListPage /> },
+          { path: "courses", element: <CoursePlannerPage /> },
+          { path: "me", element: <MyPage /> },
+          { path: "rooms", element: <RoomMainPage /> },
         ],
       },
     ],

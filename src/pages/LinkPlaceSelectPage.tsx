@@ -4,27 +4,27 @@ import { useNavigate } from "react-router-dom";
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { PlaceSelectCard } from "@/components/link-place/PlaceSelectCard";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
-import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
 import { PillButton } from "@/components/ui/PillButton";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
+  LINK_PREVIEW_MOCK,
   PLACE_RENDER_ORDER,
-  REELS_LINK_MOCK,
   SAVED_PLACE_ID,
-} from "@/features/reels-registration/constants";
+} from "@/features/place-link/constants";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/edit-place-store";
-import { useReelsPlaceSelectStore } from "@/store/reels-place-select-store";
+import { useLinkPlaceSelectStore } from "@/store/link-place-select-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
-export default function ReelsPlaceSelectPage() {
+export default function LinkPlaceSelectPage() {
   const navigate = useNavigate();
-  const selectedPlaceIds = useReelsPlaceSelectStore((state) => state.selectedPlaceIds);
-  const togglePlace = useReelsPlaceSelectStore((state) => state.togglePlace);
-  const clearSelection = useReelsPlaceSelectStore((state) => state.clearSelection);
+  const selectedPlaceIds = useLinkPlaceSelectStore((state) => state.selectedPlaceIds);
+  const togglePlace = useLinkPlaceSelectStore((state) => state.togglePlace);
+  const clearSelection = useLinkPlaceSelectStore((state) => state.clearSelection);
   const editingPlaceId = useEditPlaceStore((state) => state.editingPlaceId);
   const selectedResultId = useEditPlaceStore((state) => state.selectedResultId);
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
@@ -51,7 +51,7 @@ export default function ReelsPlaceSelectPage() {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(REELS_LINK_MOCK);
+      await navigator.clipboard.writeText(LINK_PREVIEW_MOCK);
       setCopyLabel("복사됨");
       window.setTimeout(() => setCopyLabel("복사"), 1500);
     } catch {
@@ -64,14 +64,14 @@ export default function ReelsPlaceSelectPage() {
     <MobileFixedPageShell alignWithOverlay>
       <header className="shrink-0 px-6 pt-16">
         <PlaceFlowHeadlines
-          titleId="reels-place-select-title"
+          titleId="link-place-select-title"
           title={PLACE_FLOW_COPY.selectFromCandidates.title}
           subtitle={PLACE_FLOW_COPY.selectFromCandidates.subtitle}
         />
 
         <div className="mt-6 space-y-3 pb-5">
           <CopyableLinkBar
-            url={REELS_LINK_MOCK}
+            url={LINK_PREVIEW_MOCK}
             copyLabel={copyLabel}
             onCopy={() => {
               void handleCopy();

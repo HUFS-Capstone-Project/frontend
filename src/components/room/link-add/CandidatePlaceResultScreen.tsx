@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { PlaceSelectCard } from "@/components/link-place/PlaceSelectCard";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
-import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
 import { PillButton } from "@/components/ui/PillButton";
 import type { CandidatePlace } from "@/features/link-analysis";
 import { canRetryLinkAnalysis, canSelectCandidatePlace } from "@/features/link-analysis";
@@ -27,7 +27,6 @@ export type CandidatePlaceResultScreenProps = {
   onRetry: () => void;
   onToggleCandidatePlace: (place: CandidatePlace) => void;
   onSave: () => void;
-  /** Persist 링크 추가 진행 상태 — returns draft session id for edit_place navigation */
   persistDraftForEdit: () => string;
 };
 

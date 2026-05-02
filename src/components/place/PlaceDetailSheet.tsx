@@ -47,15 +47,15 @@ export function PlaceDetailSheet(): JSX.Element | null {
           </div>
         </div>
 
-        {place.reelsUrl ? (
+        {place.shareLinkUrl ? (
           <button
             type="button"
             className="border-border bg-background text-muted-foreground hover:bg-muted/35 focus-visible:ring-ring/50 flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none"
             onClick={() => {
-              window.open(place.reelsUrl ?? "", "_blank", "noopener,noreferrer");
+              window.open(place.shareLinkUrl ?? "", "_blank", "noopener,noreferrer");
             }}
           >
-            <span>내가 봤던 릴스 다시보기</span>
+            <span>원본 링크 열기</span>
             <ExternalLink className="text-muted-foreground size-4 shrink-0" aria-hidden />
           </button>
         ) : null}

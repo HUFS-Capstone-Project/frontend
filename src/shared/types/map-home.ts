@@ -15,7 +15,8 @@ export type SavedPlace = {
   latitude: number;
   longitude: number;
   address: string;
-  reelsUrl?: string | null;
+  /** SNS·웹 등 원본 공유 링크 */
+  shareLinkUrl?: string | null;
   businessHours?: PlaceBusinessHours | ResolvedPlaceBusinessHours | null;
 };
 

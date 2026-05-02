@@ -8,7 +8,7 @@ type PlaceFlowHeadlinesProps = {
 };
 
 /**
- * Reels 장소 선택 / 링크 후보 / 장소 검색(edit) 상단 타이틀 블록 — 동일 타이포·간격
+ * 공유 링크 기준 후보 선택 / 링크 후보 / 장소 검색(edit) 상단 타이틀 블록 — 동일 타이포·간격
  */
 export function PlaceFlowHeadlines({
   roomName,

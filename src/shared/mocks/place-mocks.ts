@@ -18,7 +18,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5973,
     longitude: 127.0606,
     address: "서울 동대문구 이문로 107",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "매주 월요일 휴무",
       weeklySchedule: [
@@ -40,7 +40,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5915,
     longitude: 127.0567,
     address: "서울 동대문구 회기로 173",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "브레이크타임 있음",
       weeklySchedule: [
@@ -62,7 +62,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.596,
     longitude: 127.062,
     address: "서울 동대문구 이문로 79",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "연중무휴",
       weeklySchedule: [
@@ -85,7 +85,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 35.8699,
     longitude: 128.5963,
     address: "대구 중구 동성로2길 4-3",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "운영시간 변동 가능",
       weeklySchedule: [
@@ -107,7 +107,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 35.8279,
     longitude: 128.6175,
     address: "대구 수성구 수성못2길 15 1층",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "연중무휴",
       weeklySchedule: [
@@ -129,7 +129,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 35.8707,
     longitude: 128.5962,
     address: "대구광역시 중구 국채보상로 598",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "운영시간 변동 가능",
       weeklySchedule: [
@@ -151,7 +151,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.3935,
     longitude: 126.639,
     address: "인천광역시 연수구 센트럴로 194",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "연중무휴",
       weeklySchedule: [
@@ -173,7 +173,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5969,
     longitude: 127.0609,
     address: "서울 동대문구 이문로 116",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "운영시간 변동 가능",
       weeklySchedule: [
@@ -197,7 +197,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5948,
     longitude: 127.0607,
     address: "서울 동대문구 이문로 85",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "디저트 소진 시 마감",
       weeklySchedule: [
@@ -219,7 +219,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5912,
     longitude: 127.057,
     address: "서울 동대문구 회기로 171",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "매주 화요일 휴무",
       weeklySchedule: [
@@ -241,7 +241,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5925,
     longitude: 127.0585,
     address: "서울 동대문구 회기로 165",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "연중무휴",
       weeklySchedule: [
@@ -265,7 +265,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5964,
     longitude: 127.0527,
     address: "서울 동대문구 경희대로 26",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "상시 개방",
       weeklySchedule: [
@@ -287,7 +287,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5907,
     longitude: 127.0446,
     address: "서울 동대문구 회기로 57",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "월요일 휴무",
       weeklySchedule: [
@@ -309,7 +309,7 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     latitude: 37.5902,
     longitude: 127.0563,
     address: "서울 동대문구 회기로 190 일대",
-    reelsUrl: null,
+    shareLinkUrl: null,
     businessHours: {
       holidayNotice: "매장별 상이",
       weeklySchedule: [

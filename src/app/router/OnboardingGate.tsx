@@ -14,7 +14,7 @@ type OnboardingGateProps = {
 /**
  * 온보딩 라우트 접근 제어
  * - 비로그인: /login
- * - 온보딩 완료: /room
+ * - 온보딩 완료: /rooms
  * - 온보딩 미완료 사용자만 접근 허용
  */
 export function OnboardingGate({ children }: OnboardingGateProps) {

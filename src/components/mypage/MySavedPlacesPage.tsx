@@ -66,7 +66,7 @@ export function MySavedPlacesPage({
           tagKeys: place.tagKeys ?? mock?.tagKeys,
           latitude: mock?.latitude ?? 0,
           longitude: mock?.longitude ?? 0,
-          reelsUrl: mock?.reelsUrl,
+          shareLinkUrl: mock?.shareLinkUrl,
           businessHours: mock?.businessHours,
         };
       }),

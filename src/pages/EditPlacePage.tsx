@@ -5,8 +5,8 @@ import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { SearchField } from "@/components/common/SearchField";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { EditPlaceResultCard } from "@/components/link-place/EditPlaceResultCard";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
-import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { PillButton } from "@/components/ui/PillButton";
 import type { EditPlaceLocationState } from "@/features/place-flow/edit-place-navigation";
 import {
@@ -14,7 +14,7 @@ import {
   resolveEditPlaceReturnTo,
 } from "@/features/place-flow/edit-place-navigation";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
-import { REELS_LINK_MOCK } from "@/features/reels-registration/constants";
+import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/edit-place-store";
@@ -60,7 +60,7 @@ export default function EditPlacePage() {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(REELS_LINK_MOCK);
+      await navigator.clipboard.writeText(LINK_PREVIEW_MOCK);
       setCopyLabel("복사됨");
       window.setTimeout(() => setCopyLabel("복사"), 1500);
     } catch {
@@ -120,7 +120,7 @@ export default function EditPlacePage() {
       return;
     }
 
-    navigate(APP_ROUTES.reelsRegisterPlace);
+    navigate(APP_ROUTES.placeRegisterFromLink);
   };
 
   return (
@@ -134,7 +134,7 @@ export default function EditPlacePage() {
 
         <div className="mt-6 space-y-3 pb-5">
           <CopyableLinkBar
-            url={REELS_LINK_MOCK}
+            url={LINK_PREVIEW_MOCK}
             copyLabel={copyLabel}
             onCopy={() => {
               void handleCopy();

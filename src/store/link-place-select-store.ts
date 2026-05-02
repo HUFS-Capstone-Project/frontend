@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
-type ReelsPlaceSelectState = {
+type LinkPlaceSelectState = {
   selectedPlaceIds: string[];
   togglePlace: (id: string) => void;
   clearSelection: () => void;
 };
 
-export const useReelsPlaceSelectStore = create<ReelsPlaceSelectState>((set) => ({
+export const useLinkPlaceSelectStore = create<LinkPlaceSelectState>((set) => ({
   selectedPlaceIds: [],
   togglePlace: (id) =>
     set((state) => ({
