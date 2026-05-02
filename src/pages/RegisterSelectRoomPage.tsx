@@ -9,7 +9,7 @@ import { RoomMainHeader } from "@/components/room/RoomMainHeader";
 import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { FRIEND_ROOM_MOCK_ROWS } from "@/pages/room/friend-room-mock";
 import type { FriendRoomRow } from "@/shared/types/room";
-import { useRegisterRoomStore } from "@/store/registerRoomStore";
+import { useRegisterRoomStore } from "@/store/register-room-store";
 
 type RegisterSelectRoomLocationState = {
   selectedPlaceIds?: string[];

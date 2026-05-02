@@ -1,23 +1,20 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
+import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
+import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
 import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
 import { PillButton } from "@/components/ui/PillButton";
+import {
+  PLACE_RENDER_ORDER,
+  REELS_LINK_MOCK,
+  SAVED_PLACE_ID,
+} from "@/features/reels-registration/constants";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
-import { useEditPlaceStore } from "@/store/editPlaceStore";
-import { useReelsPlaceSelectStore } from "@/store/reelsPlaceSelectStore";
-import { useRegisterRoomStore } from "@/store/registerRoomStore";
-
-const REELS_LINK_MOCK = "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
-const PLACE_RENDER_ORDER = [
-  "restaurant-1",
-  "restaurant-2",
-  "restaurant-3",
-  "restaurant-4",
-  "restaurant-5",
-  "cafe-1",
-];
-const SAVED_PLACE_ID = "restaurant-3";
+import { useEditPlaceStore } from "@/store/edit-place-store";
+import { useReelsPlaceSelectStore } from "@/store/reels-place-select-store";
+import { useRegisterRoomStore } from "@/store/register-room-store";
 
 export default function ReelsPlaceSelectPage() {
   const navigate = useNavigate();
@@ -58,7 +55,7 @@ export default function ReelsPlaceSelectPage() {
   }, []);
 
   return (
-    <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white">
+    <MobileFixedPageShell>
       <header className="shrink-0 px-5 pt-40">
         <section className="space-y-3 pb-5" aria-labelledby="reels-place-select-title">
           <div className="space-y-1">
@@ -73,18 +70,13 @@ export default function ReelsPlaceSelectPage() {
             </p>
           </div>
 
-          <div className="border-border flex h-11 items-center gap-3 rounded-full border bg-white py-1.5 pr-1.5 pl-3">
-            <p className="text-foreground min-w-0 flex-1 truncate text-sm">{REELS_LINK_MOCK}</p>
-            <button
-              type="button"
-              className="bg-muted text-foreground active:bg-muted/80 h-8 shrink-0 rounded-full px-4 text-sm font-medium transition-colors"
-              onClick={() => {
-                void handleCopy();
-              }}
-            >
-              {copyLabel}
-            </button>
-          </div>
+          <CopyableLinkBar
+            url={REELS_LINK_MOCK}
+            copyLabel={copyLabel}
+            onCopy={() => {
+              void handleCopy();
+            }}
+          />
         </section>
       </header>
 
@@ -113,8 +105,8 @@ export default function ReelsPlaceSelectPage() {
         </ul>
       </div>
 
-      <div className="shrink-0 bg-white px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]">
-        <div className="grid grid-cols-2 gap-2.5">
+      <TwoButtonFooter
+        left={
           <PillButton
             type="button"
             variant="outline"
@@ -123,6 +115,8 @@ export default function ReelsPlaceSelectPage() {
           >
             취소
           </PillButton>
+        }
+        right={
           <PillButton
             type="button"
             variant={canConfirm ? "onboarding" : "onboardingMuted"}
@@ -139,8 +133,8 @@ export default function ReelsPlaceSelectPage() {
           >
             확인
           </PillButton>
-        </div>
-      </div>
-    </main>
+        }
+      />
+    </MobileFixedPageShell>
   );
 }

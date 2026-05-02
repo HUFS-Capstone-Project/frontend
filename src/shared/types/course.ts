@@ -15,6 +15,12 @@ export type CourseStop = {
   hours: string;
 };
 
+export type CourseSavePayload = {
+  kind: "create" | "edit";
+  title: string;
+  stops: CourseStop[];
+};
+
 export type SavedCourseStop = {
   id: string;
   name: string;

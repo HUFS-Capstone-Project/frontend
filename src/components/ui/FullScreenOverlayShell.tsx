@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { useOverlayFlowController } from "@/features/room/hooks/useOverlayFlowController";
+import { useOverlayFlowController } from "@/features/room/hooks/use-overlay-flow-controller";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_TRANSITION_MS = 180;

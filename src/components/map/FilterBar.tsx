@@ -1,28 +1,11 @@
 import "./filter-bar.css";
 
-import { cn } from "@/lib/utils";
 import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
 
-import { CategoryChip } from "./CategoryChip";
+import { CategoryChipGrid, CategoryChipSkeletonList } from "./CategoryChipGrid";
 import { FilterPanel } from "./FilterPanel";
 import type { MapFilterBarProps } from "./filters/map-filter-bar-props";
 import { getMapCategoryChipHighlighted } from "./filters/map-filter-selection";
-
-const CATEGORY_CHIP_GRID_CLASS =
-  "grid w-full min-w-0 grid-cols-4 gap-2 overflow-visible pb-0.5 pt-0.5";
-const CATEGORY_CHIP_SKELETON_COUNT = 4;
-
-function CategoryChipSkeletonList() {
-  return (
-    <ul className={CATEGORY_CHIP_GRID_CLASS} role="presentation" aria-hidden>
-      {Array.from({ length: CATEGORY_CHIP_SKELETON_COUNT }, (_, index) => (
-        <li key={`category-chip-skeleton-${index}`} className="min-w-0">
-          <div className="border-border/65 bg-background/85 h-7 w-full animate-pulse rounded-full border" />
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export function FilterBar({
   hideTagPanel = false,
@@ -48,35 +31,25 @@ export function FilterBar({
   return (
     <div>
       {isCategoryLoading ? (
-        <CategoryChipSkeletonList />
+        <CategoryChipSkeletonList
+          keyPrefix="category-chip-skeleton"
+          itemClassName="bg-background/85"
+        />
       ) : (
-        <ul
-          className={cn(CATEGORY_CHIP_GRID_CLASS, "animate-map-chip-fade-in")}
-          role="list"
-          aria-busy={isCategoryLoading}
-        >
-          {categories.map((category) => (
-            <li key={category} className="min-w-0">
-              <CategoryChip
-                categoryCode={category}
-                categoryLabel={
-                  category === MAP_ALL_CATEGORY_FILTER_CHIP
-                    ? MAP_ALL_CATEGORY_FILTER_CHIP
-                    : (categoryNameByCode[category] ?? category)
-                }
-                highlighted={getMapCategoryChipHighlighted(category, highlightCtx)}
-                panelFocused={panelOpenForUi && focusedCategory === category}
-                selectedTagCount={
-                  hideTagPanel || category === MAP_ALL_CATEGORY_FILTER_CHIP
-                    ? 0
-                    : (selectedTagCountByCategory[category] ?? 0)
-                }
-                onClick={() => onToggleCategory(category)}
-                className="w-full min-w-0 justify-center"
-              />
-            </li>
-          ))}
-        </ul>
+        <CategoryChipGrid
+          className="animate-map-chip-fade-in"
+          categories={categories}
+          isLoading={isCategoryLoading}
+          getCategoryLabel={(category) => categoryNameByCode[category] ?? category}
+          isHighlighted={(category) => getMapCategoryChipHighlighted(category, highlightCtx)}
+          isPanelFocused={(category) => panelOpenForUi && focusedCategory === category}
+          getSelectedTagCount={(category) =>
+            hideTagPanel || category === MAP_ALL_CATEGORY_FILTER_CHIP
+              ? 0
+              : (selectedTagCountByCategory[category] ?? 0)
+          }
+          onToggleCategory={onToggleCategory}
+        />
       )}
 
       {isCategoryError ? (

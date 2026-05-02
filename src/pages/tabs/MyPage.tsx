@@ -15,7 +15,7 @@ import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
 import { savedPlaces as initialSavedPlaces } from "@/shared/mocks/my-page-mocks";
-import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
+import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { useAuthStore } from "@/store/auth-store";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -47,15 +47,10 @@ export default function MyPage() {
 
   usePlaceDetailOpenEvent(view === "places" || view === "courses");
 
-  const handleSavedCoursePersist = (
-    prevCourseId: string,
-    nextTitle: string,
-    nextStops: PlannerCourseStop[],
-    fromEditMode: boolean,
-  ) => {
+  const handleSavedCoursePersist = (prevCourseId: string, payload: CourseSavePayload) => {
     showToast("코스가 저장되었습니다", 3200);
 
-    const nextStopsMinimal = nextStops.map((s) => ({
+    const nextStopsMinimal = payload.stops.map((s) => ({
       id: s.id,
       name: s.name,
       address: s.address,
@@ -63,11 +58,11 @@ export default function MyPage() {
       hours: s.hours === "—" ? undefined : s.hours,
     }));
 
-    if (fromEditMode) {
+    if (payload.kind === "edit") {
       const updated: SavedCourse | undefined = coursesList.find((c) => c.id === prevCourseId);
       if (!updated) return;
 
-      const merged: SavedCourse = { ...updated, title: nextTitle, stops: nextStopsMinimal };
+      const merged: SavedCourse = { ...updated, title: payload.title, stops: nextStopsMinimal };
       setCoursesList((list) => list.map((c) => (c.id === prevCourseId ? merged : c)));
       setSavedCourseSheet({ kind: "detail", course: merged });
     } else {

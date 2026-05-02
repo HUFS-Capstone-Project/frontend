@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
+import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { SearchField } from "@/components/common/SearchField";
+import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
 import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { PillButton } from "@/components/ui/PillButton";
+import { REELS_LINK_MOCK } from "@/features/reels-registration/constants";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
-import { useInpersonPlaceStore } from "@/store/inpersonPlaceStore";
-import { useRegisterRoomStore } from "@/store/registerRoomStore";
-
-const REELS_LINK_MOCK = "https://www.instagram.com/reel/DNp9tqSz6rT/?igsh=MW4yOGd6aGNzMmRsYw==";
+import { useInpersonPlaceStore } from "@/store/inperson-place-store";
+import { useRegisterRoomStore } from "@/store/register-room-store";
 
 export default function RegisterPlaceInpersonPage() {
   const navigate = useNavigate();
@@ -75,7 +77,7 @@ export default function RegisterPlaceInpersonPage() {
   };
 
   return (
-    <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white">
+    <MobileFixedPageShell>
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pt-40 pb-4">
         <section className="space-y-5" aria-labelledby="inperson-place-title">
           <div className="space-y-1">
@@ -90,18 +92,13 @@ export default function RegisterPlaceInpersonPage() {
             </p>
           </div>
 
-          <div className="border-border flex h-11 items-center gap-3 rounded-full border bg-white py-1.5 pr-1.5 pl-3">
-            <p className="text-foreground min-w-0 flex-1 truncate text-sm">{REELS_LINK_MOCK}</p>
-            <button
-              type="button"
-              className="bg-muted text-foreground active:bg-muted/80 h-8 shrink-0 rounded-full px-4 text-sm font-medium transition-colors"
-              onClick={() => {
-                void handleCopy();
-              }}
-            >
-              {copyLabel}
-            </button>
-          </div>
+          <CopyableLinkBar
+            url={REELS_LINK_MOCK}
+            copyLabel={copyLabel}
+            onCopy={() => {
+              void handleCopy();
+            }}
+          />
 
           <label className="flex min-h-14 items-center gap-2">
             <SearchField
@@ -144,8 +141,8 @@ export default function RegisterPlaceInpersonPage() {
         </section>
       </div>
 
-      <div className="shrink-0 bg-white px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]">
-        <div className="grid grid-cols-2 gap-2.5">
+      <TwoButtonFooter
+        left={
           <PillButton
             type="button"
             variant="outline"
@@ -154,6 +151,8 @@ export default function RegisterPlaceInpersonPage() {
           >
             취소
           </PillButton>
+        }
+        right={
           <PillButton
             type="button"
             variant={canConfirm ? "onboarding" : "onboardingMuted"}
@@ -162,8 +161,8 @@ export default function RegisterPlaceInpersonPage() {
           >
             확인
           </PillButton>
-        </div>
-      </div>
-    </main>
+        }
+      />
+    </MobileFixedPageShell>
   );
 }

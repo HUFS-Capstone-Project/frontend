@@ -22,6 +22,7 @@ export const API_PATHS = {
     analyzeLink: (roomId: string) => `/v1/rooms/${roomId}/links/analyze`,
     linkAnalysis: (roomId: string, linkId: number) =>
       `/v1/rooms/${roomId}/links/${linkId}/analysis`,
+    linkPlaces: (roomId: string, linkId: number) => `/v1/rooms/${roomId}/links/${linkId}/places`,
   },
   links: {
     root: "/v1/links",

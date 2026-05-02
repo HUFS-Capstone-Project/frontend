@@ -1,9 +1,13 @@
 import type {
+  CandidatePlace,
+  CandidatePlaceDto,
   LinkAnalysis,
   LinkAnalysisDto,
   LinkAnalysisRequestResult,
   LinkAnalysisRequestResultDto,
   LinkAnalysisStatus,
+  SaveCandidatePlacesResponseDto,
+  SaveCandidatePlacesResult,
 } from "../types";
 
 export const LINK_ANALYSIS_STATUS = {
@@ -52,7 +56,44 @@ export function toLinkAnalysis(dto: LinkAnalysisDto): LinkAnalysis {
     linkId: dto.linkId,
     status: dto.status,
     caption: dto.caption ?? undefined,
+    candidatePlaces: (dto.candidatePlaces ?? []).map(toCandidatePlace),
     errorCode: dto.errorCode ?? undefined,
     errorMessage: dto.errorMessage ?? undefined,
+  };
+}
+
+export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
+  return {
+    kakaoPlaceId: dto.kakaoPlaceId ?? undefined,
+    placeName: dto.placeName,
+    categoryName: dto.categoryName ?? undefined,
+    categoryGroupCode: dto.categoryGroupCode ?? undefined,
+    categoryGroupName: dto.categoryGroupName ?? undefined,
+    addressName: dto.addressName ?? undefined,
+    roadAddressName: dto.roadAddressName ?? undefined,
+    longitude: dto.longitude ?? undefined,
+    latitude: dto.latitude ?? undefined,
+    phone: dto.phone ?? undefined,
+    placeUrl: dto.placeUrl ?? undefined,
+    sourceKeyword: dto.sourceKeyword ?? undefined,
+    alreadySaved: dto.alreadySaved,
+    selectable: dto.selectable,
+    roomPlaceId: dto.roomPlaceId ?? undefined,
+    disabledReason: dto.disabledReason ?? undefined,
+  };
+}
+
+export function toSaveCandidatePlacesResult(
+  dto: SaveCandidatePlacesResponseDto,
+): SaveCandidatePlacesResult {
+  return {
+    linkId: dto.linkId,
+    places: dto.places.map((place) => ({
+      roomPlaceId: place.roomPlaceId,
+      kakaoPlaceId: place.kakaoPlaceId,
+      placeName: place.placeName,
+      created: place.created,
+      alreadySaved: place.alreadySaved,
+    })),
   };
 }

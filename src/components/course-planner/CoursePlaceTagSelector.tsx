@@ -1,27 +1,10 @@
-import { CategoryChip } from "@/components/map/CategoryChip";
+import { CategoryChipGrid, CategoryChipSkeletonList } from "@/components/map/CategoryChipGrid";
 import { MAP_FILTER_PANEL_GROUP_TITLE_CLASS } from "@/components/map/chip-style";
 import type { MapFilterBarProps } from "@/components/map/filters/map-filter-bar-props";
 import { getMapCategoryChipHighlighted } from "@/components/map/filters/map-filter-selection";
-import { TagChip } from "@/components/map/TagChip";
-import type { Tag } from "@/features/map/api/place-taxonomy-types";
+import { TagChipGroup } from "@/components/map/TagChipGroup";
 import { isDefaultGroup, isEmptyGroup } from "@/features/map/utils/filter-panel-group";
-import { MAP_ALL_CATEGORY_FILTER_CHIP, type MapPrimaryCategory } from "@/shared/types/map-home";
-
-const CATEGORY_CHIP_GRID_CLASS =
-  "grid w-full min-w-0 grid-cols-4 gap-2 overflow-visible pb-0.5 pt-0.5";
-const CATEGORY_CHIP_SKELETON_COUNT = 4;
-
-function CategoryChipSkeletonList() {
-  return (
-    <ul className={CATEGORY_CHIP_GRID_CLASS} role="presentation" aria-hidden>
-      {Array.from({ length: CATEGORY_CHIP_SKELETON_COUNT }, (_, index) => (
-        <li key={`course-category-chip-skeleton-${index}`} className="min-w-0">
-          <div className="border-border/65 bg-muted/40 h-7 w-full animate-pulse rounded-full border" />
-        </li>
-      ))}
-    </ul>
-  );
-}
+import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
 
 export function CoursePlaceTagSelector({
   categories,
@@ -45,24 +28,6 @@ export function CoursePlaceTagSelector({
       : null;
   const selectedKeys = focusedSection ? (selectedTagKeysByCategory[focusedSection.code] ?? []) : [];
 
-  function renderTagChipRow(tags: Tag[], categoryCode: MapPrimaryCategory) {
-    const visibleTags = tags.filter((tag) => tag.name.trim());
-    if (visibleTags.length === 0) return null;
-
-    return (
-      <div className="flex flex-wrap gap-2" role="group">
-        {visibleTags.map((tag) => (
-          <TagChip
-            key={`${categoryCode}-${tag.code}`}
-            label={tag.name}
-            selected={selectedKeys.includes(tag.code)}
-            onClick={() => onToggleTagInCategory(categoryCode, tag.code)}
-          />
-        ))}
-      </div>
-    );
-  }
-
   const hasRenderableTagGroups =
     focusedSection?.tagGroups.some((group) => {
       if (isEmptyGroup(group)) return false;
@@ -72,31 +37,24 @@ export function CoursePlaceTagSelector({
   return (
     <div className="grid gap-2">
       {isCategoryLoading ? (
-        <CategoryChipSkeletonList />
+        <CategoryChipSkeletonList
+          keyPrefix="course-category-chip-skeleton"
+          itemClassName="bg-muted/40"
+        />
       ) : (
-        <ul className={CATEGORY_CHIP_GRID_CLASS} role="list" aria-busy={isCategoryLoading}>
-          {categories.map((category) => (
-            <li key={category} className="min-w-0">
-              <CategoryChip
-                categoryCode={category}
-                categoryLabel={
-                  category === MAP_ALL_CATEGORY_FILTER_CHIP
-                    ? MAP_ALL_CATEGORY_FILTER_CHIP
-                    : (categoryNameByCode[category] ?? category)
-                }
-                highlighted={getMapCategoryChipHighlighted(category, highlightCtx)}
-                panelFocused={isTagPanelOpen && focusedCategory === category}
-                selectedTagCount={
-                  category === MAP_ALL_CATEGORY_FILTER_CHIP
-                    ? 0
-                    : (selectedTagCountByCategory[category] ?? 0)
-                }
-                onClick={() => onToggleCategory(category)}
-                className="w-full min-w-0 justify-center"
-              />
-            </li>
-          ))}
-        </ul>
+        <CategoryChipGrid
+          categories={categories}
+          isLoading={isCategoryLoading}
+          getCategoryLabel={(category) => categoryNameByCode[category] ?? category}
+          isHighlighted={(category) => getMapCategoryChipHighlighted(category, highlightCtx)}
+          isPanelFocused={(category) => isTagPanelOpen && focusedCategory === category}
+          getSelectedTagCount={(category) =>
+            category === MAP_ALL_CATEGORY_FILTER_CHIP
+              ? 0
+              : (selectedTagCountByCategory[category] ?? 0)
+          }
+          onToggleCategory={onToggleCategory}
+        />
       )}
 
       {isCategoryError ? (
@@ -119,15 +77,20 @@ export function CoursePlaceTagSelector({
         >
           {focusedSection.tagGroups.map((group) => {
             if (isEmptyGroup(group)) return null;
-            const row = renderTagChipRow(group.tags, focusedSection.code);
-            if (!row) return null;
+            if (!group.tags.some((tag) => tag.name.trim())) return null;
 
             return (
               <div key={`${focusedSection.code}-${group.code}`}>
                 {!isDefaultGroup(group) ? (
                   <div className={MAP_FILTER_PANEL_GROUP_TITLE_CLASS}>{group.name}</div>
                 ) : null}
-                {row}
+                <TagChipGroup
+                  tags={group.tags}
+                  selectedKeys={selectedKeys}
+                  onToggleTagKey={(tagKey) => onToggleTagInCategory(focusedSection.code, tagKey)}
+                  keyPrefix={focusedSection.code}
+                  hideBlankLabels
+                />
               </div>
             );
           })}

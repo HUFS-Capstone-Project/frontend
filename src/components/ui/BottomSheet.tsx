@@ -1,6 +1,6 @@
 import { type ReactNode, type TouchEvent, useCallback, useEffect, useRef, useState } from "react";
 
-import { useOverlayFlowController } from "@/features/room/hooks/useOverlayFlowController";
+import { useOverlayFlowController } from "@/features/room/hooks/use-overlay-flow-controller";
 import { cn } from "@/lib/utils";
 
 const BOTTOM_SHEET_TRANSITION_MS = 240;

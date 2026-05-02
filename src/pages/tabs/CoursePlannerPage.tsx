@@ -12,13 +12,13 @@ import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectio
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { CourseDevMapBackground } from "@/features/course-planner/components/CourseDevMapBackground";
 import { COURSE_LOADING_ROOM_FALLBACK } from "@/features/course-planner/constants";
+import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-course-planner-courses";
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import MapHomeWithDetail from "@/pages/map/MapHomeWithDetail";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { COURSE_OPTIONS } from "@/shared/mocks/course-mocks";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -32,6 +32,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
+  const { courses, defaultCourseId, getCourseStops } = useCoursePlannerCourses();
 
   const {
     filterCategories,
@@ -91,6 +92,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     handleBackToCourseResults,
     handleSaveCourse,
   } = useCoursePlannerState({
+    courses,
+    defaultCourseId,
+    getCourseStops,
     closeTagPanel,
     resetCategorySelection,
     showToast,
@@ -203,7 +207,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
 
         {mode === "result" ? (
           <CourseResultPanel
-            courses={COURSE_OPTIONS}
+            courses={courses}
             selectedCourseId={selectedCourseId}
             onSelectCourse={handleSelectCourse}
           />

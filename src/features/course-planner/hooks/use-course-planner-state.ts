@@ -14,16 +14,21 @@ import {
   COURSE_TOAST_TEXT,
   type CoursePlannerMode,
 } from "@/features/course-planner/constants";
-import { COURSE_OPTIONS, getCourseStopsMock } from "@/shared/mocks/course-mocks";
-import type { CourseStop } from "@/shared/types/course";
+import type { CourseOption, CourseSavePayload, CourseStop } from "@/shared/types/course";
 
 type UseCoursePlannerStateParams = {
+  courses: CourseOption[];
+  defaultCourseId: string | null;
+  getCourseStops: (courseId: string | null) => CourseStop[];
   closeTagPanel: () => void;
   resetCategorySelection: () => void;
   showToast: (message: string, durationMs?: number) => void;
 };
 
 export function useCoursePlannerState({
+  courses,
+  defaultCourseId,
+  getCourseStops,
   closeTagPanel,
   resetCategorySelection,
   showToast,
@@ -37,9 +42,9 @@ export function useCoursePlannerState({
   const [draftStartTime, setDraftStartTime] = useState<string | null>(null);
   const [draftEndTime, setDraftEndTime] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [courseTitle, setCourseTitle] = useState(COURSE_OPTIONS[0]?.title ?? COURSE_FALLBACK_TITLE);
+  const [courseTitle, setCourseTitle] = useState(courses[0]?.title ?? COURSE_FALLBACK_TITLE);
   const [courseStops, setCourseStops] = useState<CourseStop[]>(() =>
-    getCourseStopsMock("course-1"),
+    getCourseStops(defaultCourseId),
   );
 
   useEffect(() => {
@@ -119,10 +124,10 @@ export function useCoursePlannerState({
     setDraftEndTime(null);
     resetCategorySelection();
     setSelectedCourseId("");
-    setCourseTitle(COURSE_OPTIONS[0]?.title ?? COURSE_FALLBACK_TITLE);
-    setCourseStops(getCourseStopsMock("course-1"));
+    setCourseTitle(courses[0]?.title ?? COURSE_FALLBACK_TITLE);
+    setCourseStops(getCourseStops(defaultCourseId));
     setMode("form");
-  }, [resetCategorySelection]);
+  }, [courses, defaultCourseId, getCourseStops, resetCategorySelection]);
 
   const canGenerate = regionValue.trim().length > 0;
 
@@ -131,13 +136,16 @@ export function useCoursePlannerState({
     setMode("loading");
   }, [canGenerate]);
 
-  const handleSelectCourse = useCallback((courseId: string) => {
-    const selectedCourse = COURSE_OPTIONS.find((course) => course.id === courseId);
-    setSelectedCourseId(courseId);
-    setCourseTitle(selectedCourse?.title ?? COURSE_FALLBACK_TITLE);
-    setCourseStops(getCourseStopsMock(courseId));
-    setMode("detail");
-  }, []);
+  const handleSelectCourse = useCallback(
+    (courseId: string) => {
+      const selectedCourse = courses.find((course) => course.id === courseId);
+      setSelectedCourseId(courseId);
+      setCourseTitle(selectedCourse?.title ?? COURSE_FALLBACK_TITLE);
+      setCourseStops(getCourseStops(courseId));
+      setMode("detail");
+    },
+    [courses, getCourseStops],
+  );
 
   const handleBackToCourseResults = useCallback(() => {
     setSelectedCourseId("");
@@ -145,11 +153,11 @@ export function useCoursePlannerState({
   }, []);
 
   const handleSaveCourse = useCallback(
-    (nextTitle: string, nextStops: CourseStop[], fromEditMode: boolean) => {
+    (payload: CourseSavePayload) => {
       showToast(COURSE_TOAST_TEXT.saved, COURSE_TOAST_DURATION_MS);
-      if (fromEditMode) {
-        setCourseTitle(nextTitle);
-        setCourseStops(nextStops);
+      if (payload.kind === "edit") {
+        setCourseTitle(payload.title);
+        setCourseStops(payload.stops);
         return;
       }
       handleResetPlanner();

@@ -1,6 +1,6 @@
 import { RotateCcw } from "lucide-react";
 
-import type { Category, Tag } from "@/features/map/api/place-taxonomy-types";
+import type { Category } from "@/features/map/api/place-taxonomy-types";
 import { isDefaultGroup, isEmptyGroup } from "@/features/map/utils/filter-panel-group";
 import { cn } from "@/lib/utils";
 import type { MapPrimaryCategory } from "@/shared/types/map-home";
@@ -15,7 +15,7 @@ import {
 } from "./chip-style";
 import { renderMapPrimaryCategoryIcon } from "./filters/map-category-icons";
 import { MAP_FILTER_LABELS, mapTagFilterRegionAriaLabel } from "./filters/map-filter-labels";
-import { TagChip } from "./TagChip";
+import { TagChipGroup } from "./TagChipGroup";
 
 type FilterPanelProps = {
   isOpen: boolean;
@@ -26,29 +26,6 @@ type FilterPanelProps = {
   onResetFocusedCategoryTags: () => void;
   onClose: () => void;
 };
-
-function TagChipRow({
-  tags,
-  selectedKeys,
-  onToggleTagKey,
-}: {
-  tags: Tag[];
-  selectedKeys: readonly string[];
-  onToggleTagKey: (tagKey: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2" role="group">
-      {tags.map((tag) => (
-        <TagChip
-          key={tag.code}
-          label={tag.name}
-          selected={selectedKeys.includes(tag.code)}
-          onClick={() => onToggleTagKey(tag.code)}
-        />
-      ))}
-    </div>
-  );
-}
 
 function FilterSectionBody({
   section,
@@ -73,7 +50,7 @@ function FilterSectionBody({
             {!isDefaultGroup(group) ? (
               <div className={MAP_FILTER_PANEL_GROUP_TITLE_CLASS}>{group.name}</div>
             ) : null}
-            <TagChipRow tags={group.tags} selectedKeys={selectedKeys} onToggleTagKey={toggle} />
+            <TagChipGroup tags={group.tags} selectedKeys={selectedKeys} onToggleTagKey={toggle} />
           </div>
         );
       })}

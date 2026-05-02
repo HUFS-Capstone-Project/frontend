@@ -20,7 +20,7 @@ import { useCallback, useState } from "react";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
 import { cn } from "@/lib/utils";
-import type { CourseStop } from "@/shared/types/course";
+import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
 export type { CourseStop };
@@ -29,8 +29,7 @@ type CoursePlaceInfoPanelProps = {
   courseTitle: string;
   stops: CourseStop[];
   onBack: () => void;
-  /** `fromEditMode`: 편집 후 저장이면 상위에서 상세 화면만 갱신, 아니면 신규 저장 플로우(예: 플래너 초기화) */
-  onSave: (nextTitle: string, nextStops: CourseStop[], fromEditMode: boolean) => void;
+  onSave: (payload: CourseSavePayload) => void;
   /** true면 조회 모드에서 「데이트코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
   hideNewCourseSaveButton?: boolean;
 };
@@ -90,7 +89,11 @@ export function CoursePlaceInfoPanel({
   const handleConfirmSave = () => {
     const nextTitle = (isEditing ? draftTitle.trim() : courseTitle.trim()) || courseTitle;
     const nextStops = isEditing ? draftStops : stops;
-    onSave(nextTitle, nextStops, isEditing);
+    onSave({
+      kind: isEditing ? "edit" : "create",
+      title: nextTitle,
+      stops: nextStops,
+    });
     setIsEditing(false);
     setSelectedStopId(null);
     setIsSaveConfirmOpen(false);

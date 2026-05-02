@@ -14,7 +14,7 @@ import { APP_ROUTES } from "@/shared/config/routes";
 import { REGISTER_SELECT_ROOM_TEXT } from "@/shared/config/text";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
-import { useRegisterRoomStore } from "@/store/registerRoomStore";
+import { useRegisterRoomStore } from "@/store/register-room-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 const RoomActionModal = lazy(() =>

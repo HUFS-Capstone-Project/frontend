@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Pin, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
+import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
@@ -21,7 +22,7 @@ import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
-import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
+import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
@@ -52,12 +53,7 @@ type MySavedCoursesPageProps = {
   onSelectCourse: (course: SavedCourse) => void;
   onCloseCourseSheet: () => void;
   onBack: () => void;
-  onPersistCourse: (
-    prevCourseId: string,
-    nextTitle: string,
-    nextStops: PlannerCourseStop[],
-    fromEditMode: boolean,
-  ) => void;
+  onPersistCourse: (prevCourseId: string, payload: CourseSavePayload) => void;
 };
 
 export function MySavedCoursesPage({
@@ -204,7 +200,7 @@ export function MySavedCoursesPage({
       )}
     >
       {overlayMapOpen ? (
-        <div className="absolute inset-0 z-0">
+        <MapBackdropLayer>
           <Suspense fallback={<div className="bg-map-placeholder-bg h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
@@ -213,7 +209,7 @@ export function MySavedCoursesPage({
               className="h-full w-full"
             />
           </Suspense>
-        </div>
+        </MapBackdropLayer>
       ) : null}
 
       <header
@@ -475,9 +471,7 @@ export function MySavedCoursesPage({
             courseTitle={selectedCourse.title}
             stops={savedCourseToPlannerStops(selectedCourse, savedPlaces)}
             onBack={onCloseCourseSheet}
-            onSave={(nextTitle, nextStops, fromEditMode) =>
-              onPersistCourse(selectedCourse.id, nextTitle, nextStops, fromEditMode)
-            }
+            onSave={(payload) => onPersistCourse(selectedCourse.id, payload)}
           />
         ) : null}
       </CoursePlannerBottomSheet>

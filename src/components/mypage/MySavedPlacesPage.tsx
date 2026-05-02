@@ -3,6 +3,8 @@
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
+import { EmptyState } from "@/components/common/EmptyState";
+import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { FilterBar } from "@/components/map/FilterBar";
 import {
   mapPlacesMatchingMySaved,
@@ -173,7 +175,7 @@ export function MySavedPlacesPage({
       )}
     >
       {detailOpen ? (
-        <div className="absolute inset-0 z-0">
+        <MapBackdropLayer>
           <Suspense fallback={<div className="bg-map-placeholder-bg h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
@@ -182,7 +184,7 @@ export function MySavedPlacesPage({
               className="h-full w-full"
             />
           </Suspense>
-        </div>
+        </MapBackdropLayer>
       ) : null}
 
       <header
@@ -260,12 +262,10 @@ export function MySavedPlacesPage({
               ))}
             </div>
           ) : (
-            <div className="flex min-h-[12rem] flex-col items-center justify-center py-8 text-center">
-              <span className="flex size-11 items-center justify-center rounded-full bg-[#777777] text-white">
-                <AlertCircle className="size-5" aria-hidden />
-              </span>
-              <p className="mt-4 text-sm font-medium text-[#8a8a8a]">{emptyMessage}</p>
-            </div>
+            <EmptyState
+              icon={<AlertCircle className="size-5" aria-hidden />}
+              message={emptyMessage}
+            />
           )}
         </div>
       ) : null}
