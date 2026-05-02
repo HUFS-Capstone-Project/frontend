@@ -3,7 +3,7 @@ import { MapPin } from "lucide-react";
 import type { MapSearchSuggestion } from "@/features/map/utils/map-search";
 import { cn } from "@/lib/utils";
 
-import { MAP_SEARCH_SUGGESTIONS_PANEL_CLASS } from "./chip-style";
+import { MAP_FILTER_PANEL_BASE_CLASS } from "./chip-style";
 
 type MapSearchSuggestionsProps = {
   suggestions: MapSearchSuggestion[];
@@ -23,13 +23,7 @@ export function MapSearchSuggestions({
   }
 
   return (
-    <div
-      className={cn(
-        MAP_SEARCH_SUGGESTIONS_PANEL_CLASS,
-        "mt-2 overflow-hidden rounded-3xl shadow-sm",
-        className,
-      )}
-    >
+    <div className={cn(MAP_FILTER_PANEL_BASE_CLASS, className)}>
       {suggestions.length > 0 ? (
         <ul
           role="list"

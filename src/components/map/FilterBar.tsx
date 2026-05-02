@@ -17,7 +17,7 @@ function CategoryChipSkeletonList() {
     <ul className={CATEGORY_CHIP_GRID_CLASS} role="presentation" aria-hidden>
       {Array.from({ length: CATEGORY_CHIP_SKELETON_COUNT }, (_, index) => (
         <li key={`category-chip-skeleton-${index}`} className="min-w-0">
-          <div className="border-border/65 bg-background/78 h-7 w-full animate-pulse rounded-full border" />
+          <div className="border-border/65 bg-background/80 h-7 w-full animate-pulse rounded-full border" />
         </li>
       ))}
     </ul>
