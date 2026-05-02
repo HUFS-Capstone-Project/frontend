@@ -14,6 +14,7 @@ import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import ReelsPlaceSelectPage from "@/pages/ReelsPlaceSelectPage";
+import RegisterPlaceInpersonPage from "@/pages/RegisterPlaceInpersonPage";
 import RegisterSelectRoomPage from "@/pages/RegisterSelectRoomPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
 
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "dev/register_place", element: <ReelsPlaceSelectPage /> },
       { path: "edit_place", element: <EditPlacePage /> },
+      { path: "register-place-inperson", element: <RegisterPlaceInpersonPage /> },
       { path: "register-select-room", element: <RegisterSelectRoomPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "app", element: <Navigate to="/" replace /> },
