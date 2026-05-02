@@ -6,6 +6,7 @@ type UseOverlayFlowControllerOptions = {
   historyStateKey: string;
   transitionMs?: number;
   enableEscape?: boolean;
+  enableHistory?: boolean;
 };
 
 type UseOverlayFlowControllerResult = {
@@ -28,6 +29,7 @@ export function useOverlayFlowController({
   historyStateKey,
   transitionMs = DEFAULT_TRANSITION_MS,
   enableEscape = true,
+  enableHistory = true,
 }: UseOverlayFlowControllerOptions): UseOverlayFlowControllerResult {
   const [isRendered, setIsRendered] = useState(open);
   const [isVisible, setIsVisible] = useState(false);
@@ -37,7 +39,7 @@ export function useOverlayFlowController({
   const closedByPopStateRef = useRef(false);
 
   const requestClose = useCallback(() => {
-    if (historyPushedRef.current) {
+    if (enableHistory && historyPushedRef.current) {
       historyPushedRef.current = false;
       onClose();
       window.history.back();
@@ -45,7 +47,7 @@ export function useOverlayFlowController({
     }
 
     onClose();
-  }, [onClose]);
+  }, [enableHistory, onClose]);
 
   useEffect(() => {
     if (open) {
@@ -70,7 +72,7 @@ export function useOverlayFlowController({
       setIsVisible(false);
     });
 
-    if (historyPushedRef.current && !closedByPopStateRef.current) {
+    if (enableHistory && historyPushedRef.current && !closedByPopStateRef.current) {
       historyPushedRef.current = false;
       window.history.back();
     }
@@ -87,10 +89,10 @@ export function useOverlayFlowController({
         closeTimerRef.current = null;
       }
     };
-  }, [open, transitionMs]);
+  }, [enableHistory, open, transitionMs]);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || !enableHistory) {
       return;
     }
 
@@ -111,7 +113,7 @@ export function useOverlayFlowController({
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [historyStateKey, onClose, open]);
+  }, [enableHistory, historyStateKey, onClose, open]);
 
   useEffect(() => {
     if (!open || !enableEscape) {

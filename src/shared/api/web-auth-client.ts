@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
+import { API_PATHS } from "@/shared/api/api-paths";
 import { getCookie, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from "@/shared/lib/cookie";
 
 import { getWebAuthBaseURL } from "./base-url";
@@ -106,7 +107,7 @@ export async function ensureCsrfCookie(
   }
 
   if (!inflightCsrfPromise) {
-    inflightCsrfPromise = webAuthClient.get("/v1/auth/csrf").finally(() => {
+    inflightCsrfPromise = webAuthClient.get(API_PATHS.auth.csrf).finally(() => {
       inflightCsrfPromise = null;
     });
   }

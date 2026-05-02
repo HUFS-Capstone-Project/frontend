@@ -1,5 +1,4 @@
-import { Check } from "lucide-react";
-
+import { RoundSelectionCheck } from "@/components/ui/RoundSelectionCheck";
 import { cn } from "@/lib/utils";
 
 type AgreementItemProps = {
@@ -39,15 +38,7 @@ export function AgreementItem({
         onClick={onToggle}
         className="text-foreground active:bg-tap-highlight flex w-full cursor-pointer items-start gap-3 rounded-xl py-2.5 text-left text-[1rem] leading-snug"
       >
-        <span
-          className={cn(
-            "mt-0.5 flex h-[1.375rem] w-[1.375rem] shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-            checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card",
-          )}
-          aria-hidden
-        >
-          {checked ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
-        </span>
+        <RoundSelectionCheck selected={checked} className="mt-0.5" />
         <span id={labelId} className="min-w-0 flex-1 pt-0.5">
           {label}
           {showBadge ? (

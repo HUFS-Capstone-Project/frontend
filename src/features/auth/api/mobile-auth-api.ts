@@ -1,3 +1,4 @@
+import { API_PATHS } from "@/shared/api/api-paths";
 import { mobileAuthClient } from "@/shared/api/mobile-auth-client";
 import type { CommonResponse } from "@/shared/types/api-types";
 
@@ -10,7 +11,7 @@ export const mobileAuthApi = {
     codeVerifier: string;
   }): Promise<CommonResponse<TokenResponse>> => {
     const res = await mobileAuthClient.post<CommonResponse<TokenResponse>>(
-      "/v1/auth/mobile/exchange",
+      API_PATHS.auth.mobileExchange,
       params,
     );
     return res.data;
@@ -18,13 +19,13 @@ export const mobileAuthApi = {
 
   refresh: async (params: { refreshToken: string }): Promise<CommonResponse<TokenResponse>> => {
     const res = await mobileAuthClient.post<CommonResponse<TokenResponse>>(
-      "/v1/auth/mobile/refresh",
+      API_PATHS.auth.mobileRefresh,
       params,
     );
     return res.data;
   },
 
   logout: async (params: { refreshToken: string }): Promise<void> => {
-    await mobileAuthClient.post<CommonResponse<undefined>>("/v1/auth/mobile/logout", params);
+    await mobileAuthClient.post<CommonResponse<undefined>>(API_PATHS.auth.mobileLogout, params);
   },
 };

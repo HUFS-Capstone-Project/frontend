@@ -1,5 +1,6 @@
-import { Check, Pencil } from "lucide-react";
+import { MapPin, Pencil } from "lucide-react";
 
+import { RoundSelectionCheck } from "@/components/ui/RoundSelectionCheck";
 import { cn } from "@/lib/utils";
 import type { SavedPlace } from "@/shared/types/map-home";
 
@@ -28,8 +29,8 @@ export function PlaceSelectCard({
     <li>
       <article
         className={cn(
-          "flex min-h-[70px] w-full items-center gap-3 rounded-2xl bg-[#f0f0f0] px-5 py-4 text-left transition-colors",
-          !disabled && "cursor-pointer active:bg-[#e9e9e9]",
+          "flex min-h-[70px] w-full items-center gap-3 border-b border-black/5 bg-white px-5 py-4 text-left transition-colors",
+          !disabled && "cursor-pointer active:bg-gray-50",
           disabled && "cursor-default",
         )}
         onClick={handleSelect}
@@ -50,7 +51,10 @@ export function PlaceSelectCard({
               <Pencil className="h-4 w-4" strokeWidth={2.4} />
             </button>
           </div>
-          <p className="mt-2 truncate text-[11px] leading-tight text-black/70">{place.address}</p>
+          <p className="mt-2 flex min-w-0 items-center gap-1.5 text-[11px] leading-tight">
+            <MapPin className="size-4 shrink-0 text-neutral-400" aria-hidden />
+            <span className="min-w-0 truncate text-black/70">{place.address}</span>
+          </p>
         </div>
 
         {disabled ? (
@@ -60,12 +64,7 @@ export function PlaceSelectCard({
         ) : (
           <button
             type="button"
-            className={cn(
-              "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors",
-              selected
-                ? "border-[#de8d88] bg-[#ffd7d4] text-[#2a1c1c]"
-                : "border-black/80 bg-white text-transparent",
-            )}
+            className="inline-flex shrink-0"
             aria-label={`${place.name} 선택`}
             aria-pressed={selected}
             onClick={(event) => {
@@ -73,7 +72,7 @@ export function PlaceSelectCard({
               handleSelect();
             }}
           >
-            {selected ? <Check className="h-3.5 w-3.5" strokeWidth={2.2} /> : null}
+            <RoundSelectionCheck selected={selected} />
           </button>
         )}
       </article>

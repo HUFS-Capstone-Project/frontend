@@ -3,6 +3,8 @@ import { MapPin } from "lucide-react";
 import type { MapSearchSuggestion } from "@/features/map/utils/map-search";
 import { cn } from "@/lib/utils";
 
+import { MAP_FILTER_PANEL_BASE_CLASS } from "./chip-style";
+
 type MapSearchSuggestionsProps = {
   suggestions: MapSearchSuggestion[];
   open: boolean;
@@ -21,19 +23,21 @@ export function MapSearchSuggestions({
   }
 
   return (
-    <div
-      className={cn(
-        "bg-background/96 border-border/20 mt-2 overflow-hidden rounded-3xl border py-2 shadow-xl backdrop-blur-md",
-        className,
-      )}
-    >
+    <div className={cn(MAP_FILTER_PANEL_BASE_CLASS, className)}>
       {suggestions.length > 0 ? (
-        <ul role="list" aria-label="검색된 저장 장소">
+        <ul
+          role="list"
+          aria-label="검색된 저장 장소"
+          className="flex list-none flex-col gap-1 p-1.5"
+        >
           {suggestions.map(({ place }) => (
-            <li key={place.id}>
+            <li key={place.id} className="min-w-0">
               <button
                 type="button"
-                className="hover:bg-muted/60 focus-visible:ring-ring flex w-full flex-col gap-1 px-5 py-2.5 text-left outline-none focus-visible:ring-2"
+                className={cn(
+                  "hover:bg-muted/55 active:bg-muted/65 focus-visible:ring-ring flex w-full flex-col gap-1 rounded-2xl px-4 py-2.5 text-left transition-colors outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-offset-0",
+                )}
                 onClick={() => onSelectPlace(place.id)}
               >
                 <span className="text-foreground line-clamp-1 text-sm font-bold">{place.name}</span>
@@ -46,7 +50,14 @@ export function MapSearchSuggestions({
           ))}
         </ul>
       ) : (
-        <div className="px-5 py-4 text-sm font-medium text-neutral-500">관련 장소가 없음</div>
+        <div className="px-5 py-4 text-center" role="status" aria-live="polite">
+          <p className="text-muted-foreground text-sm leading-snug font-semibold">
+            저장한 장소에서 찾지 못했어요
+          </p>
+          <p className="text-muted-foreground/85 mt-1 text-xs leading-relaxed font-normal">
+            장소 이름·주소·동네 이름을 바꿔 검색해 보세요
+          </p>
+        </div>
       )}
     </div>
   );

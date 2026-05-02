@@ -12,6 +12,7 @@ import {
   OnboardingLayout,
   OnboardingTitle,
 } from "@/features/onboarding";
+import { APP_ROUTES } from "@/shared/config/routes";
 
 type NicknamePageLocationState = {
   nickname?: string;
@@ -65,7 +66,7 @@ export default function NicknamePage() {
             disabled={!canSubmit}
             onClick={() => {
               if (!canSubmit) return;
-              void navigate("/onboarding/terms", {
+              void navigate(APP_ROUTES.onboardingTerms, {
                 state: { nickname: trimmed },
               });
             }}

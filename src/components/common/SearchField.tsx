@@ -9,6 +9,7 @@ export type SearchFieldProps = Omit<React.ComponentProps<"input">, "type"> & {
   inputClassName?: string;
   searchButtonLabel?: string;
   onSubmitSearch?: () => void;
+  searchButtonDisabled?: boolean;
 };
 
 export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
@@ -18,6 +19,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
       inputClassName,
       searchButtonLabel = "검색",
       onSubmitSearch,
+      searchButtonDisabled = false,
       id,
       placeholder = SEARCH_FIELD_DEFAULT_PLACEHOLDER,
       "aria-label": ariaLabel,
@@ -51,8 +53,9 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
         />
         <button
           type="button"
-          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full outline-none focus-visible:ring-2"
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={searchButtonLabel}
+          disabled={searchButtonDisabled}
           onClick={onSubmitSearch}
         >
           <Search className="size-4" aria-hidden />

@@ -1,6 +1,4 @@
-import { Check } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import { RoundSelectionCheck } from "@/components/ui/RoundSelectionCheck";
 import type { SavedPlace } from "@/shared/types/map-home";
 
 type EditPlaceResultCardProps = {
@@ -29,17 +27,7 @@ export function EditPlaceResultCard({ place, selected, onSelect }: EditPlaceResu
           <span className="mt-1 block truncate text-[11px] text-black/70">{place.address}</span>
         </span>
 
-        <span
-          className={cn(
-            "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors",
-            selected
-              ? "border-[#de8d88] bg-[#ffd7d4] text-[#2a1c1c]"
-              : "border-black/80 bg-white text-transparent",
-          )}
-          aria-hidden
-        >
-          {selected ? <Check className="h-3.5 w-3.5" strokeWidth={2.2} /> : null}
-        </span>
+        <RoundSelectionCheck selected={selected} />
       </button>
     </li>
   );
