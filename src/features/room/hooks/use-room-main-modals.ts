@@ -48,7 +48,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const [editRoom, setEditRoom] = useState<FriendRoomRow | null>(null);
   const [inviteCodeRoom, setInviteCodeRoom] = useState<FriendRoomRow | null>(null);
   const [leaveRoom, setLeaveRoom] = useState<FriendRoomRow | null>(null);
-  const [linkAddRoom, setLinkAddRoom] = useState<FriendRoomRow | null>(null);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
 
   const roomsQuery = useRoomsQuery();
@@ -84,7 +83,10 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       displayName: detail.roomName,
       inviteCode: detail.inviteCode,
       memberCount: toNonNegativeNumber(detail.memberCount, inviteCodeRoom.memberCount),
-      placeCount: toNonNegativeNumber(detail.linkCount, inviteCodeRoom.placeCount),
+      placeCount: toNonNegativeNumber(
+        detail.placeCount ?? detail.linkCount,
+        inviteCodeRoom.placeCount,
+      ),
       isPinned: detail.pinned,
     };
   }, [inviteCodeRoom, inviteCodeRoomDetailQuery.data]);
@@ -93,7 +95,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     setEditRoom((previous) => (previous?.id === roomId ? null : previous));
     setInviteCodeRoom((previous) => (previous?.id === roomId ? null : previous));
     setLeaveRoom((previous) => (previous?.id === roomId ? null : previous));
-    setLinkAddRoom((previous) => (previous?.id === roomId ? null : previous));
   }, []);
 
   const handleTogglePin = useCallback(
@@ -136,7 +137,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       }
 
       if (action === "add-direct-link") {
-        setLinkAddRoom(room);
         return;
       }
 
@@ -247,10 +247,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     setLeaveRoom(null);
   }, []);
 
-  const closeLinkAddModal = useCallback(() => {
-    setLinkAddRoom(null);
-  }, []);
-
   const openAddRoom = useCallback(() => {
     setIsAddRoomOpen(true);
   }, []);
@@ -264,7 +260,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     editRoom,
     inviteCodeRoom: inviteCodeDisplayRoom,
     leaveRoom,
-    linkAddRoom,
     isAddRoomOpen,
     isRenamePending: updateRoomNameMutation.isPending,
     isLeavePending: leaveRoomMutation.isPending,
@@ -277,7 +272,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     closeInviteCodeModal,
     openInviteCodeModal,
     closeLeaveRoomModal,
-    closeLinkAddModal,
     openAddRoom,
     closeAddRoom,
   };
@@ -288,7 +282,7 @@ function mapRoomSummaryToRow(room: RoomSummaryResponse): FriendRoomRow {
     id: room.roomId,
     displayName: room.roomName,
     memberCount: toNonNegativeNumber(room.memberCount, 1),
-    placeCount: toNonNegativeNumber(room.linkCount, 0),
+    placeCount: toNonNegativeNumber(room.placeCount ?? room.linkCount, 0),
     isPinned: room.pinned,
   };
 }

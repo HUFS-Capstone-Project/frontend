@@ -1,36 +1,49 @@
-import type { LinkAnalysis, LinkAnalysisStatus } from "@/features/link-analysis";
+import type { CandidatePlace, LinkAnalysis, LinkAnalysisStatus } from "@/features/link-analysis";
 
-export type Step = "input" | "processing" | "captionResult" | "selectPlaceMock" | "mockSuccess";
+export type Step = "input" | "processing" | "analysisResult";
 
-export type CaptionResult = {
-  linkId: number;
+export type LinkAnalysisResult = {
+  linkId: number | null;
+  jobId: string | null;
   originalUrl: string;
-  caption: string | null;
   status: LinkAnalysisStatus;
+  candidatePlaces: CandidatePlace[];
   completed: boolean;
-  errorMessage?: string | null;
+  errorCode?: string;
+  errorMessage?: string;
 };
 
-export type MockPlaceCandidate = {
-  id: string;
-  name: string;
-};
+export function mapLinkAnalysisToResult(params: {
+  linkAnalysis: LinkAnalysis;
+  originalUrl: string;
+  jobId?: string | null;
+}): LinkAnalysisResult {
+  const { linkAnalysis, originalUrl, jobId = null } = params;
 
-export function mapLinkAnalysisToCaptionResult(
-  linkAnalysis: LinkAnalysis,
-  originalUrl: string,
-): CaptionResult {
   return {
     linkId: linkAnalysis.linkId,
+    jobId,
     originalUrl,
-    caption: linkAnalysis.caption ?? null,
     status: linkAnalysis.status,
+    candidatePlaces: linkAnalysis.candidatePlaces,
     completed: true,
-    errorMessage:
-      linkAnalysis.status === "FAILED"
-        ? "캡션 추출에 실패했습니다."
-        : linkAnalysis.status === "DISPATCH_FAILED"
-          ? (linkAnalysis.errorMessage ?? "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요.")
-          : null,
+    errorCode: linkAnalysis.errorCode,
+    errorMessage: resolveAnalysisErrorMessage(linkAnalysis),
   };
+}
+
+function resolveAnalysisErrorMessage(linkAnalysis: LinkAnalysis): string | undefined {
+  if (linkAnalysis.errorMessage) {
+    return linkAnalysis.errorMessage;
+  }
+
+  if (linkAnalysis.status === "FAILED") {
+    return "링크 분석에 실패했습니다.";
+  }
+
+  if (linkAnalysis.status === "DISPATCH_FAILED") {
+    return "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요.";
+  }
+
+  return undefined;
 }

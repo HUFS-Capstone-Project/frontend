@@ -20,6 +20,7 @@ export type RoomSummaryResponse = {
   pinned: boolean;
   createdAt: string;
   linkCount: number;
+  placeCount: number;
   memberCount?: number | null;
 };
 
@@ -30,6 +31,7 @@ export type RoomDetailResponse = {
   pinned: boolean;
   memberCount: number;
   linkCount: number;
+  placeCount: number;
   createdAt: string;
 };
 

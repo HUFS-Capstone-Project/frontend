@@ -1,7 +1,13 @@
 import { PillButton } from "@/components/ui/PillButton";
+import {
+  LINK_FLOW_AFTER_HEADLINES_CLASS,
+  LINK_FLOW_FOOTER_GRID_CLASS,
+  LINK_FLOW_HEADLINE_STACK_CLASS,
+  LINK_FLOW_PAGE_CLASS,
+} from "@/features/place-flow/link-flow-layout";
+import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 
 export type LinkInputScreenProps = {
-  roomName: string;
   url: string;
   urlError?: string | null;
   onChangeUrl: (value: string) => void;
@@ -11,7 +17,6 @@ export type LinkInputScreenProps = {
 };
 
 export function LinkInputScreen({
-  roomName,
   url,
   urlError,
   onChangeUrl,
@@ -19,14 +24,16 @@ export function LinkInputScreen({
   onSubmit,
   isSubmitEnabled,
 }: LinkInputScreenProps) {
+  const { titleLine1, titleLine2, inputPlaceholder } = PLACE_FLOW_COPY.linkFromUrl;
+
   return (
-    <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-16 pb-8">
-      <div className="space-y-1">
-        <h2 className="text-foreground text-xl leading-tight font-bold">{roomName}</h2>
-        <p className="text-foreground text-xl leading-tight font-bold">링크로 릴스 추가</p>
+    <div className={LINK_FLOW_PAGE_CLASS}>
+      <div className={LINK_FLOW_HEADLINE_STACK_CLASS}>
+        <h2 className="text-foreground text-xl leading-tight font-bold">{titleLine1}</h2>
+        <p className="text-foreground text-xl leading-tight font-bold">{titleLine2}</p>
       </div>
 
-      <div className="mt-6">
+      <div className={LINK_FLOW_AFTER_HEADLINES_CLASS}>
         <label htmlFor="room-link-input" className="sr-only">
           링크 입력
         </label>
@@ -34,7 +41,7 @@ export function LinkInputScreen({
           id="room-link-input"
           value={url}
           onChange={(event) => onChangeUrl(event.target.value)}
-          placeholder="해당 릴스의 링크를 넣어주세요"
+          placeholder={inputPlaceholder}
           autoComplete="off"
           spellCheck={false}
           autoCorrect="off"
@@ -48,14 +55,14 @@ export function LinkInputScreen({
         ) : null}
       </div>
 
-      <div className="mt-auto grid grid-cols-2 gap-2.5">
+      <div className={LINK_FLOW_FOOTER_GRID_CLASS}>
         <PillButton
           type="button"
           variant="outline"
           className="text-muted-foreground hover:text-muted-foreground"
           onClick={onCancel}
         >
-          취소
+          {PLACE_FLOW_COPY.cancel}
         </PillButton>
         <PillButton
           type="button"

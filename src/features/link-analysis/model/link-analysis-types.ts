@@ -1,5 +1,6 @@
 import type {
   CandidatePlace,
+  CandidatePlaceDisabledReason,
   CandidatePlaceDto,
   LinkAnalysis,
   LinkAnalysisDto,
@@ -38,7 +39,7 @@ export function isLinkAnalysisTerminal(status: LinkAnalysisStatus | undefined): 
 }
 
 export function canRetryLinkAnalysis(status: LinkAnalysisStatus | undefined): boolean {
-  return status === LINK_ANALYSIS_STATUS.DISPATCH_FAILED;
+  return status === LINK_ANALYSIS_STATUS.FAILED || status === LINK_ANALYSIS_STATUS.DISPATCH_FAILED;
 }
 
 export function toLinkAnalysisRequestResult(
@@ -55,7 +56,6 @@ export function toLinkAnalysis(dto: LinkAnalysisDto): LinkAnalysis {
   return {
     linkId: dto.linkId,
     status: dto.status,
-    caption: dto.caption ?? undefined,
     candidatePlaces: (dto.candidatePlaces ?? []).map(toCandidatePlace),
     errorCode: dto.errorCode ?? undefined,
     errorMessage: dto.errorMessage ?? undefined,
@@ -63,24 +63,44 @@ export function toLinkAnalysis(dto: LinkAnalysisDto): LinkAnalysis {
 }
 
 export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
+  const kakaoPlaceId = normalizeOptionalString(dto.kakaoPlaceId);
+  const alreadySaved = dto.alreadySaved === true;
+  const disabledReason = resolveCandidatePlaceDisabledReason({
+    alreadySaved,
+    disabledReason: dto.disabledReason ?? null,
+    kakaoPlaceId,
+  });
+
   return {
-    kakaoPlaceId: dto.kakaoPlaceId ?? undefined,
+    kakaoPlaceId,
     placeName: dto.placeName,
-    categoryName: dto.categoryName ?? undefined,
-    categoryGroupCode: dto.categoryGroupCode ?? undefined,
-    categoryGroupName: dto.categoryGroupName ?? undefined,
-    addressName: dto.addressName ?? undefined,
-    roadAddressName: dto.roadAddressName ?? undefined,
-    longitude: dto.longitude ?? undefined,
-    latitude: dto.latitude ?? undefined,
-    phone: dto.phone ?? undefined,
-    placeUrl: dto.placeUrl ?? undefined,
-    sourceKeyword: dto.sourceKeyword ?? undefined,
-    alreadySaved: dto.alreadySaved,
-    selectable: dto.selectable,
-    roomPlaceId: dto.roomPlaceId ?? undefined,
-    disabledReason: dto.disabledReason ?? undefined,
+    categoryName: dto.categoryName ?? null,
+    categoryGroupCode: dto.categoryGroupCode ?? null,
+    categoryGroupName: dto.categoryGroupName ?? null,
+    addressName: dto.addressName ?? null,
+    roadAddressName: dto.roadAddressName ?? null,
+    longitude: dto.longitude ?? null,
+    latitude: dto.latitude ?? null,
+    phone: dto.phone ?? null,
+    placeUrl: dto.placeUrl ?? null,
+    sourceKeyword: dto.sourceKeyword ?? null,
+    alreadySaved,
+    selectable: dto.selectable === true && disabledReason == null,
+    roomPlaceId: dto.roomPlaceId ?? null,
+    disabledReason,
   };
+}
+
+export function canSelectCandidatePlace(place: CandidatePlace): place is CandidatePlace & {
+  kakaoPlaceId: string;
+} {
+  return place.selectable && !place.alreadySaved && hasKakaoPlaceId(place);
+}
+
+export function hasKakaoPlaceId(place: CandidatePlace): place is CandidatePlace & {
+  kakaoPlaceId: string;
+} {
+  return typeof place.kakaoPlaceId === "string" && place.kakaoPlaceId.trim().length > 0;
 }
 
 export function toSaveCandidatePlacesResult(
@@ -96,4 +116,33 @@ export function toSaveCandidatePlacesResult(
       alreadySaved: place.alreadySaved,
     })),
   };
+}
+
+function normalizeOptionalString(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveCandidatePlaceDisabledReason(params: {
+  alreadySaved: boolean;
+  disabledReason: CandidatePlaceDisabledReason | null;
+  kakaoPlaceId: string | null;
+}): CandidatePlaceDisabledReason | null {
+  if (params.disabledReason) {
+    return params.disabledReason;
+  }
+
+  if (params.alreadySaved) {
+    return "ALREADY_SAVED";
+  }
+
+  if (!params.kakaoPlaceId) {
+    return "MISSING_KAKAO_PLACE_ID";
+  }
+
+  return null;
 }

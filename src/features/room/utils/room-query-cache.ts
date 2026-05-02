@@ -65,14 +65,18 @@ export function setRoomPinInCache(queryClient: QueryClient, roomId: string, pinn
   patchRoomDetail(queryClient, roomId, (room) => ({ ...room, pinned }));
 }
 
-export function incrementRoomLinkCountInCache(queryClient: QueryClient, roomId: string): void {
+export function incrementRoomPlaceCountInCache(
+  queryClient: QueryClient,
+  roomId: string,
+  amount = 1,
+): void {
   patchRoomSummary(queryClient, roomId, (room) => ({
     ...room,
-    linkCount: incrementCount(room.linkCount),
+    placeCount: incrementCount(room.placeCount, amount),
   }));
   patchRoomDetail(queryClient, roomId, (room) => ({
     ...room,
-    linkCount: incrementCount(room.linkCount),
+    placeCount: incrementCount(room.placeCount, amount),
   }));
 }
 
@@ -88,10 +92,12 @@ export function removeRoomFromCache(queryClient: QueryClient, roomId: string): v
   queryClient.removeQueries({ queryKey: roomQueryKeys.roomDetail(roomId) });
 }
 
-function incrementCount(value: number | null | undefined): number {
+function incrementCount(value: number | null | undefined, amount: number): number {
+  const normalizedAmount = Number.isFinite(amount) && amount > 0 ? amount : 1;
+
   if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return 1;
+    return normalizedAmount;
   }
 
-  return value + 1;
+  return value + normalizedAmount;
 }

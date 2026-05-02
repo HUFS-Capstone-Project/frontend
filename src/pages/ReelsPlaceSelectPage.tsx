@@ -4,17 +4,21 @@ import { useNavigate } from "react-router-dom";
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PlaceSelectCard } from "@/components/reels/PlaceSelectCard";
 import { PillButton } from "@/components/ui/PillButton";
+import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
   PLACE_RENDER_ORDER,
   REELS_LINK_MOCK,
   SAVED_PLACE_ID,
 } from "@/features/reels-registration/constants";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/edit-place-store";
 import { useReelsPlaceSelectStore } from "@/store/reels-place-select-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
+import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 export default function ReelsPlaceSelectPage() {
   const navigate = useNavigate();
@@ -24,6 +28,8 @@ export default function ReelsPlaceSelectPage() {
   const editingPlaceId = useEditPlaceStore((state) => state.editingPlaceId);
   const selectedResultId = useEditPlaceStore((state) => state.selectedResultId);
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
+  const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
+  const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
   const [copyLabel, setCopyLabel] = useState("복사");
 
   const placeRows = useMemo(
@@ -41,7 +47,7 @@ export default function ReelsPlaceSelectPage() {
       }).filter((row) => row != null),
     [editingPlaceId, selectedResultId],
   );
-  const canConfirm = selectedPlaceIds.length > 0;
+  const canConfirm = selectedPlaceIds.length > 0 && selectedRoom != null;
 
   const handleCopy = useCallback(async () => {
     try {
@@ -55,21 +61,15 @@ export default function ReelsPlaceSelectPage() {
   }, []);
 
   return (
-    <MobileFixedPageShell>
-      <header className="shrink-0 px-5 pt-40">
-        <section className="space-y-3 pb-5" aria-labelledby="reels-place-select-title">
-          <div className="space-y-1">
-            <h1
-              id="reels-place-select-title"
-              className="text-foreground text-xl leading-tight font-bold"
-            >
-              장소가 인식되었습니다.
-            </h1>
-            <p className="text-foreground text-xl leading-tight font-bold">
-              어느 장소를 등록하시겠습니까?
-            </p>
-          </div>
+    <MobileFixedPageShell alignWithOverlay>
+      <header className="shrink-0 px-6 pt-16">
+        <PlaceFlowHeadlines
+          titleId="reels-place-select-title"
+          title={PLACE_FLOW_COPY.selectFromCandidates.title}
+          subtitle={PLACE_FLOW_COPY.selectFromCandidates.subtitle}
+        />
 
+        <div className="mt-6 space-y-3 pb-5">
           <CopyableLinkBar
             url={REELS_LINK_MOCK}
             copyLabel={copyLabel}
@@ -77,10 +77,10 @@ export default function ReelsPlaceSelectPage() {
               void handleCopy();
             }}
           />
-        </section>
+        </div>
       </header>
 
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-3">
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
         <ul className="border-t border-black/5">
           {placeRows.map(({ slotId, place }) => {
             const disabled = slotId === SAVED_PLACE_ID;
@@ -92,10 +92,11 @@ export default function ReelsPlaceSelectPage() {
                 disabled={disabled}
                 onSelect={() => togglePlace(slotId)}
                 onEdit={() =>
-                  navigate("/edit_place", {
+                  navigate(APP_ROUTES.editPlace, {
                     state: {
                       placeId: slotId,
                       placeName: place.name,
+                      returnTo: "register-place",
                     },
                   })
                 }
@@ -122,13 +123,17 @@ export default function ReelsPlaceSelectPage() {
             variant={canConfirm ? "onboarding" : "onboardingMuted"}
             disabled={!canConfirm}
             onClick={() => {
+              if (!selectedRoom) {
+                return;
+              }
               setSelectedPlacesForRegister(selectedPlaceIds);
-              navigate("/register-select-room", {
-                state: {
-                  selectedPlaceIds,
-                  selectedPlaceCount: selectedPlaceIds.length,
-                },
-              });
+              if (completeRegisterToRoom(selectedRoom.id)) {
+                clearSelection();
+                navigate(APP_ROUTES.room, {
+                  replace: true,
+                  state: { showPlacesRegisteredToast: true },
+                });
+              }
             }}
           >
             확인

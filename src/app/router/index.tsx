@@ -14,8 +14,9 @@ import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import ReelsPlaceSelectPage from "@/pages/ReelsPlaceSelectPage";
-import RegisterPlaceInpersonPage from "@/pages/RegisterPlaceInpersonPage";
-import RegisterSelectRoomPage from "@/pages/RegisterSelectRoomPage";
+import RoomLinkCandidatesPage from "@/pages/rooms/RoomLinkCandidatesPage";
+import RoomPlaceFromLinkPage from "@/pages/rooms/RoomPlaceFromLinkPage";
+import RoomPlaceSearchPage from "@/pages/rooms/RoomPlaceSearchPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
 import { APP_ROUTES } from "@/shared/config/routes";
 
@@ -36,8 +37,7 @@ export const router = createBrowserRouter([
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "dev/register_place", element: <ReelsPlaceSelectPage /> },
       { path: "edit_place", element: <EditPlacePage /> },
-      { path: "register-place-inperson", element: <RegisterPlaceInpersonPage /> },
-      { path: "register-select-room", element: <RegisterSelectRoomPage /> },
+      { path: "register-place-inperson", element: <Navigate to={APP_ROUTES.room} replace /> },
       {
         path: "dev/list",
         element: (
@@ -94,6 +94,18 @@ export const router = createBrowserRouter([
         ),
         children: [
           { path: "room", element: <RoomMainPage /> },
+          {
+            path: "rooms/:roomId/places/search",
+            element: <RoomPlaceSearchPage />,
+          },
+          {
+            path: "rooms/:roomId/places/from-link",
+            element: <RoomPlaceFromLinkPage />,
+          },
+          {
+            path: "rooms/:roomId/links/:linkId/candidates",
+            element: <RoomLinkCandidatesPage />,
+          },
           { path: "map", element: <MapHomePage />, loader: mapHomeLoader },
           { path: "list", element: <PlaceListPage /> },
           { path: "course", element: <CoursePlannerPage /> },

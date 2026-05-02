@@ -19,6 +19,7 @@ export function useCreateRoomMutation() {
         pinned: createdRoom.pinned,
         memberCount: 1,
         linkCount: 0,
+        placeCount: 0,
         createdAt: createdRoom.createdAt,
       });
       prependRoomSummary(queryClient, mapCreateRoomToSummary(createdRoom));
@@ -33,6 +34,7 @@ function mapCreateRoomToSummary(createdRoom: CreateRoomResponse): RoomSummaryRes
     pinned: createdRoom.pinned,
     createdAt: createdRoom.createdAt,
     linkCount: 0,
+    placeCount: 0,
     memberCount: 1,
   };
 }

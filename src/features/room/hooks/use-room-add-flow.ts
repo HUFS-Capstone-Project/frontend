@@ -17,8 +17,8 @@ const INVITE_CODE_MAX_LENGTH = 32;
 const OPEN_FLOW_DELAY_MS = 260;
 const COPY_FEEDBACK_RESET_MS = 1800;
 
-const CREATE_SUCCESS_TOAST = "방이 생성되었습니다.";
-const JOIN_SUCCESS_TOAST = "방에 참여했습니다.";
+const CREATE_SUCCESS_TOAST = "방이 생성되었습니다";
+const JOIN_SUCCESS_TOAST = "방에 참여했습니다";
 type FullScreenStep = "none" | "createName" | "createInvite" | "join";
 type CopyFeedback = "idle" | "copied";
 

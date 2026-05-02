@@ -5,21 +5,22 @@ import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { SearchField } from "@/components/common/SearchField";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { PillButton } from "@/components/ui/PillButton";
+import type { EditPlaceLocationState } from "@/features/place-flow/edit-place-navigation";
+import { linkCandidatesResumeState, resolveEditPlaceReturnTo } from "@/features/place-flow/edit-place-navigation";
+import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { REELS_LINK_MOCK } from "@/features/reels-registration/constants";
+import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/edit-place-store";
-
-type EditPlaceLocationState = {
-  placeId?: string;
-  placeName?: string;
-};
 
 export default function EditPlacePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const routeState = (location.state ?? {}) as EditPlaceLocationState;
+  const returnTo = resolveEditPlaceReturnTo(routeState);
   const editingPlaceId = useEditPlaceStore((state) => state.editingPlaceId);
   const searchKeyword = useEditPlaceStore((state) => state.searchKeyword);
   const selectedResultId = useEditPlaceStore((state) => state.selectedResultId);
@@ -65,8 +66,36 @@ export default function EditPlacePage() {
     }
   }, []);
 
+  const resumeLinkAdd = useCallback(() => {
+    const roomId = routeState.linkAddRoomId;
+    const linkId = routeState.linkAddLinkId;
+    const session = routeState.linkAddDraftSession;
+    if (
+      typeof roomId === "string" &&
+      roomId.length > 0 &&
+      linkId != null &&
+      String(linkId).length > 0
+    ) {
+      navigate(ROOM_APP_PATHS.linkCandidates(roomId, linkId), {
+        state: linkCandidatesResumeState(session),
+      });
+      return true;
+    }
+    return false;
+  }, [
+    navigate,
+    routeState.linkAddDraftSession,
+    routeState.linkAddLinkId,
+    routeState.linkAddRoomId,
+  ]);
+
   const handleBack = () => {
     reset();
+    if (returnTo === "link-add") {
+      if (resumeLinkAdd()) {
+        return;
+      }
+    }
     navigate(-1);
   };
 
@@ -75,22 +104,32 @@ export default function EditPlacePage() {
       return;
     }
 
-    navigate("/dev/register_place");
+    if (returnTo === "back") {
+      navigate(-1);
+      return;
+    }
+
+    if (returnTo === "link-add") {
+      if (resumeLinkAdd()) {
+        return;
+      }
+      navigate(-1);
+      return;
+    }
+
+    navigate(APP_ROUTES.reelsRegisterPlace);
   };
 
   return (
-    <MobileFixedPageShell>
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pt-40 pb-4">
-        <section className="space-y-5" aria-labelledby="edit-place-title">
-          <div className="space-y-1">
-            <h1 id="edit-place-title" className="text-foreground text-xl leading-tight font-bold">
-              장소 위치 정보를 변경하시겠습니까?
-            </h1>
-            <p className="text-foreground text-xl leading-tight font-bold">
-              해당 장소를 직접 입력해주세요
-            </p>
-          </div>
+    <MobileFixedPageShell alignWithOverlay>
+      <header className="shrink-0 px-6 pt-16">
+        <PlaceFlowHeadlines
+          titleId="edit-place-title"
+          title={PLACE_FLOW_COPY.searchToCorrect.title}
+          subtitle={PLACE_FLOW_COPY.searchToCorrect.subtitle}
+        />
 
+        <div className="mt-6 space-y-3 pb-5">
           <CopyableLinkBar
             url={REELS_LINK_MOCK}
             copyLabel={copyLabel}
@@ -99,16 +138,17 @@ export default function EditPlacePage() {
             }}
           />
 
-          <label className="flex min-h-14 items-center gap-2">
+          <label className="flex min-h-14 items-center gap-2" htmlFor="edit-place-search">
             <SearchField
+              id="edit-place-search"
               className="min-w-0 flex-1"
               value={searchKeyword}
               onChange={(event) => {
                 setKeyword(event.target.value);
                 setSelectedResult(null);
               }}
-              placeholder="장소 이름을 검색해주세요"
-              searchButtonLabel="장소 검색"
+              placeholder={PLACE_FLOW_COPY.searchPlaceholder}
+              searchButtonLabel={PLACE_FLOW_COPY.searchButton}
               onSubmitSearch={() => {
                 if (!canSearch) return;
                 if (searchResults.length === 1) {
@@ -118,26 +158,31 @@ export default function EditPlacePage() {
               searchButtonDisabled={!canSearch}
             />
           </label>
+        </div>
+      </header>
 
-          {trimmedKeyword ? (
-            <ul className="-mx-5 border-t border-black/5">
-              {searchResults.length === 0 ? (
-                <li className="text-muted-foreground px-5 py-8 text-center text-sm">
-                  검색 결과가 없습니다
-                </li>
-              ) : (
-                searchResults.map((place) => (
-                  <EditPlaceResultCard
-                    key={place.id}
-                    place={place}
-                    selected={selectedResultId === place.id}
-                    onSelect={() => setSelectedResult(place.id)}
-                  />
-                ))
-              )}
-            </ul>
-          ) : null}
-        </section>
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+        {trimmedKeyword ? (
+          <ul className="border-t border-black/5">
+            {searchResults.length === 0 ? (
+              <li className="px-1 py-8 text-center">
+                <p className="text-foreground text-base font-semibold">
+                  {PLACE_FLOW_COPY.emptySearchTitle}
+                </p>
+                <p className="text-muted-foreground mt-1 text-sm">{PLACE_FLOW_COPY.emptySearchHint}</p>
+              </li>
+            ) : (
+              searchResults.map((place) => (
+                <EditPlaceResultCard
+                  key={place.id}
+                  place={place}
+                  selected={selectedResultId === place.id}
+                  onSelect={() => setSelectedResult(place.id)}
+                />
+              ))
+            )}
+          </ul>
+        ) : null}
       </div>
 
       <TwoButtonFooter
@@ -148,7 +193,7 @@ export default function EditPlacePage() {
             className="text-muted-foreground hover:text-muted-foreground"
             onClick={handleBack}
           >
-            취소
+            {PLACE_FLOW_COPY.cancel}
           </PillButton>
         }
         right={
@@ -158,7 +203,7 @@ export default function EditPlacePage() {
             disabled={!canConfirm}
             onClick={handleConfirm}
           >
-            확인
+            {PLACE_FLOW_COPY.applyChange}
           </PillButton>
         }
       />

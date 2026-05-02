@@ -12,7 +12,7 @@ export function TwoButtonFooter({ left, right, className }: TwoButtonFooterProps
   return (
     <div
       className={cn(
-        "shrink-0 bg-white px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]",
+        "shrink-0 bg-white px-6 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]",
         className,
       )}
     >

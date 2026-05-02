@@ -56,7 +56,7 @@ body {
   /* 스플래시 타이틀 (순백 #fff 대신 근사 톤) */
   --splash-foreground: oklch(0.99 0 0);
 
-  /* 상태 배지 (CaptionResult 등) */
+  /* 상태 배지 */
   --success-soft: oklch(0.96 0.04 160);
   --success-foreground: oklch(0.45 0.12 160);
   --error-soft: oklch(0.96 0.05 25);
@@ -187,14 +187,14 @@ body {
 
   /** 방 목록 행: 제목 / 멤버·장소 수 공통 글자 크기 */
   .text-room-title {
+    @apply font-sans font-medium;
     font-size: var(--room-row-title-size);
-    font-weight: 500;
     line-height: 1.25;
   }
 
   .text-room-meta {
+    @apply font-sans font-medium;
     font-size: var(--room-row-meta-size);
-    font-weight: 500;
     line-height: 1.25;
   }
 
@@ -458,7 +458,7 @@ body {
     caret-color: transparent;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     caret-color: transparent;
   }
   input,

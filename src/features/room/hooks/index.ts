@@ -6,7 +6,8 @@ export {
 } from "./use-friend-room-row-interactions";
 export { useJoinRoomMutation } from "./use-join-room-mutation";
 export { useLeaveRoomMutation } from "./use-leave-room-mutation";
-export { useLinkAddFlow } from "./use-link-add-flow";
+export { useFriendRoomRowById } from "./use-friend-room-row-by-id";
+export { useLinkAddFlow, type LinkAddCandidatesBootstrap } from "./use-link-add-flow";
 export { useOverlayFlowController } from "./use-overlay-flow-controller";
 export { useRegisterLinkMutation } from "./use-register-link-mutation";
 export { useRoomActionModalHistory } from "./use-room-action-modal-history";

@@ -9,7 +9,7 @@ type PlaceSelectCardProps = {
   selected: boolean;
   disabled: boolean;
   onSelect: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
 };
 
 export function PlaceSelectCard({
@@ -39,17 +39,19 @@ export function PlaceSelectCard({
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <span className="text-foreground truncate text-base font-semibold">{place.name}</span>
-            <button
-              type="button"
-              className="text-foreground inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
-              aria-label={`${place.name} 수정`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit();
-              }}
-            >
-              <Pencil className="h-4 w-4" strokeWidth={2.4} />
-            </button>
+            {onEdit ? (
+              <button
+                type="button"
+                className="text-foreground inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
+                aria-label={`${place.name} 수정`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEdit();
+                }}
+              >
+                <Pencil className="h-4 w-4" strokeWidth={2.4} />
+              </button>
+            ) : null}
           </div>
           <p className="mt-2 flex min-w-0 items-center gap-1.5 text-[11px] leading-tight">
             <MapPin className="size-4 shrink-0 text-neutral-400" aria-hidden />

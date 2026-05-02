@@ -1,34 +1,46 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { MobileFixedPageShell } from "@/components/common/MobileFixedPageShell";
 import { SearchField } from "@/components/common/SearchField";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { PillButton } from "@/components/ui/PillButton";
+import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { REELS_LINK_MOCK } from "@/features/reels-registration/constants";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
 
-export default function RegisterPlaceInpersonPage() {
+export default function RoomPlaceSearchPage() {
   const navigate = useNavigate();
+  const { roomId: roomIdParam = "" } = useParams();
+  const registerContextRoomId = roomIdParam.trim();
   const keyword = useInpersonPlaceStore((state) => state.keyword);
   const selectedPlaceId = useInpersonPlaceStore((state) => state.selectedPlaceId);
   const setKeyword = useInpersonPlaceStore((state) => state.setKeyword);
   const setSelectedPlace = useInpersonPlaceStore((state) => state.setSelectedPlace);
   const reset = useInpersonPlaceStore((state) => state.reset);
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
+  const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
   const [copyLabel, setCopyLabel] = useState("복사");
 
   useEffect(() => {
     reset();
   }, [reset]);
 
+  useEffect(() => {
+    if (registerContextRoomId.length === 0) {
+      navigate(APP_ROUTES.room, { replace: true });
+    }
+  }, [navigate, registerContextRoomId]);
+
   const trimmedKeyword = keyword.trim();
   const canSearch = trimmedKeyword.length > 0;
-  const canConfirm = selectedPlaceId !== null;
+  const canConfirm = selectedPlaceId !== null && registerContextRoomId.length > 0;
 
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
@@ -39,11 +51,6 @@ export default function RegisterPlaceInpersonPage() {
       (place) => place.name.includes(trimmedKeyword) || place.address.includes(trimmedKeyword),
     );
   }, [trimmedKeyword]);
-
-  const selectedPlace = useMemo(
-    () => SAVED_PLACE_MOCKS.find((place) => place.id === selectedPlaceId) ?? null,
-    [selectedPlaceId],
-  );
 
   const handleCopy = useCallback(async () => {
     try {
@@ -62,36 +69,34 @@ export default function RegisterPlaceInpersonPage() {
   };
 
   const handleConfirm = () => {
-    if (!selectedPlaceId) {
+    if (!selectedPlaceId || !registerContextRoomId) {
       return;
     }
 
     setSelectedPlacesForRegister([selectedPlaceId]);
-    navigate("/register-select-room", {
-      state: {
-        selectedPlaceIds: [selectedPlaceId],
-        selectedPlaceCount: 1,
-        selectedPlace,
-      },
-    });
+    if (completeRegisterToRoom(registerContextRoomId)) {
+      reset();
+      navigate(APP_ROUTES.room, {
+        replace: true,
+        state: { showPlacesRegisteredToast: true },
+      });
+    }
   };
 
-  return (
-    <MobileFixedPageShell>
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pt-40 pb-4">
-        <section className="space-y-5" aria-labelledby="inperson-place-title">
-          <div className="space-y-1">
-            <h1
-              id="inperson-place-title"
-              className="text-foreground text-xl leading-tight font-bold"
-            >
-              장소 인식에 실패했습니다.
-            </h1>
-            <p className="text-foreground text-xl leading-tight font-bold">
-              해당 장소를 직접 입력해주세요.
-            </p>
-          </div>
+  if (registerContextRoomId.length === 0) {
+    return null;
+  }
 
+  return (
+    <MobileFixedPageShell alignWithOverlay>
+      <header className="shrink-0 px-6 pt-16">
+        <PlaceFlowHeadlines
+          titleId="inperson-place-title"
+          title={PLACE_FLOW_COPY.notFoundTitle}
+          subtitle={PLACE_FLOW_COPY.notFoundHint}
+        />
+
+        <div className="mt-6 space-y-3 pb-5">
           <CopyableLinkBar
             url={REELS_LINK_MOCK}
             copyLabel={copyLabel}
@@ -100,16 +105,17 @@ export default function RegisterPlaceInpersonPage() {
             }}
           />
 
-          <label className="flex min-h-14 items-center gap-2">
+          <label className="flex min-h-14 items-center gap-2" htmlFor="inperson-place-search">
             <SearchField
+              id="inperson-place-search"
               className="min-w-0 flex-1"
               value={keyword}
               onChange={(event) => {
                 setKeyword(event.target.value);
                 setSelectedPlace(null);
               }}
-              placeholder="장소 이름을 검색해주세요"
-              searchButtonLabel="장소 검색"
+              placeholder={PLACE_FLOW_COPY.searchPlaceholder}
+              searchButtonLabel={PLACE_FLOW_COPY.searchButton}
               onSubmitSearch={() => {
                 if (!canSearch) return;
                 if (searchResults.length === 1) {
@@ -119,26 +125,31 @@ export default function RegisterPlaceInpersonPage() {
               searchButtonDisabled={!canSearch}
             />
           </label>
+        </div>
+      </header>
 
-          {trimmedKeyword ? (
-            <ul className="-mx-5 border-t border-black/5">
-              {searchResults.length === 0 ? (
-                <li className="text-muted-foreground px-5 py-8 text-center text-sm">
-                  검색 결과가 없습니다
-                </li>
-              ) : (
-                searchResults.map((place) => (
-                  <EditPlaceResultCard
-                    key={place.id}
-                    place={place}
-                    selected={selectedPlaceId === place.id}
-                    onSelect={() => setSelectedPlace(place.id)}
-                  />
-                ))
-              )}
-            </ul>
-          ) : null}
-        </section>
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+        {trimmedKeyword ? (
+          <ul className="border-t border-black/5">
+            {searchResults.length === 0 ? (
+              <li className="px-1 py-8 text-center">
+                <p className="text-foreground text-base font-semibold">
+                  {PLACE_FLOW_COPY.emptySearchTitle}
+                </p>
+                <p className="text-muted-foreground mt-1 text-sm">{PLACE_FLOW_COPY.emptySearchHint}</p>
+              </li>
+            ) : (
+              searchResults.map((place) => (
+                <EditPlaceResultCard
+                  key={place.id}
+                  place={place}
+                  selected={selectedPlaceId === place.id}
+                  onSelect={() => setSelectedPlace(place.id)}
+                />
+              ))
+            )}
+          </ul>
+        ) : null}
       </div>
 
       <TwoButtonFooter
@@ -149,7 +160,7 @@ export default function RegisterPlaceInpersonPage() {
             className="text-muted-foreground hover:text-muted-foreground"
             onClick={handleCancel}
           >
-            취소
+            {PLACE_FLOW_COPY.cancel}
           </PillButton>
         }
         right={

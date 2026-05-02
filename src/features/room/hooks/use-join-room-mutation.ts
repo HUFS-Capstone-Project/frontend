@@ -27,6 +27,7 @@ function mapJoinRoomToSummary(joinedRoom: JoinRoomResponse): RoomSummaryResponse
     pinned: joinedRoom.pinned,
     createdAt: joinedRoom.createdAt,
     linkCount: 0,
+    placeCount: 0,
     memberCount: 1,
   };
 }

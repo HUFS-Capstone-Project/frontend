@@ -7,10 +7,11 @@ import { FloatingActionButton } from "@/components/common/FloatingActionButton";
 import { FriendRoomList } from "@/components/room/FriendRoomList";
 import { RoomMainHeader } from "@/components/room/RoomMainHeader";
 import { RoomMainShell } from "@/components/room/RoomMainShell";
+import { roomPlaceFromLinkResumeState } from "@/features/place-flow/edit-place-navigation";
 import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
-import { APP_ROUTES } from "@/shared/config/routes";
+import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import { REGISTER_SELECT_ROOM_TEXT } from "@/shared/config/text";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
@@ -32,9 +33,6 @@ const LeaveRoomConfirmModal = lazy(() =>
     default: module.LeaveRoomConfirmModal,
   })),
 );
-const LinkAddModal = lazy(() =>
-  import("@/components/room/link-add").then((module) => ({ default: module.LinkAddModal })),
-);
 const RoomAddModal = lazy(() =>
   import("@/components/room/RoomAddModal").then((module) => ({ default: module.RoomAddModal })),
 );
@@ -46,6 +44,8 @@ const EditRoomNameModal = lazy(() =>
 
 type RoomMainLocationState = {
   showPlacesRegisteredToast?: boolean;
+  openLinkAddForRoomId?: string;
+  linkAddDraftSession?: string;
 };
 
 export default function RoomMainPage() {
@@ -66,7 +66,6 @@ export default function RoomMainPage() {
     editRoom,
     inviteCodeRoom,
     leaveRoom,
-    linkAddRoom,
     isAddRoomOpen,
     isRenamePending,
     isLeavePending,
@@ -76,7 +75,6 @@ export default function RoomMainPage() {
     closeEditRoomModal,
     closeInviteCodeModal,
     closeLeaveRoomModal,
-    closeLinkAddModal,
     openAddRoom,
     closeAddRoom,
   } = useRoomMainModals({ showToast });
@@ -84,17 +82,38 @@ export default function RoomMainPage() {
   const [isEditRoomModalLoaded, setIsEditRoomModalLoaded] = useState(editRoom != null);
   const [isInviteCodeModalLoaded, setIsInviteCodeModalLoaded] = useState(inviteCodeRoom != null);
   const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
-  const [isLinkAddModalLoaded, setIsLinkAddModalLoaded] = useState(linkAddRoom != null);
   const [isRoomAddModalLoaded, setIsRoomAddModalLoaded] = useState(isAddRoomOpen);
 
   useEffect(() => {
-    const state = (location.state ?? null) as RoomMainLocationState | null;
-    if (!state?.showPlacesRegisteredToast) {
+    const raw = (location.state ?? null) as RoomMainLocationState | null;
+    if (!raw) {
       return;
     }
 
-    showToast(REGISTER_SELECT_ROOM_TEXT.placesRegisteredToast, 2000);
-    navigate(location.pathname, { replace: true, state: {} });
+    const nextState: Record<string, unknown> = { ...raw };
+    let shouldReplace = false;
+
+    if (raw.showPlacesRegisteredToast) {
+      showToast(REGISTER_SELECT_ROOM_TEXT.placesRegisteredToast, 2000);
+      delete nextState.showPlacesRegisteredToast;
+      shouldReplace = true;
+    }
+
+    if (typeof raw.openLinkAddForRoomId === "string" && raw.openLinkAddForRoomId.length > 0) {
+      navigate(ROOM_APP_PATHS.placeFromLink(raw.openLinkAddForRoomId), {
+        replace: true,
+        state: roomPlaceFromLinkResumeState(raw.linkAddDraftSession),
+      });
+      return;
+    }
+
+    if (shouldReplace) {
+      const keys = Object.keys(nextState);
+      navigate(location.pathname, {
+        replace: true,
+        state: keys.length > 0 ? nextState : {},
+      });
+    }
   }, [location.pathname, location.state, navigate, showToast]);
 
   const displayRows = sortedRows.map((row) => ({
@@ -120,19 +139,21 @@ export default function RoomMainPage() {
 
   const handleRoomActionWithLoad = useCallback(
     (action: RoomActionType, row: FriendRoomRow) => {
+      if (action === "add-direct-link") {
+        navigate(ROOM_APP_PATHS.placeFromLink(row.id));
+        return;
+      }
       if (action === "invite-code") {
         setIsInviteCodeModalLoaded(true);
       } else if (action === "leave") {
         setIsLeaveRoomModalLoaded(true);
-      } else if (action === "add-direct-link") {
-        setIsLinkAddModalLoaded(true);
       } else if (action === "edit-info") {
         setIsEditRoomModalLoaded(true);
       }
 
       handleRoomAction(action, row);
     },
-    [handleRoomAction],
+    [handleRoomAction, navigate],
   );
 
   const handleOpenAddRoom = useCallback(() => {
@@ -188,11 +209,6 @@ export default function RoomMainPage() {
               onConfirmLeave={handleConfirmLeaveRoom}
               isSubmitting={isLeavePending}
             />
-          </Suspense>
-        ) : null}
-        {isLinkAddModalLoaded ? (
-          <Suspense fallback={null}>
-            <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
           </Suspense>
         ) : null}
         {isRoomAddModalLoaded ? (
