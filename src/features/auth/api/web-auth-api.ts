@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 
+import { API_PATHS } from "@/shared/api/api-paths";
 import { ensureCsrfCookie, webAuthClient } from "@/shared/api/web-auth-client";
 import { getCookie, XSRF_COOKIE_NAME } from "@/shared/lib/cookie";
 import type { CommonResponse } from "@/shared/types/api-types";
@@ -16,7 +17,7 @@ export const webAuthApi = {
   /** OAuth 콜백: ticket → `data.token.accessToken`, `data.me` */
   exchangeTicket: async (ticket: string): Promise<CommonResponse<AuthTokenBootstrapResponse>> => {
     const res = await webAuthClient.post<CommonResponse<AuthTokenBootstrapResponse>>(
-      "/v1/auth/web/exchange-ticket",
+      API_PATHS.auth.webExchangeTicket,
       { ticket },
     );
     return res.data;
@@ -24,7 +25,7 @@ export const webAuthApi = {
 
   /** refresh 쿠키 → `data.accessToken` */
   refresh: async (): Promise<CommonResponse<TokenResponse>> => {
-    const res = await webAuthClient.post<CommonResponse<TokenResponse>>("/v1/auth/refresh");
+    const res = await webAuthClient.post<CommonResponse<TokenResponse>>(API_PATHS.auth.refresh);
     return res.data;
   },
 
@@ -39,7 +40,7 @@ export const webAuthApi = {
     }
 
     try {
-      await webAuthClient.post("/v1/auth/logout");
+      await webAuthClient.post(API_PATHS.auth.logout);
     } catch (e) {
       if (isAxiosError(e)) {
         const data = e.response?.data as { detail?: string; message?: string } | undefined;

@@ -1,7 +1,6 @@
 export { useCreateRoomMutation } from "./use-create-room-mutation";
 export { useJoinRoomMutation } from "./use-join-room-mutation";
 export { useLeaveRoomMutation } from "./use-leave-room-mutation";
-export { isLinkStatusCompleted, useLinkStatusPollingQuery } from "./use-link-status-polling-query";
 export { useRegisterLinkMutation } from "./use-register-link-mutation";
 export { useRoomDetailQuery } from "./use-room-detail-query";
 export { useRoomsQuery } from "./use-rooms-query";

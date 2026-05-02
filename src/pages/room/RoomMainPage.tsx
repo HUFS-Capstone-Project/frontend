@@ -10,6 +10,7 @@ import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { APP_ROUTES } from "@/shared/config/routes";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
 import { useRegisterRoomStore } from "@/store/registerRoomStore";
@@ -51,7 +52,8 @@ export default function RoomMainPage() {
     nickname != null && nickname.trim().length > 0
       ? `${nickname.trim()}님의 데이트 지도`
       : "데이트 지도";
-  const { toastMessage, handleSelectBottomNav, showToast } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
+    useBottomNavController();
   const { actionRoom, openRoomActions, closeRoomActions } = useRoomActionModalHistory();
   const {
     sortedRows,
@@ -86,7 +88,7 @@ export default function RoomMainPage() {
   const handleRoomNavigate = useCallback(
     (row: FriendRoomRow) => {
       selectRoom({ id: row.id, name: row.displayName, memberCount: row.memberCount });
-      navigate("/map");
+      navigate(APP_ROUTES.map);
     },
     [navigate, selectRoom],
   );
@@ -122,69 +124,67 @@ export default function RoomMainPage() {
   }, [openAddRoom]);
 
   return (
-    <RoomMainShell
-      header={<RoomMainHeader title={roomMainHeaderTitle} />}
-      fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
-      bottomNav={
-        <>
-          <BottomNavToast message={toastMessage} />
-          <BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />
-        </>
-      }
-    >
-      <FriendRoomList
-        rows={displayRows}
-        onRoomNavigate={handleRoomNavigate}
-        onOpenRoomActions={handleOpenRoomActions}
-      />
-      {isRoomActionModalLoaded ? (
-        <Suspense fallback={null}>
-          <RoomActionModal
-            room={actionRoom}
-            onClose={closeRoomActions}
-            onAction={handleRoomActionWithLoad}
-          />
-        </Suspense>
-      ) : null}
-      {isEditRoomModalLoaded ? (
-        <Suspense fallback={null}>
-          <EditRoomNameModal
-            room={editRoom}
-            onClose={closeEditRoomModal}
-            onSubmitRoomName={handleSubmitEditRoomName}
-            isSubmitting={isRenamePending}
-          />
-        </Suspense>
-      ) : null}
-      {isInviteCodeModalLoaded ? (
-        <Suspense fallback={null}>
-          <InviteCodeModal
-            room={inviteCodeRoom}
-            onClose={closeInviteCodeModal}
-            showToast={showToast}
-          />
-        </Suspense>
-      ) : null}
-      {isLeaveRoomModalLoaded ? (
-        <Suspense fallback={null}>
-          <LeaveRoomConfirmModal
-            room={leaveRoom}
-            onClose={closeLeaveRoomModal}
-            onConfirmLeave={handleConfirmLeaveRoom}
-            isSubmitting={isLeavePending}
-          />
-        </Suspense>
-      ) : null}
-      {isLinkAddModalLoaded ? (
-        <Suspense fallback={null}>
-          <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
-        </Suspense>
-      ) : null}
-      {isRoomAddModalLoaded ? (
-        <Suspense fallback={null}>
-          <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
-        </Suspense>
-      ) : null}
-    </RoomMainShell>
+    <>
+      <RoomMainShell
+        header={<RoomMainHeader title={roomMainHeaderTitle} />}
+        fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
+        bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
+      >
+        <FriendRoomList
+          rows={displayRows}
+          onRoomNavigate={handleRoomNavigate}
+          onOpenRoomActions={handleOpenRoomActions}
+        />
+        {isRoomActionModalLoaded ? (
+          <Suspense fallback={null}>
+            <RoomActionModal
+              room={actionRoom}
+              onClose={closeRoomActions}
+              onAction={handleRoomActionWithLoad}
+            />
+          </Suspense>
+        ) : null}
+        {isEditRoomModalLoaded ? (
+          <Suspense fallback={null}>
+            <EditRoomNameModal
+              room={editRoom}
+              onClose={closeEditRoomModal}
+              onSubmitRoomName={handleSubmitEditRoomName}
+              isSubmitting={isRenamePending}
+            />
+          </Suspense>
+        ) : null}
+        {isInviteCodeModalLoaded ? (
+          <Suspense fallback={null}>
+            <InviteCodeModal
+              room={inviteCodeRoom}
+              onClose={closeInviteCodeModal}
+              showToast={showToast}
+            />
+          </Suspense>
+        ) : null}
+        {isLeaveRoomModalLoaded ? (
+          <Suspense fallback={null}>
+            <LeaveRoomConfirmModal
+              room={leaveRoom}
+              onClose={closeLeaveRoomModal}
+              onConfirmLeave={handleConfirmLeaveRoom}
+              isSubmitting={isLeavePending}
+            />
+          </Suspense>
+        ) : null}
+        {isLinkAddModalLoaded ? (
+          <Suspense fallback={null}>
+            <LinkAddModal room={linkAddRoom} onClose={closeLinkAddModal} />
+          </Suspense>
+        ) : null}
+        {isRoomAddModalLoaded ? (
+          <Suspense fallback={null}>
+            <RoomAddModal isOpen={isAddRoomOpen} onClose={closeAddRoom} showToast={showToast} />
+          </Suspense>
+        ) : null}
+      </RoomMainShell>
+      <BottomNavToast message={toastMessage} placement={toastPlacement} />
+    </>
   );
 }

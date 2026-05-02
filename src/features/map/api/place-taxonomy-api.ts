@@ -1,12 +1,11 @@
+import { API_PATHS } from "@/shared/api/api-paths";
 import { api } from "@/shared/api/axios";
 
 import type { ApiResponse, PlaceFilterData } from "./place-taxonomy-types";
 
-const PLACE_TAXONOMY_PATH = "/v1/place-taxonomy";
-
 export const placeTaxonomyApi = {
   getPlaceFilterOptions: async (): Promise<PlaceFilterData> => {
-    const response = await api.get<ApiResponse<PlaceFilterData>>(PLACE_TAXONOMY_PATH, {
+    const response = await api.get<ApiResponse<PlaceFilterData>>(API_PATHS.placeTaxonomy, {
       headers: {
         Accept: "application/json",
       },

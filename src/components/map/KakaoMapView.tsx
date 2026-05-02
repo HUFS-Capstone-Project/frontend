@@ -9,7 +9,7 @@ import {
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
-import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/placeDetailStore";
+import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
 
 export type KakaoMapViewProps = {
   appKey?: string;
@@ -136,10 +136,10 @@ export function KakaoMapView({
       return;
     }
 
-      const trimmedGeocodeKeyword = geocodeKeyword.trim();
-      if (trimmedGeocodeKeyword && maps.services) {
-        mapInstance.setLevel(level);
-        let disposed = false;
+    const trimmedGeocodeKeyword = geocodeKeyword.trim();
+    if (trimmedGeocodeKeyword && maps.services) {
+      mapInstance.setLevel(level);
+      let disposed = false;
       const normalizeResultText = (value: string | undefined) =>
         (value ?? "").trim().toLowerCase().replace(/\s+/g, "");
       const normalizedKeyword = normalizeResultText(trimmedGeocodeKeyword);

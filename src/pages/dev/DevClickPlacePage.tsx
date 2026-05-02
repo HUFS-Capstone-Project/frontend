@@ -1,6 +1,6 @@
 import { useLayoutEffect } from "react";
 
-import MyHomePage_WithDetail from "@/pages/MyHomePage_WithDetail";
+import MapHomeWithDetail from "@/pages/map/MapHomeWithDetail";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 const DEV_ROOM = {
@@ -24,5 +24,5 @@ export default function DevClickPlacePage() {
     return null;
   }
 
-  return <MyHomePage_WithDetail />;
+  return <MapHomeWithDetail />;
 }

@@ -1,6 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  isLinkAnalysisTerminal,
+  useLinkAnalysisStatusQuery,
+  useRequestLinkAnalysisMutation,
+} from "@/features/link-analysis";
 import { isApiError } from "@/shared/api/axios";
 import type { FriendRoomRow } from "@/shared/types/room";
 
@@ -8,16 +13,13 @@ import {
   buildMockPlacesFromCaption,
   type CaptionResult,
   confirmMockPlaceSelection,
-  mapLinkStatusToCaptionResult,
+  mapLinkAnalysisToCaptionResult,
   type Step,
 } from "../link-add";
-import { roomQueryKeys } from "../query-keys";
 import { incrementRoomLinkCountInCache } from "../utils/room-query-cache";
-import { useLinkStatusPollingQuery } from "./use-link-status-polling-query";
-import { useRegisterLinkMutation } from "./use-register-link-mutation";
 
 const DEFAULT_STEP: Step = "input";
-const LINK_STATUS_POLLING_INTERVAL_MS = 2_500;
+const LINK_ANALYSIS_POLLING_INTERVAL_MS = 2_000;
 
 type UseLinkAddFlowOptions = {
   room: FriendRoomRow | null;
@@ -41,7 +43,7 @@ type UseLinkAddFlowResult = {
   cancelOngoingSubmission: () => void;
   resetFlow: () => void;
   submitLink: () => Promise<void>;
-  retryPolling: () => Promise<void>;
+  retryLinkAnalysis: () => Promise<void>;
   saveSucceededResult: () => Promise<void>;
   openMockPlaceScreen: () => void;
   confirmMockSelection: () => Promise<void>;
@@ -64,10 +66,12 @@ export function useLinkAddFlow({
 
   const submitSequenceRef = useRef(0);
 
-  const registerLinkMutation = useRegisterLinkMutation();
-  const linkStatusQuery = useLinkStatusPollingQuery(linkId, {
+  const requestLinkAnalysisMutation = useRequestLinkAnalysisMutation(room?.id ?? null);
+  const linkAnalysisStatusQuery = useLinkAnalysisStatusQuery({
+    roomId: room?.id ?? null,
+    linkId,
     enabled: step === "processing" && linkId != null,
-    pollingIntervalMs: LINK_STATUS_POLLING_INTERVAL_MS,
+    pollingIntervalMs: LINK_ANALYSIS_POLLING_INTERVAL_MS,
   });
 
   const handleChangeUrl = useCallback((value: string) => {
@@ -102,12 +106,9 @@ export function useLinkAddFlow({
       return null;
     }
 
-    const latest = linkStatusQuery.data;
-    if (
-      latest &&
-      (latest.completed || latest.status === "SUCCEEDED" || latest.status === "FAILED")
-    ) {
-      const mapped = mapLinkStatusToCaptionResult(latest);
+    const latest = linkAnalysisStatusQuery.data;
+    if (latest && isLinkAnalysisTerminal(latest.status)) {
+      const mapped = mapLinkAnalysisToCaptionResult(latest, url.trim());
 
       if (latest.status === "SUCCEEDED" && !latest.caption) {
         return {
@@ -119,19 +120,19 @@ export function useLinkAddFlow({
       return mapped;
     }
 
-    if (linkStatusQuery.error) {
+    if (linkAnalysisStatusQuery.error) {
       return {
         linkId: linkId ?? 0,
         originalUrl: url.trim(),
         caption: null,
         status: "FAILED",
         completed: true,
-        errorMessage: resolveLinkStatusErrorMessage(linkStatusQuery.error),
+        errorMessage: resolveLinkStatusErrorMessage(linkAnalysisStatusQuery.error),
       };
     }
 
     return null;
-  }, [linkId, linkStatusQuery.data, linkStatusQuery.error, step, url]);
+  }, [linkAnalysisStatusQuery.data, linkAnalysisStatusQuery.error, linkId, step, url]);
 
   const renderStep = step === "processing" && polledCaptionResult ? "captionResult" : step;
 
@@ -150,7 +151,6 @@ export function useLinkAddFlow({
     }
 
     const trimmedUrl = url.trim();
-
     const submitSequence = submitSequenceRef.current + 1;
     submitSequenceRef.current = submitSequence;
 
@@ -163,8 +163,7 @@ export function useLinkAddFlow({
     setStep("processing");
 
     try {
-      const registered = await registerLinkMutation.mutateAsync({
-        roomId: room.id,
+      const requested = await requestLinkAnalysisMutation.mutateAsync({
         url: trimmedUrl,
         source: "WEB",
       });
@@ -173,7 +172,7 @@ export function useLinkAddFlow({
         return;
       }
 
-      setLinkId(registered.linkId);
+      setLinkId(requested.linkId);
     } catch (error) {
       if (submitSequenceRef.current !== submitSequence) {
         return;
@@ -189,20 +188,12 @@ export function useLinkAddFlow({
       });
       setStep("captionResult");
     }
-  }, [registerLinkMutation, room, url]);
+  }, [requestLinkAnalysisMutation, room, url]);
 
-  const retryPolling = useCallback(async () => {
-    if (linkId == null) {
-      await submitLink();
-      return;
-    }
-
+  const retryLinkAnalysis = useCallback(async () => {
     setCaptionResult(null);
-    setStep("processing");
-
-    queryClient.removeQueries({ queryKey: roomQueryKeys.linkStatus(linkId) });
-    await linkStatusQuery.refetch();
-  }, [linkId, linkStatusQuery, queryClient, submitLink]);
+    await submitLink();
+  }, [submitLink]);
 
   const saveSucceededResult = useCallback(async () => {
     if (!room || hasSaved || isSavePending) {
@@ -252,14 +243,14 @@ export function useLinkAddFlow({
     setSelectedMockPlaceId,
     renderCaptionResult,
     mockPlaces,
-    isSubmitting: registerLinkMutation.isPending,
-    isSubmitEnabled: validateLinkUrl(url) == null && !registerLinkMutation.isPending,
+    isSubmitting: requestLinkAnalysisMutation.isPending,
+    isSubmitEnabled: validateLinkUrl(url) == null && !requestLinkAnalysisMutation.isPending,
     hasSaved,
     isSavePending,
     cancelOngoingSubmission,
     resetFlow,
     submitLink,
-    retryPolling,
+    retryLinkAnalysis,
     saveSucceededResult,
     openMockPlaceScreen,
     confirmMockSelection,
@@ -299,28 +290,36 @@ function validateLinkUrl(value: string): string | null {
 
 function resolveRegisterLinkErrorMessage(error: unknown): string {
   if (isApiError(error)) {
-    if (error.code === "E409_CONFLICT") {
-      return "이미 등록된 링크입니다. 처리 결과를 다시 확인해 주세요.";
+    if (error.status === 400) {
+      return error.message || "입력한 링크를 확인해 주세요.";
     }
 
-    if (error.code === "E403_FORBIDDEN") {
-      return "요청 권한이 없습니다. 잠시 후 다시 시도해 주세요.";
+    if (error.status === 403 || error.code === "E403_FORBIDDEN") {
+      return "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.";
+    }
+
+    if (error.status === 500 || error.status === 502) {
+      return "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
     }
 
     return error.message;
   }
 
-  return "링크 등록에 실패했습니다. 다시 시도해 주세요.";
+  return "링크 분석 요청에 실패했습니다. 다시 시도해 주세요.";
 }
 
 function resolveLinkStatusErrorMessage(error: unknown): string {
   if (isApiError(error)) {
-    if (error.code === "E502_EXTERNAL_API") {
-      return "처리 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+    if (error.status === 403 || error.code === "E403_FORBIDDEN") {
+      return "분석 결과를 조회할 권한이 없습니다.";
+    }
+
+    if (error.status === 500 || error.status === 502 || error.code === "E502_EXTERNAL_API") {
+      return "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
     }
 
     return error.message;
   }
 
-  return "링크 상태를 확인하지 못했습니다. 다시 시도해 주세요.";
+  return "링크 분석 상태를 확인하지 못했습니다. 다시 시도해 주세요.";
 }

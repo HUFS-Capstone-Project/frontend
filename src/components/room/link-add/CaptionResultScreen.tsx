@@ -1,6 +1,7 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { PillButton } from "@/components/ui/PillButton";
+import { canRetryLinkAnalysis } from "@/features/link-analysis";
 import type { CaptionResult } from "@/features/room/link-add";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,8 @@ export function CaptionResultScreen({
 }: CaptionResultScreenProps) {
   const isSucceeded = result.status === "SUCCEEDED";
   const isFailed = result.status === "FAILED";
+  const isDispatchFailed = result.status === "DISPATCH_FAILED";
+  const canRetry = canRetryLinkAnalysis(result.status);
   const canSave = isSucceeded && onSave != null;
 
   return (
@@ -45,14 +48,15 @@ export function CaptionResultScreen({
               className={cn(
                 "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
                 isSucceeded && "bg-success-soft text-success-foreground",
-                isFailed && "bg-error-soft text-error-foreground",
-                !isSucceeded && !isFailed && "bg-muted text-foreground",
+                (isFailed || isDispatchFailed) && "bg-error-soft text-error-foreground",
+                !isSucceeded && !isFailed && !isDispatchFailed && "bg-muted text-foreground",
               )}
             >
               {result.status}
             </span>
           </ResultRow>
           <ResultRow label="caption" value={result.caption ?? "(없음)"} />
+          {result.errorMessage ? <ResultRow label="error" value={result.errorMessage} /> : null}
         </div>
       </div>
 
@@ -69,7 +73,7 @@ export function CaptionResultScreen({
       <div
         className={cn(
           "mt-auto grid gap-2.5 pt-6",
-          canSave || !isSucceeded ? "grid-cols-2" : "grid-cols-1",
+          canSave || canRetry ? "grid-cols-2" : "grid-cols-1",
         )}
       >
         <PillButton type="button" variant="outline" onClick={onClose}>
@@ -84,14 +88,9 @@ export function CaptionResultScreen({
           >
             {hasSaved ? "저장됨" : isSavePending ? "저장 중..." : "저장하기"}
           </PillButton>
-        ) : !isSucceeded ? (
-          <PillButton
-            type="button"
-            variant={isFailed ? "onboarding" : "onboardingMuted"}
-            disabled={!isFailed}
-            onClick={onRetry}
-          >
-            재시도
+        ) : canRetry ? (
+          <PillButton type="button" variant="onboarding" onClick={onRetry}>
+            다시 시도
           </PillButton>
         ) : null}
       </div>

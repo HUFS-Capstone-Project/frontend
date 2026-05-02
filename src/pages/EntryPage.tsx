@@ -2,6 +2,7 @@
 import { Navigate } from "react-router-dom";
 
 import { hasShownLaunchSplash, markLaunchSplashShown } from "@/features/splash/lib/launch-splash";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 import SplashScreenPage from "./SplashScreenPage";
@@ -41,7 +42,7 @@ export default function EntryPage() {
   }
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={APP_ROUTES.login} replace />;
   }
 
   // persist 상의 로그인 상태는 있으나, accessToken 복구(useInitAuth) 대기 중
@@ -50,8 +51,8 @@ export default function EntryPage() {
   }
 
   if (!hasCompletedOnboarding) {
-    return <Navigate to="/onboarding/nickname" replace />;
+    return <Navigate to={APP_ROUTES.onboardingNickname} replace />;
   }
 
-  return <Navigate to="/room" replace />;
+  return <Navigate to={APP_ROUTES.room} replace />;
 }

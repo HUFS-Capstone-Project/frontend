@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 
 import { useUserMeQuery } from "@/features/users";
 import { isApiError } from "@/shared/api/axios";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
 type OnboardingGateProps = {
@@ -43,7 +44,7 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   }, [logout, shouldRedirectToLogin]);
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={APP_ROUTES.login} replace />;
   }
 
   if (!accessToken || meQuery.isPending) {
@@ -51,7 +52,7 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   }
 
   if (shouldRedirectToLogin) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={APP_ROUTES.login} replace />;
   }
 
   if (meQuery.isError) {
@@ -61,7 +62,7 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   const completed = me?.onboardingCompleted ?? hasCompletedOnboarding;
 
   if (completed) {
-    return <Navigate to="/room" replace />;
+    return <Navigate to={APP_ROUTES.room} replace />;
   }
 
   return children;

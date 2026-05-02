@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { AuthChannel } from "@/features/auth/lib/auth-channel";
+import { STORAGE_KEYS } from "@/shared/config/storage";
 
 type SignInData = {
   nickname: string | null;
@@ -74,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: "udidura-auth",
+      name: STORAGE_KEYS.auth,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         isLoggedIn: state.isLoggedIn,

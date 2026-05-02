@@ -3,6 +3,8 @@ import { MapPin } from "lucide-react";
 import type { MapSearchSuggestion } from "@/features/map/utils/map-search";
 import { cn } from "@/lib/utils";
 
+import { MAP_SEARCH_SUGGESTIONS_PANEL_CLASS } from "./chip-style";
+
 type MapSearchSuggestionsProps = {
   suggestions: MapSearchSuggestion[];
   open: boolean;
@@ -23,17 +25,25 @@ export function MapSearchSuggestions({
   return (
     <div
       className={cn(
-        "bg-background/96 border-border/20 mt-2 overflow-hidden rounded-3xl border py-2 shadow-xl backdrop-blur-md",
+        MAP_SEARCH_SUGGESTIONS_PANEL_CLASS,
+        "mt-2 overflow-hidden rounded-3xl shadow-sm",
         className,
       )}
     >
       {suggestions.length > 0 ? (
-        <ul role="list" aria-label="검색된 저장 장소">
+        <ul
+          role="list"
+          aria-label="검색된 저장 장소"
+          className="flex list-none flex-col gap-1 p-1.5"
+        >
           {suggestions.map(({ place }) => (
-            <li key={place.id}>
+            <li key={place.id} className="min-w-0">
               <button
                 type="button"
-                className="hover:bg-muted/60 focus-visible:ring-ring flex w-full flex-col gap-1 px-5 py-2.5 text-left outline-none focus-visible:ring-2"
+                className={cn(
+                  "hover:bg-muted/55 active:bg-muted/65 focus-visible:ring-ring flex w-full flex-col gap-1 rounded-2xl px-4 py-2.5 text-left transition-colors outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-offset-0",
+                )}
                 onClick={() => onSelectPlace(place.id)}
               >
                 <span className="text-foreground line-clamp-1 text-sm font-bold">{place.name}</span>

@@ -10,13 +10,31 @@ const DEFAULT_SUGGESTION_LIMIT = 5;
 const KNOWN_LOCATION_CENTERS: Array<{ keywords: string[]; center: MapCoordinate }> = [
   { keywords: ["서울", "서울시", "서울특별시"], center: { latitude: 37.5665, longitude: 126.978 } },
   { keywords: ["제주", "제주시"], center: { latitude: 33.4996, longitude: 126.5312 } },
-  { keywords: ["대구", "대구시", "대구광역시"], center: { latitude: 35.8714, longitude: 128.6014 } },
+  {
+    keywords: ["대구", "대구시", "대구광역시"],
+    center: { latitude: 35.8714, longitude: 128.6014 },
+  },
   { keywords: ["광명", "광명시"], center: { latitude: 37.4785, longitude: 126.8646 } },
-  { keywords: ["인천", "인천시", "인천광역시"], center: { latitude: 37.4563, longitude: 126.7052 } },
-  { keywords: ["부산", "부산시", "부산광역시"], center: { latitude: 35.1796, longitude: 129.0756 } },
-  { keywords: ["대전", "대전시", "대전광역시"], center: { latitude: 36.3504, longitude: 127.3845 } },
-  { keywords: ["광주", "광주시", "광주광역시"], center: { latitude: 35.1595, longitude: 126.8526 } },
-  { keywords: ["울산", "울산시", "울산광역시"], center: { latitude: 35.5384, longitude: 129.3114 } },
+  {
+    keywords: ["인천", "인천시", "인천광역시"],
+    center: { latitude: 37.4563, longitude: 126.7052 },
+  },
+  {
+    keywords: ["부산", "부산시", "부산광역시"],
+    center: { latitude: 35.1796, longitude: 129.0756 },
+  },
+  {
+    keywords: ["대전", "대전시", "대전광역시"],
+    center: { latitude: 36.3504, longitude: 127.3845 },
+  },
+  {
+    keywords: ["광주", "광주시", "광주광역시"],
+    center: { latitude: 35.1595, longitude: 126.8526 },
+  },
+  {
+    keywords: ["울산", "울산시", "울산광역시"],
+    center: { latitude: 35.5384, longitude: 129.3114 },
+  },
   { keywords: ["세종", "세종시"], center: { latitude: 36.4801, longitude: 127.289 } },
   { keywords: ["이문", "이문동"], center: { latitude: 37.5943, longitude: 127.0615 } },
   { keywords: ["회기", "회기동"], center: { latitude: 37.5919, longitude: 127.0555 } },

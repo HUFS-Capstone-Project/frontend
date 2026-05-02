@@ -1,4 +1,4 @@
-﻿import type { LinkAnalysisStatus, LinkStatusResponse } from "@/features/room/api";
+import type { LinkAnalysis, LinkAnalysisStatus } from "@/features/link-analysis";
 
 export type Step = "input" | "processing" | "captionResult" | "selectPlaceMock" | "mockSuccess";
 
@@ -16,16 +16,21 @@ export type MockPlaceCandidate = {
   name: string;
 };
 
-export function mapLinkStatusToCaptionResult(linkStatus: LinkStatusResponse): CaptionResult {
+export function mapLinkAnalysisToCaptionResult(
+  linkAnalysis: LinkAnalysis,
+  originalUrl: string,
+): CaptionResult {
   return {
-    linkId: linkStatus.linkId,
-    originalUrl: linkStatus.originalUrl,
-    caption: linkStatus.caption,
-    status: linkStatus.status,
-    completed: linkStatus.completed,
+    linkId: linkAnalysis.linkId,
+    originalUrl,
+    caption: linkAnalysis.caption ?? null,
+    status: linkAnalysis.status,
+    completed: true,
     errorMessage:
-      linkStatus.status === "FAILED"
-        ? "캡션 추출에 실패했습니다. 잠시 후 다시 시도해 주세요."
-        : null,
+      linkAnalysis.status === "FAILED"
+        ? "캡션 추출에 실패했습니다."
+        : linkAnalysis.status === "DISPATCH_FAILED"
+          ? (linkAnalysis.errorMessage ?? "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요.")
+          : null,
   };
 }

@@ -5,7 +5,12 @@
 
 export type CommonResponse<T> = SharedCommonResponse<T>;
 
-export type LinkAnalysisStatus = "REQUESTED" | "PROCESSING" | "SUCCEEDED" | "FAILED";
+export type LinkAnalysisStatus =
+  | "REQUESTED"
+  | "PROCESSING"
+  | "SUCCEEDED"
+  | "FAILED"
+  | "DISPATCH_FAILED";
 
 export type LinkSource = "WEB" | "APP" | null;
 
@@ -47,17 +52,6 @@ export type RegisterLinkResponse = {
   linkId: number;
   jobId: string | null;
   status: LinkAnalysisStatus;
-};
-
-export type LinkStatusResponse = {
-  linkId: number;
-  originalUrl: string;
-  jobId: string | null;
-  status: LinkAnalysisStatus;
-  completed: boolean;
-  caption: string | null;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type CreateRoomRequest = {
