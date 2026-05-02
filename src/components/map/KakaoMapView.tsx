@@ -15,8 +15,12 @@ export type KakaoMapViewProps = {
   appKey?: string;
   places: SavedPlace[];
   center: MapCoordinate;
+  fitBoundsPlaces?: SavedPlace[];
+  geocodeKeyword?: string;
+  viewportKey?: string;
   level?: number;
   className?: string;
+  onMapClick?: () => void;
 };
 
 type MapLoadState = "loading" | "ready" | "error";
@@ -25,7 +29,17 @@ type MapLoadState = "loading" | "ready" | "error";
  * Kakao JS SDK 로딩과 지도/마커 렌더링을 담당.
  * 현재는 단일 마커 스타일만 사용하고, 상세 오버레이는 연결하지 않는다.
  */
-export function KakaoMapView({ appKey, places, center, level = 4, className }: KakaoMapViewProps) {
+export function KakaoMapView({
+  appKey,
+  places,
+  center,
+  fitBoundsPlaces = [],
+  geocodeKeyword = "",
+  viewportKey = "initial",
+  level = 4,
+  className,
+  onMapClick,
+}: KakaoMapViewProps) {
   const mapKey = appKey?.trim() ?? "";
   const hasMapKey = mapKey.length > 0;
   const initialCenterRef = useRef(center);
@@ -100,14 +114,125 @@ export function KakaoMapView({ appKey, places, center, level = 4, className }: K
     };
   }, [hasMapKey, mapKey]);
 
-  // effect B: center 변경 시 setCenter만 수행
+  // effect B: requested viewport changes.
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current) return;
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
-    const nextCenter = new maps.LatLng(center.latitude, center.longitude);
-    mapInstance.setCenter(nextCenter);
-  }, [center.latitude, center.longitude, loadState]);
+
+    if (fitBoundsPlaces.length > 1) {
+      const bounds = new maps.LatLngBounds();
+      fitBoundsPlaces.forEach((place) => {
+        bounds.extend(new maps.LatLng(place.latitude, place.longitude));
+      });
+      mapInstance.setBounds(bounds);
+      return;
+    }
+
+    if (fitBoundsPlaces.length === 1) {
+      const [place] = fitBoundsPlaces;
+      mapInstance.setLevel(level);
+      mapInstance.setCenter(new maps.LatLng(place.latitude, place.longitude));
+      return;
+    }
+
+    const trimmedGeocodeKeyword = geocodeKeyword.trim();
+    if (trimmedGeocodeKeyword && maps.services) {
+      mapInstance.setLevel(level);
+      let disposed = false;
+      const normalizeResultText = (value: string | undefined) =>
+        (value ?? "").trim().toLowerCase().replace(/\s+/g, "");
+      const normalizedKeyword = normalizeResultText(trimmedGeocodeKeyword);
+      const scoreResult = (result: {
+        place_name?: string;
+        address_name?: string;
+        road_address_name?: string;
+      }) => {
+        const texts = [
+          normalizeResultText(result.place_name),
+          normalizeResultText(result.address_name),
+          normalizeResultText(result.road_address_name),
+        ];
+
+        if (texts.some((text) => text === normalizedKeyword)) return 0;
+        if (texts.some((text) => text.includes(normalizedKeyword))) return 1;
+        if (texts.some((text) => normalizedKeyword.includes(text) && text.length > 0)) return 2;
+        return 3;
+      };
+      const moveToBestResult = (
+        results: Array<{
+          x: string;
+          y: string;
+          place_name?: string;
+          address_name?: string;
+          road_address_name?: string;
+        }>,
+      ) => {
+        const [result] = [...results].sort((a, b) => scoreResult(a) - scoreResult(b));
+        const latitude = Number(result?.y);
+        const longitude = Number(result?.x);
+        if (disposed || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+          return false;
+        }
+
+        mapInstance.setCenter(new maps.LatLng(latitude, longitude));
+        return true;
+      };
+      const moveToFallbackCenter = () => {
+        if (!disposed) {
+          mapInstance.setCenter(new maps.LatLng(center.latitude, center.longitude));
+        }
+      };
+
+      const services = maps.services;
+      const geocoder = new services.Geocoder();
+      geocoder.addressSearch(trimmedGeocodeKeyword, (addressResults, addressStatus) => {
+        if (disposed) {
+          return;
+        }
+
+        if (addressStatus === services.Status.OK && moveToBestResult(addressResults)) {
+          return;
+        }
+
+        const places = new services.Places();
+        places.keywordSearch(trimmedGeocodeKeyword, (keywordResults, keywordStatus) => {
+          if (keywordStatus === services.Status.OK && moveToBestResult(keywordResults)) {
+            return;
+          }
+
+          moveToFallbackCenter();
+        });
+      });
+
+      return () => {
+        disposed = true;
+      };
+    }
+
+    mapInstance.setLevel(level);
+    mapInstance.setCenter(new maps.LatLng(center.latitude, center.longitude));
+  }, [
+    center.latitude,
+    center.longitude,
+    fitBoundsPlaces,
+    geocodeKeyword,
+    level,
+    loadState,
+    viewportKey,
+  ]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !onMapClick) return;
+
+    const maps = mapsRef.current;
+    const mapInstance = mapRef.current;
+    maps.event.addListener(mapInstance, "click", onMapClick);
+
+    return () => {
+      maps.event.removeListener(mapInstance, "click", onMapClick);
+    };
+  }, [loadState, onMapClick]);
 
   // effect C: places 변경 시 marker만 갱신
   useEffect(() => {
