@@ -9,7 +9,10 @@ import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { EditPlaceResultCard } from "@/components/reels/EditPlaceResultCard";
 import { PillButton } from "@/components/ui/PillButton";
 import type { EditPlaceLocationState } from "@/features/place-flow/edit-place-navigation";
-import { linkCandidatesResumeState, resolveEditPlaceReturnTo } from "@/features/place-flow/edit-place-navigation";
+import {
+  linkCandidatesResumeState,
+  resolveEditPlaceReturnTo,
+} from "@/features/place-flow/edit-place-navigation";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { REELS_LINK_MOCK } from "@/features/reels-registration/constants";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
@@ -169,7 +172,9 @@ export default function EditPlacePage() {
                 <p className="text-foreground text-base font-semibold">
                   {PLACE_FLOW_COPY.emptySearchTitle}
                 </p>
-                <p className="text-muted-foreground mt-1 text-sm">{PLACE_FLOW_COPY.emptySearchHint}</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {PLACE_FLOW_COPY.emptySearchHint}
+                </p>
               </li>
             ) : (
               searchResults.map((place) => (

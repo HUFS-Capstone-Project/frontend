@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import type { LinkAddCandidatesBootstrap } from "@/features/room/hooks";
 import { useLinkAddFlow } from "@/features/room/hooks";
-import { setLinkAddPendingUrl } from "@/features/room/link-add-pending-url-storage";
 import { shouldAutoExitToInperson } from "@/features/room/link-add/should-auto-exit-to-inperson";
+import { setLinkAddPendingUrl } from "@/features/room/link-add-pending-url-storage";
 import { ROOM_APP_PATHS } from "@/shared/config/routes";
 import type { FriendRoomRow } from "@/shared/types/room";
 import { useLinkAddDraftStore } from "@/store/link-add-draft-store";

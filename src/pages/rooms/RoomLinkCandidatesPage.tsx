@@ -43,13 +43,7 @@ export default function RoomLinkCandidatesPage() {
       ? state.selectedKakaoPlaceIds
       : [];
     return { linkId: linkIdNum, url: pendingUrl, selectedKakaoPlaceIds };
-  }, [
-    draftSessionId,
-    linkIdNum,
-    state?.linkAddPendingUrl,
-    state?.selectedKakaoPlaceIds,
-    trimmedRoomId,
-  ]);
+  }, [draftSessionId, linkIdNum, state, trimmedRoomId]);
 
   const room = useFriendRoomRowById(trimmedRoomId.length > 0 ? trimmedRoomId : undefined);
 

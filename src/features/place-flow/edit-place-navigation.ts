@@ -28,17 +28,13 @@ export function roomPlaceFromLinkResumeState(
     : {};
 }
 
-export function linkCandidatesResumeState(
-  draftSession?: string | null,
-): LinkCandidatesResumeState {
+export function linkCandidatesResumeState(draftSession?: string | null): LinkCandidatesResumeState {
   return typeof draftSession === "string" && draftSession.length > 0
     ? { linkAddDraftSession: draftSession }
     : {};
 }
 
-export function resolveEditPlaceReturnTo(
-  state: EditPlaceLocationState,
-): EditPlaceReturnTo {
+export function resolveEditPlaceReturnTo(state: EditPlaceLocationState): EditPlaceReturnTo {
   if (state.returnTo) {
     return state.returnTo;
   }
@@ -53,4 +49,3 @@ export function resolveEditPlaceReturnTo(
   }
   return "register-place";
 }
-

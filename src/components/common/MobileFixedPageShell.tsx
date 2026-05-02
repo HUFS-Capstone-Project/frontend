@@ -22,7 +22,7 @@ export function MobileFixedPageShell({
       className={cn(
         "mx-auto flex w-full flex-col overflow-hidden bg-white",
         alignWithOverlay
-          ? "-m-page max-w-lg flex-1 min-h-0 self-stretch md:max-w-3xl xl:max-w-lg"
+          ? "-m-page min-h-0 max-w-lg flex-1 self-stretch md:max-w-3xl xl:max-w-lg"
           : "h-dvh max-w-[430px]",
         className,
       )}

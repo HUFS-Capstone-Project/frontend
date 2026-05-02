@@ -27,16 +27,19 @@ export function LinkProcessingScreen() {
 
     const step = () => {
       const { min, max } = processingCarouselDelayMs;
-      timeoutId = window.setTimeout(() => {
-        if (cancelled) {
-          return;
-        }
-        index += 1;
-        setLineIndex(index);
-        if (index < processingCarousel.length - 1) {
-          step();
-        }
-      }, randomDelayMs(min, max));
+      timeoutId = window.setTimeout(
+        () => {
+          if (cancelled) {
+            return;
+          }
+          index += 1;
+          setLineIndex(index);
+          if (index < processingCarousel.length - 1) {
+            step();
+          }
+        },
+        randomDelayMs(min, max),
+      );
     };
 
     const run = () => {

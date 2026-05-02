@@ -136,7 +136,9 @@ export default function RoomPlaceSearchPage() {
                 <p className="text-foreground text-base font-semibold">
                   {PLACE_FLOW_COPY.emptySearchTitle}
                 </p>
-                <p className="text-muted-foreground mt-1 text-sm">{PLACE_FLOW_COPY.emptySearchHint}</p>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {PLACE_FLOW_COPY.emptySearchHint}
+                </p>
               </li>
             ) : (
               searchResults.map((place) => (
