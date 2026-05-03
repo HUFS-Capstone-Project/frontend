@@ -71,7 +71,7 @@ export function CoursePlaceTagSelector({
 
       {focusedSection && hasRenderableTagGroups ? (
         <div
-          className="grid gap-3 pt-1"
+          className="border-border/70 bg-background grid gap-3 rounded-lg border px-3 py-3"
           role="region"
           aria-label={`${focusedSection.name} 상세 태그`}
         >

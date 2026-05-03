@@ -41,14 +41,14 @@ export function CourseConfirmModal({
     <RoomModalShell visible={isVisible} onOverlayClick={requestClose} className="z-90">
       <div className="px-6 pt-8 pb-5">
         <h2 className="text-foreground text-center text-base leading-snug font-bold">{title}</h2>
-        <p className="text-foreground mt-2 text-center text-xs leading-relaxed">{description}</p>
+        <p className="text-foreground mt-3 text-center text-sm leading-relaxed">{description}</p>
       </div>
       <div className="border-border/50 flex border-t">
         <button
           type="button"
           onClick={requestClose}
           className={cn(
-            "flex-1 py-4 text-xs font-medium transition-colors",
+            "flex-1 py-4 text-sm font-medium transition-colors",
             "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
           )}
         >
@@ -58,7 +58,7 @@ export function CourseConfirmModal({
           type="button"
           onClick={onConfirm}
           className={cn(
-            "hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-xs font-medium transition-colors",
+            "hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors",
             variant === "danger" ? "text-destructive" : "text-foreground",
           )}
         >

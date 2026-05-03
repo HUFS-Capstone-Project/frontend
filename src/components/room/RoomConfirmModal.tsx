@@ -1,4 +1,3 @@
-import { PillButton } from "@/components/ui/PillButton";
 import { cn } from "@/lib/utils";
 
 import { RoomModalShell } from "./RoomModalShell";
@@ -6,8 +5,11 @@ import { RoomModalShell } from "./RoomModalShell";
 type RoomConfirmModalProps = {
   open: boolean;
   message: string;
+  description?: string;
   cancelLabel?: string;
   confirmLabel: string;
+  className?: string;
+  confirmButtonClassName?: string;
   onCancel?: () => void;
   onConfirm: () => void;
 };
@@ -15,8 +17,11 @@ type RoomConfirmModalProps = {
 export function RoomConfirmModal({
   open,
   message,
+  description,
   cancelLabel,
   confirmLabel,
+  className,
+  confirmButtonClassName,
   onCancel,
   onConfirm,
 }: RoomConfirmModalProps) {
@@ -34,52 +39,43 @@ export function RoomConfirmModal({
           onCancel?.();
         }
       }}
-      className="z-60"
+      className={cn("z-60", className)}
     >
-      {isSingleAction ? (
-        <div className="px-5 pt-4 pb-4">
-          <p className="text-foreground text-center text-base leading-snug font-bold whitespace-pre-line">
-            {message}
+      <div className="px-6 pt-8 pb-5 text-center">
+        <h2 className="text-foreground text-base leading-snug font-bold whitespace-pre-line">
+          {message}
+        </h2>
+        {description ? (
+          <p className="text-foreground mt-3 text-sm leading-relaxed whitespace-pre-line">
+            {description}
           </p>
-          <PillButton
-            type="button"
-            variant="modal"
-            className="mt-4"
-            aria-label={confirmLabel}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </PillButton>
-        </div>
-      ) : (
-        <>
-          <div className="px-6 pt-8 pb-5 text-center">
-            <p className="text-foreground text-base leading-snug font-bold whitespace-pre-line">
-              {message}
-            </p>
-          </div>
+        ) : null}
+      </div>
 
-          <div className="border-border/50 flex border-t">
-            <button
-              type="button"
-              className={cn(
-                "flex-1 py-4 text-sm font-medium transition-colors",
-                "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
-              )}
-              onClick={onCancel}
-            >
-              {cancelLabel}
-            </button>
-            <button
-              type="button"
-              className="text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors"
-              onClick={onConfirm}
-            >
-              {confirmLabel}
-            </button>
-          </div>
-        </>
-      )}
+      <div className="border-border/50 flex border-t">
+        {isSingleAction ? null : (
+          <button
+            type="button"
+            className={cn(
+              "flex-1 py-4 text-sm font-medium transition-colors",
+              "border-border/50 text-muted-foreground hover:bg-muted/25 active:bg-muted/35 border-r",
+            )}
+            onClick={onCancel}
+          >
+            {cancelLabel}
+          </button>
+        )}
+        <button
+          type="button"
+          className={cn(
+            "text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors",
+            confirmButtonClassName,
+          )}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </button>
+      </div>
     </RoomModalShell>
   );
 }

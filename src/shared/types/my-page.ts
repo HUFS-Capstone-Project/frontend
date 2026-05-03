@@ -13,5 +13,7 @@ export type SavedPlace = {
   category: MapPrimaryCategory;
   /** `SAVED_PLACE_MOCKS`와 같은 태그 코드 */
   tagKeys?: string[];
+  /** SNS·웹 등 원본 공유 링크 */
+  shareLinkUrl?: string | null;
   memo?: string;
 };

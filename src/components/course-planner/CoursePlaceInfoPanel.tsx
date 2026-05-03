@@ -14,23 +14,28 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ChevronLeft, MapPin, Pencil, PersonStanding } from "lucide-react";
+import { ChevronLeft, MapPin, Pencil, PersonStanding, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
+import { CoursePlaceAddSheet } from "@/components/course-planner/CoursePlaceAddSheet";
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
 import { cn } from "@/lib/utils";
 import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
+import type { SavedPlace } from "@/shared/types/map-home";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
 export type { CourseStop };
+
+type SaveConfirmKind = "create" | "edit";
 
 type CoursePlaceInfoPanelProps = {
   courseTitle: string;
   stops: CourseStop[];
   onBack: () => void;
   onSave: (payload: CourseSavePayload) => void;
-  /** true면 조회 모드에서 「데이트코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
+  /** true면 조회 모드에서 「데이트 코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
   hideNewCourseSaveButton?: boolean;
 };
 
@@ -47,7 +52,9 @@ export function CoursePlaceInfoPanel({
   const [draftTitle, setDraftTitle] = useState(courseTitle);
   const [draftStops, setDraftStops] = useState<CourseStop[]>(stops);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const [saveConfirmKind, setSaveConfirmKind] = useState<SaveConfirmKind | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
+  const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
 
   const removeDraftStop = useCallback((stopId: string) => {
     setDraftStops((current) => current.filter((stop) => stop.id !== stopId));
@@ -83,23 +90,42 @@ export function CoursePlaceInfoPanel({
     setDraftTitle(courseTitle);
     setDraftStops(stops);
     setSelectedStopId(null);
+    setIsAddPlaceOpen(false);
     setIsEditing(false);
+  };
+
+  const handleAddPlace = (place: SavedPlace) => {
+    setDraftStops((current) => {
+      if (current.some((stop) => stop.placeId === place.id)) {
+        return current;
+      }
+
+      return [...current, courseStopFromSavedPlace(place)];
+    });
+    setSelectedStopId(null);
+    setIsAddPlaceOpen(false);
   };
 
   const handleConfirmSave = () => {
-    const nextTitle = (isEditing ? draftTitle.trim() : courseTitle.trim()) || courseTitle;
-    const nextStops = isEditing ? draftStops : stops;
+    if (!saveConfirmKind) {
+      return;
+    }
+
+    const isEditSave = saveConfirmKind === "edit";
+    const nextTitle = (isEditSave ? draftTitle.trim() : courseTitle.trim()) || courseTitle;
+    const nextStops = isEditSave ? draftStops : stops;
     onSave({
-      kind: isEditing ? "edit" : "create",
+      kind: saveConfirmKind,
       title: nextTitle,
       stops: nextStops,
     });
+    setIsSaveConfirmOpen(false);
     setIsEditing(false);
     setSelectedStopId(null);
-    setIsSaveConfirmOpen(false);
   };
 
   const displayStops = isEditing ? draftStops : stops;
+  const currentSaveConfirmKind = saveConfirmKind ?? "create";
 
   return (
     <section
@@ -213,50 +239,78 @@ export function CoursePlaceInfoPanel({
       </div>
 
       {isEditing ? (
-        <div className="mt-6 flex w-full gap-2">
+        <>
           <button
             type="button"
-            onClick={handleCancelEdit}
-            className="border-border bg-background text-muted-foreground hover:bg-muted/50 focus-visible:ring-ring/50 inline-flex h-11 flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none"
+            onClick={() => setIsAddPlaceOpen(true)}
+            className="border-border bg-background text-muted-foreground hover:bg-muted/35 focus-visible:ring-ring/50 mt-5 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg border text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none"
           >
-            취소
+            <Plus className="size-4" aria-hidden />
+            장소 추가하기
           </button>
-          <button
-            type="button"
-            onClick={() => setIsSaveConfirmOpen(true)}
-            className={cn(
-              "focus-visible:ring-ring/50 text-primary-foreground inline-flex h-11 flex-1 items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
-              "bg-primary hover:bg-primary/90",
-            )}
-          >
-            수정하기
-          </button>
-        </div>
+
+          <div className="mt-3 flex w-full gap-2">
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="border-border bg-background text-muted-foreground hover:bg-muted/50 focus-visible:ring-ring/50 inline-flex h-11 flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSaveConfirmKind("edit");
+                setIsSaveConfirmOpen(true);
+              }}
+              className={cn(
+                "focus-visible:ring-ring/50 text-primary-foreground inline-flex h-11 flex-1 items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                "bg-primary hover:bg-primary/90",
+              )}
+            >
+              수정하기
+            </button>
+          </div>
+        </>
       ) : hideNewCourseSaveButton ? null : (
         <button
           type="button"
-          onClick={() => setIsSaveConfirmOpen(true)}
+          onClick={() => {
+            setSaveConfirmKind("create");
+            setIsSaveConfirmOpen(true);
+          }}
           className={cn(
             "focus-visible:ring-ring/50 text-primary-foreground mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
             "bg-primary hover:bg-primary/90",
           )}
         >
-          데이트코스 저장하기
+          데이트 코스 저장하기
         </button>
       )}
 
       <CourseConfirmModal
         open={isSaveConfirmOpen}
-        title={isEditing ? "코스를 수정할까요?" : "데이트 코스를 저장할까요?"}
-        description={
-          isEditing
-            ? "변경한 코스 이름과 장소 순서가 저장됩니다."
-            : "방에 등록된 장소를 기반으로 새 코스가 추가됩니다."
+        title={
+          currentSaveConfirmKind === "edit"
+            ? "변경한 내용을 저장할까요?"
+            : "데이트 코스를 저장할까요?"
         }
-        confirmLabel={isEditing ? "수정하기" : "저장하기"}
+        description={
+          currentSaveConfirmKind === "edit"
+            ? "코스와 장소 순서가 저장돼요."
+            : "선택한 장소들로 새 코스가 만들어져요."
+        }
+        confirmLabel={currentSaveConfirmKind === "edit" ? "수정하기" : "저장하기"}
         historyStateKey="courseSaveConfirm"
         onClose={() => setIsSaveConfirmOpen(false)}
         onConfirm={handleConfirmSave}
+      />
+
+      <CoursePlaceAddSheet
+        open={isAddPlaceOpen}
+        excludedPlaceIds={draftStops.map((stop) => stop.placeId)}
+        onClose={() => setIsAddPlaceOpen(false)}
+        onConfirm={handleAddPlace}
       />
     </section>
   );

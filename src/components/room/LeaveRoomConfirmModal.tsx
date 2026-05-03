@@ -40,8 +40,8 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5 text-center">
-        <h2 className="text-foreground text-lg leading-snug font-bold">방 나가기</h2>
-        <p className="text-foreground mt-4 text-sm leading-relaxed whitespace-pre-line">
+        <h2 className="text-foreground text-base leading-snug font-bold">방 나가기</h2>
+        <p className="text-foreground mt-3 text-sm leading-relaxed whitespace-pre-line">
           {LEAVE_WARNING}
         </p>
       </div>

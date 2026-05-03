@@ -2,6 +2,7 @@
 import { useCallback, useRef } from "react";
 
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
+import { sharePlace } from "@/shared/lib/share-place";
 import type { SavedPlace } from "@/shared/types/my-page";
 
 import { SavedPlaceMemoEditor } from "./SavedPlaceMemoEditor";
@@ -42,6 +43,11 @@ export function SavedPlaceItem({
   }, [onToggleMenu, place.id]);
   usePointerDownOutside(menuChromeRef, !readOnly && isMenuOpen, closeMenu);
 
+  const handleShare = useCallback(() => {
+    onToggleMenu?.(place.id);
+    sharePlace(place);
+  }, [onToggleMenu, place]);
+
   return (
     <article className="rounded-lg border border-[#e8e8e8] bg-white px-3 py-3">
       <div className="flex gap-3">
@@ -68,6 +74,13 @@ export function SavedPlaceItem({
               <div className="absolute top-[calc(100%-6px)] right-2 z-10 w-24 overflow-hidden rounded-md border border-[#eaeaea] bg-white py-0.5 shadow-[0_2px_8px_rgb(0_0_0/_0.07)]">
                 <button
                   type="button"
+                  onClick={handleShare}
+                  className="block w-full px-4 py-2.5 text-left text-xs font-medium text-[#595959] active:bg-[#f7f7f7]"
+                >
+                  공유
+                </button>
+                <button
+                  type="button"
                   onClick={() => onStartMemo?.(place)}
                   className="block w-full px-4 py-2.5 text-left text-xs font-medium text-[#595959] active:bg-[#f7f7f7]"
                 >
@@ -76,7 +89,7 @@ export function SavedPlaceItem({
                 <button
                   type="button"
                   onClick={() => onDelete?.(place.id)}
-                  className="block w-full px-4 py-2.5 text-left text-xs font-medium text-[#595959] active:bg-[#f7f7f7]"
+                  className="block w-full px-4 py-2.5 text-left text-xs font-semibold text-[var(--brand-coral-solid)] active:bg-[#f7f7f7]"
                 >
                   삭제
                 </button>

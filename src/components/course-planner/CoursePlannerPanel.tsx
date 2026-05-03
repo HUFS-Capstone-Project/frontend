@@ -29,12 +29,12 @@ export function CoursePlannerPanel({
   return (
     <section className="bg-background px-6 pt-8 pb-0">
       <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
-        맞춤 데이트코스 설정하기
+        맞춤 데이트 코스 만들기
       </h1>
 
       <div className="mt-6 grid gap-5">
         <CoursePlannerField
-          label="지역설정"
+          label="지역"
           required
           value={regionValue}
           placeholder="지역을 선택해주세요."
@@ -42,7 +42,7 @@ export function CoursePlannerPanel({
         />
 
         <CoursePlannerField
-          label="날짜 및 시간 설정"
+          label="날짜 및 시간"
           value={dateTimeValue}
           placeholder="날짜 및 시간을 설정해주세요."
           icon={<CalendarDays className="size-4" aria-hidden />}
@@ -50,7 +50,7 @@ export function CoursePlannerPanel({
         />
 
         <div className="grid gap-2">
-          <span className="text-foreground text-sm font-semibold">장소 종류</span>
+          <span className="text-foreground text-sm font-semibold">장소 유형</span>
           <CoursePlaceTagSelector {...placeFilterBarProps} />
         </div>
       </div>

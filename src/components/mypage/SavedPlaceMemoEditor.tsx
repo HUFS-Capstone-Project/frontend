@@ -54,7 +54,7 @@ export function SavedPlaceMemoEditor({
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={onClear}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted/55 touch-target-min inline-flex size-7 shrink-0 items-center justify-center rounded-full ring-0 transition-colors outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted/55 inline-flex size-7 shrink-0 items-center justify-center rounded-full ring-0 transition-colors outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           >
             <X className="size-3" aria-hidden />
             <span className="sr-only">메모 지우기</span>

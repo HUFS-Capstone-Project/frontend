@@ -19,7 +19,6 @@ export const usePlaceDetailStore = create<PlaceDetailState>((set) => ({
     }),
   closeDetail: () =>
     set({
-      selectedPlaceId: null,
       isOpen: false,
     }),
 }));

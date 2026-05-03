@@ -33,7 +33,7 @@ export function CoursePlannerActions({
           canGenerate ? "bg-primary hover:bg-primary/90" : "bg-muted-foreground/45",
         )}
       >
-        데이트코스 생성하기
+        데이트 코스 만들기
       </button>
     </div>
   );

@@ -1,7 +1,6 @@
 import { Clipboard } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
-import { PillButton } from "@/components/ui/PillButton";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import {
   COPY_ERROR_TOAST_MESSAGE,
@@ -82,12 +81,12 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
-      <div className="px-5 pt-4 pb-4">
-        <h2 className="text-foreground truncate text-center text-[1rem] leading-tight font-semibold">
+      <div className="px-6 pt-8 pb-5">
+        <h2 className="text-foreground truncate text-center text-base leading-snug font-bold">
           {displayRoom.displayName}
         </h2>
 
-        <div className="border-border/85 bg-muted/20 my-4 rounded-xl border px-4 py-3.5">
+        <div className="border-border/85 bg-muted/20 mt-4 rounded-xl border px-4 py-3.5">
           <p className="text-muted-foreground text-center text-[0.75rem] font-semibold tracking-[0.04em] uppercase">
             초대코드
           </p>
@@ -114,16 +113,17 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
             </button>
           </div>
         </div>
+      </div>
 
-        <PillButton
+      <div className="border-border/50 flex border-t">
+        <button
           type="button"
-          variant="modal"
-          className="mt-1"
+          className="text-foreground hover:bg-muted/25 active:bg-muted/35 flex-1 py-4 text-sm font-medium transition-colors"
           aria-label="확인"
           onClick={onClose}
         >
           확인
-        </PillButton>
+        </button>
       </div>
     </RoomModalShell>
   );

@@ -27,9 +27,8 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
 
   if (!businessHours) {
     return (
-      <section className="space-y-1">
-        <p className="text-foreground text-xs font-semibold">영업시간</p>
-        <p className="text-muted-foreground text-sm">정보 없음</p>
+      <section>
+        <p className="text-muted-foreground text-sm">영업시간 정보 없음</p>
       </section>
     );
   }
@@ -37,7 +36,6 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <p className="text-foreground text-xs font-semibold">영업시간</p>
         <p className="text-foreground text-sm font-semibold">{buildStatusSummary(businessHours)}</p>
         {businessHours.holidayNotice ? (
           <p className="text-muted-foreground text-[0.75rem] leading-snug">

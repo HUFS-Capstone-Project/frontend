@@ -19,7 +19,7 @@ export function CourseResultPanel({
   return (
     <section className="bg-background px-6 pt-8 pb-0">
       <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
-        맞춤 데이트코스 확인하기
+        맞춤 데이트 코스 확인하기
       </h1>
       <p className="text-muted-foreground mt-1.5 text-[0.75rem] leading-snug">
         마음에 드는 코스를 선택해서 장소 정보를 확인해보세요.

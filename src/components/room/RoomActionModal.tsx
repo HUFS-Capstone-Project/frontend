@@ -45,8 +45,8 @@ const RoomActionModalPanel = memo(function RoomActionModalPanel({
 
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose}>
-      <div className="px-7 pt-7 pb-2">
-        <h2 className="text-foreground text-base leading-tight font-bold">
+      <div className="px-6 pt-8 pb-3">
+        <h2 className="text-foreground truncate text-base leading-snug font-bold">
           {displayRoom.displayName}
         </h2>
       </div>

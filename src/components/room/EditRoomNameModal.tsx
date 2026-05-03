@@ -87,7 +87,9 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5">
-        <h2 className="text-foreground text-center text-lg leading-snug font-bold">방 이름 변경</h2>
+        <h2 className="text-foreground text-center text-base leading-snug font-bold">
+          방 이름 변경
+        </h2>
         <p className="text-foreground mt-3 text-center text-sm leading-relaxed">
           새로운 방 이름을 입력해 주세요
         </p>

@@ -10,6 +10,7 @@ import {
   mapPlacesMatchingMySaved,
   weightedMapCenter,
 } from "@/components/mypage/map-places-from-my-saved";
+import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
@@ -92,7 +93,12 @@ export function MySavedPlacesPage({
 
   const listPlaces = useMemo(() => {
     const allow = new Set(filteredPlaces.map((place) => place.id));
-    return places.filter((place) => allow.has(place.id));
+    return places
+      .filter((place) => allow.has(place.id))
+      .map((place) => ({
+        ...place,
+        shareLinkUrl: place.shareLinkUrl ?? SAVED_PLACE_BY_ID.get(place.id)?.shareLinkUrl,
+      }));
   }, [filteredPlaces, places]);
 
   const mapPins = useMemo(
@@ -103,6 +109,7 @@ export function MySavedPlacesPage({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
+  const [pendingDeletePlaceId, setPendingDeletePlaceId] = useState<string | null>(null);
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
@@ -152,6 +159,20 @@ export function MySavedPlacesPage({
       setEditingPlaceId(null);
       setMemoDraft("");
     }
+  };
+
+  const handleRequestDeletePlace = (id: string) => {
+    setOpenMenuId(null);
+    setPendingDeletePlaceId(id);
+  };
+
+  const handleConfirmDeletePlace = () => {
+    if (!pendingDeletePlaceId) {
+      return;
+    }
+
+    handleDeletePlace(pendingDeletePlaceId);
+    setPendingDeletePlaceId(null);
   };
 
   const handleHeaderBack = () => {
@@ -256,7 +277,7 @@ export function MySavedPlacesPage({
                   onChangeMemo={setMemoDraft}
                   onSaveMemo={handleSaveMemo}
                   onClearMemo={() => setMemoDraft("")}
-                  onDelete={handleDeletePlace}
+                  onDelete={handleRequestDeletePlace}
                   onSelect={onSelectPlace}
                 />
               ))}
@@ -269,6 +290,17 @@ export function MySavedPlacesPage({
           )}
         </div>
       ) : null}
+
+      <RoomConfirmModal
+        open={pendingDeletePlaceId != null}
+        message="이 장소를 삭제할까요?"
+        description="삭제하면 목록에서 더 이상 보이지 않아요."
+        cancelLabel="취소"
+        confirmLabel="삭제"
+        confirmButtonClassName="text-[var(--brand-coral-solid)]"
+        onCancel={() => setPendingDeletePlaceId(null)}
+        onConfirm={handleConfirmDeletePlace}
+      />
     </div>
   );
 }

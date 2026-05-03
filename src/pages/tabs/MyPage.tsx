@@ -47,6 +47,20 @@ export default function MyPage() {
 
   usePlaceDetailOpenEvent(view === "places" || view === "courses");
 
+  const handleSavePlaceMemo = (placeId: string, memo: string) => {
+    const nextMemo = memo.trim();
+    setPlaces((currentPlaces) =>
+      currentPlaces.map((place) =>
+        place.id === placeId ? { ...place, memo: nextMemo || undefined } : place,
+      ),
+    );
+  };
+
+  const handleDeletePlace = (placeId: string) => {
+    setPlaces((currentPlaces) => currentPlaces.filter((place) => place.id !== placeId));
+    closePlaceDetail();
+  };
+
   const handleSavedCoursePersist = (prevCourseId: string, payload: CourseSavePayload) => {
     showToast("코스가 저장되었습니다", 3200);
 
@@ -86,7 +100,11 @@ export default function MyPage() {
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
           <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
         </div>
-        <PlaceDetailSheet />
+        <PlaceDetailSheet
+          savedPlaces={places}
+          onSaveMemo={handleSavePlaceMemo}
+          onDeletePlace={handleDeletePlace}
+        />
       </div>
     );
   }
@@ -111,7 +129,11 @@ export default function MyPage() {
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
           <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
         </div>
-        <PlaceDetailSheet />
+        <PlaceDetailSheet
+          savedPlaces={places}
+          onSaveMemo={handleSavePlaceMemo}
+          onDeletePlace={handleDeletePlace}
+        />
       </div>
     );
   }
@@ -152,7 +174,11 @@ export default function MyPage() {
         <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
       </div>
 
-      <PlaceDetailSheet />
+      <PlaceDetailSheet
+        savedPlaces={places}
+        onSaveMemo={handleSavePlaceMemo}
+        onDeletePlace={handleDeletePlace}
+      />
     </div>
   );
 }

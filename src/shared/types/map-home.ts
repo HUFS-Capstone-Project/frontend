@@ -17,6 +17,7 @@ export type SavedPlace = {
   address: string;
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
+  memo?: string;
   businessHours?: PlaceBusinessHours | ResolvedPlaceBusinessHours | null;
 };
 

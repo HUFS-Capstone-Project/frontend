@@ -16,6 +16,7 @@ import {
 } from "@/components/mypage/map-places-from-my-saved";
 import { SavedPlaceItem } from "@/components/mypage/SavedPlaceItem";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
@@ -95,6 +96,7 @@ export default function PlaceListPage() {
         address: place.address,
         category: place.category,
         tagKeys: place.tagKeys,
+        shareLinkUrl: place.shareLinkUrl,
       }));
   }, [categoryFilteredPlaces, selectedCity, selectedDistrict]);
 
@@ -103,6 +105,7 @@ export default function PlaceListPage() {
   const [memoDraft, setMemoDraft] = useState("");
   const [placeMemos, setPlaceMemos] = useState<Record<string, string>>({});
   const [removedPlaceIds, setRemovedPlaceIds] = useState<string[]>([]);
+  const [pendingDeletePlaceId, setPendingDeletePlaceId] = useState<string | null>(null);
 
   const displayedPlaces = useMemo((): SavedPlace[] => {
     const removed = new Set(removedPlaceIds);
@@ -185,21 +188,25 @@ export default function PlaceListPage() {
     setMemoDraft(place.memo ?? "");
   };
 
+  const handleSavePlaceMemo = (id: string, memo: string) => {
+    const nextMemo = memo.trim();
+    setPlaceMemos((previous) => {
+      const next = { ...previous };
+      if (nextMemo) {
+        next[id] = nextMemo;
+      } else {
+        delete next[id];
+      }
+      return next;
+    });
+  };
+
   const handleSaveMemo = () => {
     if (!editingPlaceId) {
       return;
     }
 
-    const nextMemo = memoDraft.trim();
-    setPlaceMemos((previous) => {
-      const next = { ...previous };
-      if (nextMemo) {
-        next[editingPlaceId] = nextMemo;
-      } else {
-        delete next[editingPlaceId];
-      }
-      return next;
-    });
+    handleSavePlaceMemo(editingPlaceId, memoDraft);
     setEditingPlaceId(null);
     setMemoDraft("");
   };
@@ -222,6 +229,20 @@ export default function PlaceListPage() {
     if (selectedPlaceId === id) {
       closeDetail();
     }
+  };
+
+  const handleRequestDeletePlace = (id: string) => {
+    setOpenMenuId(null);
+    setPendingDeletePlaceId(id);
+  };
+
+  const handleConfirmDeletePlace = () => {
+    if (!pendingDeletePlaceId) {
+      return;
+    }
+
+    handleDeletePlace(pendingDeletePlaceId);
+    setPendingDeletePlaceId(null);
   };
 
   return (
@@ -337,7 +358,7 @@ export default function PlaceListPage() {
                   onChangeMemo={setMemoDraft}
                   onSaveMemo={handleSaveMemo}
                   onClearMemo={() => setMemoDraft("")}
-                  onDelete={handleDeletePlace}
+                  onDelete={handleRequestDeletePlace}
                   onSelect={(p) => openPlaceDetail(p.id)}
                 />
               ))}
@@ -356,7 +377,22 @@ export default function PlaceListPage() {
         <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
       </div>
 
-      <PlaceDetailSheet />
+      <PlaceDetailSheet
+        savedPlaces={displayedPlaces}
+        onSaveMemo={handleSavePlaceMemo}
+        onDeletePlace={handleDeletePlace}
+      />
+
+      <RoomConfirmModal
+        open={pendingDeletePlaceId != null}
+        message="이 장소를 삭제할까요?"
+        description="삭제하면 목록에서 더 이상 보이지 않아요."
+        cancelLabel="취소"
+        confirmLabel="삭제"
+        confirmButtonClassName="text-[var(--brand-coral-solid)]"
+        onCancel={() => setPendingDeletePlaceId(null)}
+        onConfirm={handleConfirmDeletePlace}
+      />
     </div>
   );
 }

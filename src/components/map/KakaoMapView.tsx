@@ -51,7 +51,9 @@ export function KakaoMapView({
   const selectedMarkerImageRef = useRef<KakaoMarkerImage | null>(null);
   const markerInstancesRef = useRef<KakaoMarker[]>([]);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
-  const selectedPlaceId = usePlaceDetailStore((state) => state.selectedPlaceId);
+  const selectedPlaceId = usePlaceDetailStore((state) =>
+    state.isOpen ? state.selectedPlaceId : null,
+  );
 
   const clearMarkers = () => {
     markerInstancesRef.current.forEach((marker) => marker.setMap(null));
