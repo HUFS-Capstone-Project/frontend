@@ -3,6 +3,7 @@ import type { CandidatePlace, LinkAnalysis, LinkAnalysisStatus } from "@/feature
 export type Step = "input" | "processing" | "analysisResult";
 
 export type LinkAnalysisResult = {
+  analysisRequestId: number | null;
   linkId: number | null;
   jobId: string | null;
   originalUrl: string;
@@ -21,6 +22,7 @@ export function mapLinkAnalysisToResult(params: {
   const { linkAnalysis, originalUrl, jobId = null } = params;
 
   return {
+    analysisRequestId: linkAnalysis.analysisRequestId,
     linkId: linkAnalysis.linkId,
     jobId,
     originalUrl,

@@ -11,7 +11,7 @@ type LinkAnalysisQueryKey = ReturnType<typeof linkAnalysisQueryKeys.analysis>;
 
 type UseLinkAnalysisStatusQueryOptions = {
   roomId: string | null;
-  linkId: number | null;
+  analysisRequestId: number | null;
   enabled?: boolean;
   pollingIntervalMs?: number;
   queryOptions?: Omit<
@@ -22,24 +22,24 @@ type UseLinkAnalysisStatusQueryOptions = {
 
 export function useLinkAnalysisStatusQuery({
   roomId,
-  linkId,
+  analysisRequestId,
   enabled = true,
   pollingIntervalMs = DEFAULT_POLLING_INTERVAL_MS,
   queryOptions,
 }: UseLinkAnalysisStatusQueryOptions) {
   const resolvedRoomId = roomId ?? "__missing-room__";
-  const resolvedLinkId = linkId ?? -1;
+  const resolvedAnalysisRequestId = analysisRequestId ?? -1;
 
   return useQuery({
-    queryKey: linkAnalysisQueryKeys.analysis(resolvedRoomId, resolvedLinkId),
+    queryKey: linkAnalysisQueryKeys.analysis(resolvedRoomId, resolvedAnalysisRequestId),
     queryFn: () => {
-      if (!roomId || linkId == null) {
-        throw new Error("roomId and linkId are required");
+      if (!roomId || analysisRequestId == null) {
+        throw new Error("roomId and analysisRequestId are required");
       }
 
-      return linkAnalysisService.getLinkAnalysis(roomId, linkId);
+      return linkAnalysisService.getLinkAnalysis(roomId, analysisRequestId);
     },
-    enabled: enabled && Boolean(roomId) && linkId != null,
+    enabled: enabled && Boolean(roomId) && analysisRequestId != null,
     refetchInterval: (query) =>
       shouldPollLinkAnalysis(query.state.data?.status) ? pollingIntervalMs : false,
     refetchIntervalInBackground: true,

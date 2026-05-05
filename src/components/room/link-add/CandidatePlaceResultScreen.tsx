@@ -153,7 +153,7 @@ export function CandidatePlaceResultScreen({
                               placeName: displayPlace.name,
                               returnTo: "link-add",
                               linkAddRoomId,
-                              linkAddLinkId: result.linkId ?? undefined,
+                              linkAddLinkId: result.analysisRequestId ?? undefined,
                               linkAddDraftSession: sessionId,
                             },
                           });

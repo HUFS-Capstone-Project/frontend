@@ -16,14 +16,11 @@ import {
   findMapSearchMatchedPlaces,
   isMapLocationSearch,
 } from "@/features/map/utils/map-search";
+import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
-import {
-  MAP_INITIAL_CENTER,
-  MAP_SEARCH_PLACEHOLDER,
-  SAVED_PLACE_MOCKS,
-} from "@/shared/mocks/place-mocks";
+import { MAP_INITIAL_CENTER, MAP_SEARCH_PLACEHOLDER } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, RoomFriend, SavedPlace } from "@/shared/types/map-home";
 import { PLACE_DETAIL_OPEN_EVENT } from "@/store/place-detail-store";
 import type { SelectedRoom } from "@/store/room-selection-store";
@@ -76,7 +73,18 @@ export function MapHomePageContent({
   const searchHistoryPushedRef = useRef(false);
   const now = useKoreanNow();
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
-  const places = useMemo(() => resolveSavedPlacesBusinessHours(SAVED_PLACE_MOCKS, now), [now]);
+  const roomPlacesQuery = useRoomPlaces({
+    roomId: selectedRoom?.id ?? null,
+    params: { page: 0, limit: 20 },
+  });
+  const savedPlaces = useMemo(
+    () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
+    [roomPlacesQuery.data?.items],
+  );
+  const places = useMemo(
+    () => resolveSavedPlacesBusinessHours(savedPlaces, now),
+    [now, savedPlaces],
+  );
   const {
     categories,
     categoryNameByCode,
@@ -114,6 +122,27 @@ export function MapHomePageContent({
     [places, searchInput],
   );
   const isSearchSuggestionsOpen = searchInput.trim().length > 0 && !isSearchSuggestionDismissed;
+  const effectiveMapViewport = useMemo((): MapViewport => {
+    if (mapViewport.key !== "initial" || roomPlacesQuery.dataUpdatedAt === 0) {
+      return mapViewport;
+    }
+
+    if (savedPlaces.length === 0) {
+      return mapViewport;
+    }
+
+    const [firstPlace] = savedPlaces;
+    return {
+      center:
+        savedPlaces.length === 1 && firstPlace
+          ? { latitude: firstPlace.latitude, longitude: firstPlace.longitude }
+          : mapViewport.center,
+      fitBoundsPlaces: savedPlaces,
+      geocodeKeyword: "",
+      key: `room-places-${roomPlacesQuery.dataUpdatedAt}-${savedPlaces.length}`,
+    };
+  }, [mapViewport, roomPlacesQuery.dataUpdatedAt, savedPlaces]);
+
   const clearSearchKeepViewport = useCallback(() => {
     if (!appliedKeyword && !searchInput && !selectedSearchPlaceId) {
       return;
@@ -174,7 +203,7 @@ export function MapHomePageContent({
         center: MAP_INITIAL_CENTER,
         fitBoundsPlaces: [],
         geocodeKeyword: "",
-        key: `initial-${Date.now()}`,
+        key: "initial",
       });
       return;
     }
@@ -191,7 +220,7 @@ export function MapHomePageContent({
             latitude: matchedPlaces[0].latitude,
             longitude: matchedPlaces[0].longitude,
           }
-        : findMapSearchCenter(places, nextKeyword, mapViewport.center);
+        : findMapSearchCenter(places, nextKeyword, effectiveMapViewport.center);
 
     setAppliedKeyword(isLocationSearch || shouldUseKakaoSearch ? "" : nextKeyword);
     setMapViewport({
@@ -201,7 +230,14 @@ export function MapHomePageContent({
       key: `${nextKeyword}-${Date.now()}`,
     });
     pushSearchHistory();
-  }, [mapViewport.center, places, pushSearchHistory, searchInput, setAppliedKeyword]);
+  }, [
+    effectiveMapViewport.center,
+    mapViewport.center,
+    places,
+    pushSearchHistory,
+    searchInput,
+    setAppliedKeyword,
+  ]);
 
   const handleCloseTagPanel = useCallback(() => {
     setIsSearchSuggestionDismissed(true);
@@ -231,7 +267,7 @@ export function MapHomePageContent({
         center: { latitude: place.latitude, longitude: place.longitude },
         fitBoundsPlaces: [place],
         geocodeKeyword: "",
-        key: `${place.id}-${Date.now()}`,
+        key: `pan-${place.id}-${Date.now()}`,
       });
       pushSearchHistory();
       window.dispatchEvent(
@@ -262,10 +298,10 @@ export function MapHomePageContent({
           <KakaoMapView
             appKey={KAKAO_MAP_APP_KEY}
             places={filteredPlaces}
-            center={mapViewport.center}
-            fitBoundsPlaces={mapViewport.fitBoundsPlaces}
-            geocodeKeyword={mapViewport.geocodeKeyword}
-            viewportKey={mapViewport.key}
+            center={effectiveMapViewport.center}
+            fitBoundsPlaces={effectiveMapViewport.fitBoundsPlaces}
+            geocodeKeyword={effectiveMapViewport.geocodeKeyword}
+            viewportKey={effectiveMapViewport.key}
             onMapClick={handleMapClick}
             className="absolute inset-0"
           />

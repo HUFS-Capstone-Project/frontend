@@ -22,7 +22,7 @@ export function useRequestLinkAnalysisMutation(roomId: string | null) {
       }
 
       queryClient.removeQueries({
-        queryKey: linkAnalysisQueryKeys.analysis(roomId, result.linkId),
+        queryKey: linkAnalysisQueryKeys.analysis(roomId, result.analysisRequestId),
       });
     },
   });

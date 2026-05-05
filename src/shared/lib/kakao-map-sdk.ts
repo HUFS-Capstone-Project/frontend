@@ -20,6 +20,7 @@ export type KakaoMarkerImage = {
 
 export type KakaoMapInstance = {
   setCenter: (position: KakaoLatLng) => void;
+  panTo: (position: KakaoLatLng) => void;
   setBounds: (bounds: KakaoLatLngBounds) => void;
   setLevel: (level: number) => void;
 };

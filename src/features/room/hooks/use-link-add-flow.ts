@@ -22,7 +22,7 @@ const LINK_ANALYSIS_POLLING_INTERVAL_MS = 2_000;
 const EMPTY_CANDIDATE_PLACES: CandidatePlace[] = [];
 
 export type LinkAddCandidatesBootstrap = {
-  linkId: number;
+  analysisRequestId: number;
   url: string;
   selectedKakaoPlaceIds?: string[];
 };
@@ -73,6 +73,7 @@ export function useLinkAddFlow({
   const [step, setStep] = useState<Step>(DEFAULT_STEP);
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [analysisRequestId, setAnalysisRequestId] = useState<number | null>(null);
   const [linkId, setLinkId] = useState<number | null>(null);
   const [requestJobId, setRequestJobId] = useState<string | null>(null);
   const [requestStatus, setRequestStatus] = useState<LinkAnalysisStatus | null>(null);
@@ -85,12 +86,12 @@ export function useLinkAddFlow({
   const requestLinkAnalysisMutation = useRequestLinkAnalysisMutation(room?.id ?? null);
   const saveCandidatePlacesMutation = useSaveCandidatePlacesMutation({
     roomId: room?.id ?? null,
-    linkId,
+    analysisRequestId,
   });
   const linkAnalysisStatusQuery = useLinkAnalysisStatusQuery({
     roomId: room?.id ?? null,
-    linkId,
-    enabled: (step === "processing" || step === "analysisResult") && linkId != null,
+    analysisRequestId,
+    enabled: (step === "processing" || step === "analysisResult") && analysisRequestId != null,
     pollingIntervalMs: LINK_ANALYSIS_POLLING_INTERVAL_MS,
   });
 
@@ -103,6 +104,7 @@ export function useLinkAddFlow({
     setStep(DEFAULT_STEP);
     setUrl("");
     setUrlError(null);
+    setAnalysisRequestId(null);
     setLinkId(null);
     setRequestJobId(null);
     setRequestStatus(null);
@@ -123,6 +125,7 @@ export function useLinkAddFlow({
       submitSequenceRef.current += 1;
       queueMicrotask(() => {
         setUrl(draft.url);
+        setAnalysisRequestId(draft.analysisRequestId);
         setLinkId(draft.linkId);
         setRequestJobId(draft.requestJobId);
         setRequestStatus(null);
@@ -141,11 +144,12 @@ export function useLinkAddFlow({
       }
     }
 
-    if (candidatesBootstrap != null && Number.isFinite(candidatesBootstrap.linkId)) {
+    if (candidatesBootstrap != null && Number.isFinite(candidatesBootstrap.analysisRequestId)) {
       submitSequenceRef.current += 1;
       queueMicrotask(() => {
         setUrl(candidatesBootstrap.url);
-        setLinkId(candidatesBootstrap.linkId);
+        setAnalysisRequestId(candidatesBootstrap.analysisRequestId);
+        setLinkId(null);
         setRequestJobId(null);
         setRequestStatus(null);
         setRequestErrorResult(null);
@@ -191,6 +195,7 @@ export function useLinkAddFlow({
 
     return {
       linkId,
+      analysisRequestId,
       jobId: requestJobId,
       originalUrl: url.trim(),
       status: "FAILED",
@@ -198,7 +203,7 @@ export function useLinkAddFlow({
       completed: true,
       errorMessage: resolveLinkStatusErrorMessage(linkAnalysisStatusQuery.error),
     };
-  }, [linkAnalysisStatusQuery.error, linkId, requestJobId, url]);
+  }, [analysisRequestId, linkAnalysisStatusQuery.error, linkId, requestJobId, url]);
 
   const renderAnalysisResult =
     polledAnalysisResult && isLinkAnalysisTerminal(polledAnalysisResult.status)
@@ -249,6 +254,7 @@ export function useLinkAddFlow({
 
     setUrl(trimmedUrl);
     setUrlError(null);
+    setAnalysisRequestId(null);
     setLinkId(null);
     setRequestJobId(null);
     setRequestStatus(null);
@@ -270,6 +276,7 @@ export function useLinkAddFlow({
         return;
       }
 
+      setAnalysisRequestId(requested.analysisRequestId);
       setLinkId(requested.linkId);
       setRequestJobId(requested.jobId ?? null);
       setRequestStatus(requested.status);
@@ -279,6 +286,7 @@ export function useLinkAddFlow({
       }
 
       setRequestErrorResult({
+        analysisRequestId: null,
         linkId: null,
         jobId: null,
         originalUrl: trimmedUrl,
@@ -313,7 +321,12 @@ export function useLinkAddFlow({
   }, []);
 
   const saveSelectedCandidatePlaces = useCallback(async () => {
-    if (!room || linkId == null || !renderAnalysisResult || saveCandidatePlacesMutation.isPending) {
+    if (
+      !room ||
+      analysisRequestId == null ||
+      !renderAnalysisResult ||
+      saveCandidatePlacesMutation.isPending
+    ) {
       return;
     }
 
@@ -348,7 +361,7 @@ export function useLinkAddFlow({
     }
   }, [
     linkAnalysisStatusQuery,
-    linkId,
+    analysisRequestId,
     queryClient,
     renderAnalysisResult,
     room,
@@ -368,13 +381,14 @@ export function useLinkAddFlow({
       roomId,
       sessionId,
       url: url.trim(),
+      analysisRequestId,
       linkId,
       requestJobId,
       selectedKakaoPlaceIds,
     };
     useLinkAddDraftStore.getState().setDraft(payload);
     return sessionId;
-  }, [linkId, requestJobId, room?.id, selectedKakaoPlaceIds, url]);
+  }, [analysisRequestId, linkId, requestJobId, room?.id, selectedKakaoPlaceIds, url]);
 
   return {
     step,

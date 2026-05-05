@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
@@ -10,6 +10,9 @@ import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearchEmptyRow";
 import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
 import { PillButton } from "@/components/ui/PillButton";
+import { useSaveManualPlaceMutation } from "@/features/link-analysis";
+import type { ExternalPlaceCandidate } from "@/features/place-candidates";
+import { useExternalPlaceCandidates } from "@/features/place-candidates";
 import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
@@ -19,14 +22,25 @@ import {
   PROMPT_FLOW_SCROLL_BODY_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
+import { isApiError } from "@/shared/api/axios";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import type { SavedPlace } from "@/shared/types/map-home";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
 
+type RoomPlaceSearchLocationState = {
+  linkAddAnalysisRequestId?: number;
+  linkAddOriginalUrl?: string;
+};
+
+const EMPTY_EXTERNAL_CANDIDATES: ExternalPlaceCandidate[] = [];
+
 export default function RoomPlaceSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { roomId: roomIdParam = "" } = useParams();
+  const routeState = (location.state ?? null) as RoomPlaceSearchLocationState | null;
   const registerContextRoomId = roomIdParam.trim();
   const keyword = useInpersonPlaceStore((state) => state.keyword);
   const selectedPlaceId = useInpersonPlaceStore((state) => state.selectedPlaceId);
@@ -36,6 +50,31 @@ export default function RoomPlaceSearchPage() {
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
   const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
   const { copyLabel, copyText } = useCopyFeedback();
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const analysisRequestId =
+    typeof routeState?.linkAddAnalysisRequestId === "number"
+      ? routeState.linkAddAnalysisRequestId
+      : null;
+  const linkPreviewUrl =
+    typeof routeState?.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
+      ? routeState.linkAddOriginalUrl
+      : LINK_PREVIEW_MOCK;
+  const trimmedKeyword = keyword.trim();
+  const canSearch = trimmedKeyword.length > 0;
+
+  const externalPlaceCandidatesQuery = useExternalPlaceCandidates({
+    roomId: registerContextRoomId || null,
+    params: {
+      keyword,
+      limit: 10,
+    },
+    enabled: analysisRequestId != null && registerContextRoomId.length > 0 && canSearch,
+  });
+  const saveManualPlaceMutation = useSaveManualPlaceMutation({
+    roomId: registerContextRoomId || null,
+    analysisRequestId,
+  });
 
   useEffect(() => {
     reset();
@@ -47,22 +86,34 @@ export default function RoomPlaceSearchPage() {
     }
   }, [navigate, registerContextRoomId]);
 
-  const trimmedKeyword = keyword.trim();
-  const canSearch = trimmedKeyword.length > 0;
-  const canConfirm = selectedPlaceId !== null && registerContextRoomId.length > 0;
-
+  const externalCandidates = externalPlaceCandidatesQuery.data ?? EMPTY_EXTERNAL_CANDIDATES;
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
       return [];
     }
 
+    if (analysisRequestId != null) {
+      return externalCandidates.map(externalCandidateToSavedPlace);
+    }
+
     return SAVED_PLACE_MOCKS.filter(
       (place) => place.name.includes(trimmedKeyword) || place.address.includes(trimmedKeyword),
     );
-  }, [trimmedKeyword]);
+  }, [analysisRequestId, externalCandidates, trimmedKeyword]);
+  const selectedExternalPlace =
+    analysisRequestId == null
+      ? null
+      : (externalCandidates.find((place) => place.kakaoPlaceId === selectedPlaceId) ?? null);
+  const canConfirm =
+    selectedPlaceId !== null &&
+    registerContextRoomId.length > 0 &&
+    (analysisRequestId == null ||
+      (selectedExternalPlace != null &&
+        selectedExternalPlace.selectable &&
+        !saveManualPlaceMutation.isPending));
 
   const handleCopyLinkPreview = () => {
-    void copyText(LINK_PREVIEW_MOCK);
+    void copyText(linkPreviewUrl);
   };
 
   const handleCancel = () => {
@@ -72,6 +123,43 @@ export default function RoomPlaceSearchPage() {
 
   const handleConfirm = () => {
     if (!selectedPlaceId || !registerContextRoomId) {
+      return;
+    }
+
+    if (analysisRequestId != null) {
+      if (!selectedExternalPlace || !selectedExternalPlace.selectable) {
+        return;
+      }
+
+      setSaveError(null);
+      saveManualPlaceMutation.mutate(
+        {
+          kakaoPlaceId: selectedExternalPlace.kakaoPlaceId,
+          name: selectedExternalPlace.name,
+          address: selectedExternalPlace.address,
+          roadAddress: selectedExternalPlace.roadAddress,
+          latitude: selectedExternalPlace.latitude,
+          longitude: selectedExternalPlace.longitude,
+          categoryName: selectedExternalPlace.categoryName,
+          categoryGroupCode: selectedExternalPlace.categoryGroupCode,
+          categoryGroupName: selectedExternalPlace.categoryGroupName,
+          phone: selectedExternalPlace.phone,
+          placeUrl: selectedExternalPlace.placeUrl,
+          sourceKeyword: trimmedKeyword,
+        },
+        {
+          onSuccess: () => {
+            reset();
+            navigate(APP_ROUTES.room, {
+              replace: true,
+              state: { showPlacesRegisteredToast: true },
+            });
+          },
+          onError: (error) => {
+            setSaveError(isApiError(error) ? error.message : "?μ냼 ??μ뿉 ?ㅽ뙣?덉뒿?덈떎.");
+          },
+        },
+      );
       return;
     }
 
@@ -100,7 +188,7 @@ export default function RoomPlaceSearchPage() {
 
         <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
           <CopyableLinkBar
-            url={LINK_PREVIEW_MOCK}
+            url={linkPreviewUrl}
             copyLabel={copyLabel}
             onCopy={handleCopyLinkPreview}
           />
@@ -111,6 +199,7 @@ export default function RoomPlaceSearchPage() {
             onChange={(next) => {
               setKeyword(next);
               setSelectedPlace(null);
+              setSaveError(null);
             }}
             placeholder={PLACE_FLOW_COPY.searchPlaceholder}
             searchButtonLabel={PLACE_FLOW_COPY.searchButton}
@@ -128,7 +217,7 @@ export default function RoomPlaceSearchPage() {
       <div className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
         {trimmedKeyword ? (
           <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
-            {searchResults.length === 0 ? (
+            {searchResults.length === 0 && !externalPlaceCandidatesQuery.isFetching ? (
               <PlaceFlowSearchEmptyRow />
             ) : (
               searchResults.map((place) => (
@@ -136,11 +225,25 @@ export default function RoomPlaceSearchPage() {
                   key={place.id}
                   place={place}
                   selected={selectedPlaceId === place.id}
-                  onSelect={() => setSelectedPlace(place.id)}
+                  onSelect={() => {
+                    const externalPlace =
+                      analysisRequestId == null
+                        ? null
+                        : externalCandidates.find((item) => item.kakaoPlaceId === place.id);
+                    if (externalPlace && !externalPlace.selectable) {
+                      return;
+                    }
+                    setSelectedPlace(place.id);
+                  }}
                 />
               ))
             )}
           </ul>
+        ) : null}
+        {saveError ? (
+          <p className="px-5 pt-3 text-sm font-medium text-[var(--brand-coral-solid)]" role="alert">
+            {saveError}
+          </p>
         ) : null}
       </div>
 
@@ -157,10 +260,21 @@ export default function RoomPlaceSearchPage() {
             disabled={!canConfirm}
             onClick={handleConfirm}
           >
-            확인
+            {saveManualPlaceMutation.isPending ? PLACE_FLOW_COPY.saving : "확인"}
           </PillButton>
         }
       />
     </FullscreenFlowRouteMount>
   );
+}
+
+function externalCandidateToSavedPlace(place: ExternalPlaceCandidate): SavedPlace {
+  return {
+    id: place.kakaoPlaceId,
+    name: place.name,
+    category: place.categoryGroupName ?? place.categoryName ?? "장소",
+    address: place.roadAddress ?? place.address ?? "",
+    latitude: place.latitude,
+    longitude: place.longitude,
+  };
 }

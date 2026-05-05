@@ -4,6 +4,7 @@ export type LinkAddDraft = {
   roomId: string;
   sessionId: string;
   url: string;
+  analysisRequestId: number | null;
   linkId: number | null;
   requestJobId: string | null;
   selectedKakaoPlaceIds: string[];

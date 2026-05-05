@@ -74,15 +74,23 @@ export function LinkAddFlowView({
     onExit();
   }, [cancelOngoingSubmission, onExit, room]);
 
-  const exitToPlaceSearch = useCallback(() => {
-    const roomId = room?.id;
-    if (!roomId) {
-      return;
-    }
-    useLinkAddDraftStore.getState().clearForRoom(roomId);
-    cancelOngoingSubmission();
-    navigate(ROOM_APP_PATHS.placeSearch(roomId));
-  }, [cancelOngoingSubmission, navigate, room]);
+  const exitToPlaceSearch = useCallback(
+    (resultUrl: string, analysisRequestId: number | null) => {
+      const roomId = room?.id;
+      if (!roomId) {
+        return;
+      }
+      useLinkAddDraftStore.getState().clearForRoom(roomId);
+      cancelOngoingSubmission();
+      navigate(ROOM_APP_PATHS.placeSearch(roomId), {
+        state: {
+          linkAddAnalysisRequestId: analysisRequestId ?? undefined,
+          linkAddOriginalUrl: resultUrl,
+        },
+      });
+    },
+    [cancelOngoingSubmission, navigate, room],
+  );
 
   const autoExitInpersonRef = useRef(false);
 
@@ -105,7 +113,7 @@ export function LinkAddFlowView({
     }
 
     autoExitInpersonRef.current = true;
-    exitToPlaceSearch();
+    exitToPlaceSearch(renderAnalysisResult.originalUrl, renderAnalysisResult.analysisRequestId);
   }, [exitToPlaceSearch, renderAnalysisResult, renderStep]);
 
   const didNavigateToCandidatesRef = useRef(false);
@@ -123,8 +131,8 @@ export function LinkAddFlowView({
     if (shouldAutoExitToInperson(renderAnalysisResult)) {
       return;
     }
-    const lid = renderAnalysisResult.linkId;
-    if (lid == null) {
+    const analysisRequestId = renderAnalysisResult.analysisRequestId;
+    if (analysisRequestId == null) {
       return;
     }
     if (didNavigateToCandidatesRef.current) {
@@ -132,8 +140,8 @@ export function LinkAddFlowView({
     }
     didNavigateToCandidatesRef.current = true;
     const trimmedUrl = url.trim();
-    setLinkAddPendingUrl(room.id, lid, trimmedUrl);
-    navigate(ROOM_APP_PATHS.linkCandidates(room.id, lid), {
+    setLinkAddPendingUrl(room.id, analysisRequestId, trimmedUrl);
+    navigate(ROOM_APP_PATHS.linkCandidates(room.id, analysisRequestId), {
       replace: true,
       state: {
         linkAddPendingUrl: trimmedUrl,

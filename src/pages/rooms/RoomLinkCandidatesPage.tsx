@@ -14,7 +14,7 @@ export type RoomLinkCandidatesLocationState = {
 };
 
 export default function RoomLinkCandidatesPage() {
-  const { roomId: roomIdParam = "", linkId: linkIdParam = "" } = useParams();
+  const { roomId: roomIdParam = "", analysisRequestId: analysisRequestIdParam = "" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const state = (location.state ?? null) as RoomLinkCandidatesLocationState | null;
@@ -25,25 +25,29 @@ export default function RoomLinkCandidatesPage() {
       ? state.linkAddDraftSession
       : null;
 
-  const linkIdNum = Number(linkIdParam);
+  const analysisRequestIdNum = Number(analysisRequestIdParam);
 
   const candidatesBootstrap = useMemo(() => {
     if (draftSessionId) {
       return null;
     }
-    if (trimmedRoomId.length === 0 || !Number.isFinite(linkIdNum)) {
+    if (trimmedRoomId.length === 0 || !Number.isFinite(analysisRequestIdNum)) {
       return null;
     }
     const fromState =
       typeof state?.linkAddPendingUrl === "string" && state.linkAddPendingUrl.length > 0
         ? state.linkAddPendingUrl
         : "";
-    const pendingUrl = fromState || peekLinkAddPendingUrl(trimmedRoomId, linkIdNum);
+    const pendingUrl = fromState || peekLinkAddPendingUrl(trimmedRoomId, analysisRequestIdNum);
     const selectedKakaoPlaceIds = Array.isArray(state?.selectedKakaoPlaceIds)
       ? state.selectedKakaoPlaceIds
       : [];
-    return { linkId: linkIdNum, url: pendingUrl, selectedKakaoPlaceIds };
-  }, [draftSessionId, linkIdNum, state, trimmedRoomId]);
+    return {
+      analysisRequestId: analysisRequestIdNum,
+      url: pendingUrl,
+      selectedKakaoPlaceIds,
+    };
+  }, [analysisRequestIdNum, draftSessionId, state, trimmedRoomId]);
 
   const room = useFriendRoomRowById(trimmedRoomId.length > 0 ? trimmedRoomId : undefined);
 
@@ -59,12 +63,20 @@ export default function RoomLinkCandidatesPage() {
   }, [navigate]);
 
   useEffect(() => {
-    if (trimmedRoomId.length === 0 || linkIdParam.length === 0 || !Number.isFinite(linkIdNum)) {
+    if (
+      trimmedRoomId.length === 0 ||
+      analysisRequestIdParam.length === 0 ||
+      !Number.isFinite(analysisRequestIdNum)
+    ) {
       navigate(APP_ROUTES.room, { replace: true });
     }
-  }, [linkIdNum, linkIdParam, navigate, trimmedRoomId]);
+  }, [analysisRequestIdNum, analysisRequestIdParam, navigate, trimmedRoomId]);
 
-  if (trimmedRoomId.length === 0 || linkIdParam.length === 0 || !Number.isFinite(linkIdNum)) {
+  if (
+    trimmedRoomId.length === 0 ||
+    analysisRequestIdParam.length === 0 ||
+    !Number.isFinite(analysisRequestIdNum)
+  ) {
     return null;
   }
 

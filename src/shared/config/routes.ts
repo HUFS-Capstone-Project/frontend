@@ -17,6 +17,8 @@ export const APP_ROUTES = {
 export const ROOM_APP_PATHS = {
   placeSearch: (roomId: string) => `/rooms/${encodeURIComponent(roomId)}/places/search`,
   placeFromLink: (roomId: string) => `/rooms/${encodeURIComponent(roomId)}/places/from-link`,
-  linkCandidates: (roomId: string, linkId: string | number) =>
-    `/rooms/${encodeURIComponent(roomId)}/links/${encodeURIComponent(String(linkId))}/candidates`,
+  linkCandidates: (roomId: string, analysisRequestId: string | number) =>
+    `/rooms/${encodeURIComponent(roomId)}/link-analysis/${encodeURIComponent(
+      String(analysisRequestId),
+    )}`,
 } as const;

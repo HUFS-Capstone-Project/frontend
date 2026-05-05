@@ -17,6 +17,7 @@ import type {
   SaveCandidatePlacesRequest,
   SaveCandidatePlacesResponseDto,
   SaveCandidatePlacesResult,
+  SaveManualPlaceRequest,
 } from "../types";
 
 export const linkAnalysisService = {
@@ -26,7 +27,7 @@ export const linkAnalysisService = {
   ): Promise<LinkAnalysisRequestResult> => {
     return withCsrfRetry(async () => {
       const res = await api.post<LinkAnalysisCommonResponse<LinkAnalysisRequestResultDto>>(
-        API_PATHS.rooms.analyzeLink(roomId),
+        API_PATHS.rooms.linkAnalysisRequests(roomId),
         payload,
         {
           withCredentials: true,
@@ -38,21 +39,40 @@ export const linkAnalysisService = {
     });
   },
 
-  getLinkAnalysis: async (roomId: string, linkId: number): Promise<LinkAnalysis> => {
+  getLinkAnalysis: async (roomId: string, analysisRequestId: number): Promise<LinkAnalysis> => {
     const res = await api.get<LinkAnalysisCommonResponse<LinkAnalysisDto>>(
-      API_PATHS.rooms.linkAnalysis(roomId, linkId),
+      API_PATHS.rooms.linkAnalysisRequest(roomId, analysisRequestId),
     );
-    return toLinkAnalysis(res.data.data);
+    return toLinkAnalysis(res.data.data, analysisRequestId);
   },
 
   saveCandidatePlaces: async (
     roomId: string,
-    linkId: number,
+    analysisRequestId: number,
     payload: SaveCandidatePlacesRequest,
   ): Promise<SaveCandidatePlacesResult> => {
     return withCsrfRetry(async () => {
       const res = await api.post<LinkAnalysisCommonResponse<SaveCandidatePlacesResponseDto>>(
-        API_PATHS.rooms.linkPlaces(roomId, linkId),
+        API_PATHS.rooms.linkAnalysisRequestPlaces(roomId, analysisRequestId),
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
+
+      return toSaveCandidatePlacesResult(res.data.data);
+    });
+  },
+
+  saveManualPlace: async (
+    roomId: string,
+    analysisRequestId: number,
+    payload: SaveManualPlaceRequest,
+  ): Promise<SaveCandidatePlacesResult> => {
+    return withCsrfRetry(async () => {
+      const res = await api.post<LinkAnalysisCommonResponse<SaveCandidatePlacesResponseDto>>(
+        API_PATHS.rooms.linkAnalysisRequestManualPlace(roomId, analysisRequestId),
         payload,
         {
           withCredentials: true,

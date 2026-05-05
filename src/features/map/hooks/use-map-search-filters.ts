@@ -217,7 +217,6 @@ export function useMapSearchFilters({
         const currentTagKeys = previous[category] ?? [];
         const hasCurrentTag = currentTagKeys.includes(tagKey);
         const allTagKey = allTagKeyByCategory[category];
-
         let nextTagKeys: string[];
 
         if (allTagKey && tagKey === allTagKey) {
@@ -231,13 +230,29 @@ export function useMapSearchFilters({
             : [...withoutAll, tagKey];
         }
 
-        return {
+        const next = {
           ...previous,
           [category]: nextTagKeys,
         };
+
+        const isEveryCategoryAllSelected =
+          primaryCategories.length > 0 &&
+          primaryCategories.every((primaryCategory) => {
+            const primaryAllTagKey = allTagKeyByCategory[primaryCategory];
+            return Boolean(primaryAllTagKey && next[primaryCategory]?.includes(primaryAllTagKey));
+          });
+
+        if (isEveryCategoryAllSelected) {
+          setIsInitialFocusDismissed(true);
+          setSelectedCategoriesState([]);
+          setFocusedCategoryState(null);
+          return buildEmptySelectedTagKeysByCategory(primaryCategories);
+        }
+
+        return next;
       });
     },
-    [allTagKeyByCategory],
+    [allTagKeyByCategory, primaryCategories],
   );
 
   const resetFocusedCategoryTags = useCallback(() => {

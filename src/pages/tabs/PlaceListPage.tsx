@@ -10,24 +10,28 @@ import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
 import { FilterBar } from "@/components/map/FilterBar";
-import {
-  mapPlacesMatchingMySaved,
-  weightedMapCenter,
-} from "@/components/mypage/map-places-from-my-saved";
+import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { SavedPlaceItem } from "@/components/mypage/SavedPlaceItem";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
+import {
+  roomPlaceToSavedPlace,
+  useDeleteRoomPlace,
+  useRoomPlaces,
+  useUpdateRoomPlaceMemo,
+} from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { PLACE_LIST_TEXT } from "@/shared/config/text";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
-import type { SavedPlace } from "@/shared/types/my-page";
+import type { SavedPlace } from "@/shared/types/map-home";
+import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
+import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
@@ -47,10 +51,25 @@ function placeMatchesRegion(placeAddress: string, city: string, district: string
 export default function PlaceListPage() {
   const now = useKoreanNow();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
+  const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
+  const roomPlacesQuery = useRoomPlaces({
+    roomId: selectedRoom?.id ?? null,
+    params: { page: 0, limit: 20 },
+  });
+  const updateRoomPlaceMemoMutation = useUpdateRoomPlaceMemo({
+    roomId: selectedRoom?.id ?? null,
+  });
+  const deleteRoomPlaceMutation = useDeleteRoomPlace({
+    roomId: selectedRoom?.id ?? null,
+  });
 
   const resolvedPlaces = useMemo(
-    () => resolveSavedPlacesBusinessHours(SAVED_PLACE_MOCKS, now),
-    [now],
+    () =>
+      resolveSavedPlacesBusinessHours(
+        (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
+        now,
+      ),
+    [now, roomPlacesQuery.data?.items],
   );
 
   const {
@@ -80,9 +99,9 @@ export default function PlaceListPage() {
   });
 
   const [selectedCity, setSelectedCity] = useState("서울");
-  const [selectedDistrict, setSelectedDistrict] = useState("동대문구");
+  const [selectedDistrict, setSelectedDistrict] = useState("전체");
   const [draftCity, setDraftCity] = useState("서울");
-  const [draftDistrict, setDraftDistrict] = useState("동대문구");
+  const [draftDistrict, setDraftDistrict] = useState("전체");
   const [isRegionPanelOpen, setIsRegionPanelOpen] = useState(false);
 
   const categoryFilteredPlaces = filteredPlaces;
@@ -96,29 +115,22 @@ export default function PlaceListPage() {
         address: place.address,
         category: place.category,
         tagKeys: place.tagKeys,
+        latitude: place.latitude,
+        longitude: place.longitude,
         shareLinkUrl: place.shareLinkUrl,
+        memo: place.memo,
       }));
   }, [categoryFilteredPlaces, selectedCity, selectedDistrict]);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
-  const [placeMemos, setPlaceMemos] = useState<Record<string, string>>({});
-  const [removedPlaceIds, setRemovedPlaceIds] = useState<string[]>([]);
   const [pendingDeletePlaceId, setPendingDeletePlaceId] = useState<string | null>(null);
 
-  const displayedPlaces = useMemo((): SavedPlace[] => {
-    const removed = new Set(removedPlaceIds);
-    return listPlacesBase
-      .filter((place) => !removed.has(place.id))
-      .map((place) => ({
-        ...place,
-        memo: placeMemos[place.id] ?? place.memo,
-      }));
-  }, [listPlacesBase, placeMemos, removedPlaceIds]);
+  const displayedPlaces = listPlacesBase;
 
   const mapPins = useMemo(
-    () => resolveSavedPlacesBusinessHours(mapPlacesMatchingMySaved(displayedPlaces), now),
+    () => resolveSavedPlacesBusinessHours(displayedPlaces, now),
     [displayedPlaces, now],
   );
 
@@ -182,22 +194,21 @@ export default function PlaceListPage() {
     }
   };
 
-  const handleStartMemo = (place: SavedPlace) => {
+  const handleStartMemo = (place: MySavedPlace) => {
     setOpenMenuId(null);
     setEditingPlaceId(place.id);
     setMemoDraft(place.memo ?? "");
   };
 
   const handleSavePlaceMemo = (id: string, memo: string) => {
-    const nextMemo = memo.trim();
-    setPlaceMemos((previous) => {
-      const next = { ...previous };
-      if (nextMemo) {
-        next[id] = nextMemo;
-      } else {
-        delete next[id];
-      }
-      return next;
+    const roomPlaceId = Number(id);
+    if (!Number.isFinite(roomPlaceId)) {
+      return;
+    }
+
+    updateRoomPlaceMemoMutation.mutate({
+      roomPlaceId,
+      payload: { memo: memo.trim() },
     });
   };
 
@@ -212,16 +223,11 @@ export default function PlaceListPage() {
   };
 
   const handleDeletePlace = (id: string) => {
-    setRemovedPlaceIds((previous) => (previous.includes(id) ? previous : [...previous, id]));
+    const roomPlaceId = Number(id);
+    if (Number.isFinite(roomPlaceId)) {
+      deleteRoomPlaceMutation.mutate(roomPlaceId);
+    }
     setOpenMenuId(null);
-    setPlaceMemos((previous) => {
-      if (!(id in previous)) {
-        return previous;
-      }
-      const next = { ...previous };
-      delete next[id];
-      return next;
-    });
     if (editingPlaceId === id) {
       setEditingPlaceId(null);
       setMemoDraft("");

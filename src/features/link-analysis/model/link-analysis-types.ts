@@ -46,14 +46,16 @@ export function toLinkAnalysisRequestResult(
   dto: LinkAnalysisRequestResultDto,
 ): LinkAnalysisRequestResult {
   return {
+    analysisRequestId: dto.analysisRequestId,
     linkId: dto.linkId,
     jobId: dto.jobId ?? undefined,
     status: dto.status,
   };
 }
 
-export function toLinkAnalysis(dto: LinkAnalysisDto): LinkAnalysis {
+export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number): LinkAnalysis {
   return {
+    analysisRequestId,
     linkId: dto.linkId,
     status: dto.status,
     candidatePlaces: (dto.candidatePlaces ?? []).map(toCandidatePlace),
@@ -64,9 +66,9 @@ export function toLinkAnalysis(dto: LinkAnalysisDto): LinkAnalysis {
 
 export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
   const kakaoPlaceId = normalizeOptionalString(dto.kakaoPlaceId);
-  const alreadySaved = dto.alreadySaved === true;
+  const alreadyInRoom = dto.alreadyInRoom === true;
   const disabledReason = resolveCandidatePlaceDisabledReason({
-    alreadySaved,
+    alreadyInRoom,
     disabledReason: dto.disabledReason ?? null,
     kakaoPlaceId,
   });
@@ -84,8 +86,8 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
     phone: dto.phone ?? null,
     placeUrl: dto.placeUrl ?? null,
     sourceKeyword: dto.sourceKeyword ?? null,
-    alreadySaved,
-    selectable: dto.selectable === true && disabledReason == null,
+    alreadyInRoom,
+    selectable: dto.selectable === true,
     roomPlaceId: dto.roomPlaceId ?? null,
     disabledReason,
   };
@@ -94,7 +96,7 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
 export function canSelectCandidatePlace(place: CandidatePlace): place is CandidatePlace & {
   kakaoPlaceId: string;
 } {
-  return place.selectable && !place.alreadySaved && hasKakaoPlaceId(place);
+  return place.selectable && !place.alreadyInRoom && hasKakaoPlaceId(place);
 }
 
 export function hasKakaoPlaceId(place: CandidatePlace): place is CandidatePlace & {
@@ -107,13 +109,15 @@ export function toSaveCandidatePlacesResult(
   dto: SaveCandidatePlacesResponseDto,
 ): SaveCandidatePlacesResult {
   return {
+    analysisRequestId: dto.analysisRequestId,
     linkId: dto.linkId,
     places: dto.places.map((place) => ({
       roomPlaceId: place.roomPlaceId,
+      placeId: place.placeId ?? null,
       kakaoPlaceId: place.kakaoPlaceId,
-      placeName: place.placeName,
+      placeName: place.placeName ?? place.name ?? "",
       created: place.created,
-      alreadySaved: place.alreadySaved,
+      alreadyInRoom: place.alreadyInRoom ?? place.alreadySaved ?? !place.created,
     })),
   };
 }
@@ -128,7 +132,7 @@ function normalizeOptionalString(value: string | null | undefined): string | nul
 }
 
 function resolveCandidatePlaceDisabledReason(params: {
-  alreadySaved: boolean;
+  alreadyInRoom: boolean;
   disabledReason: CandidatePlaceDisabledReason | null;
   kakaoPlaceId: string | null;
 }): CandidatePlaceDisabledReason | null {
@@ -136,8 +140,8 @@ function resolveCandidatePlaceDisabledReason(params: {
     return params.disabledReason;
   }
 
-  if (params.alreadySaved) {
-    return "ALREADY_SAVED";
+  if (params.alreadyInRoom) {
+    return "ALREADY_IN_ROOM";
   }
 
   if (!params.kakaoPlaceId) {

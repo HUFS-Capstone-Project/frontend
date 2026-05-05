@@ -19,10 +19,16 @@ export const API_PATHS = {
     detail: (roomId: string) => `/v1/rooms/${roomId}`,
     pin: (roomId: string) => `/v1/rooms/${roomId}/pin`,
     leave: (roomId: string) => `/v1/rooms/${roomId}/leave`,
-    analyzeLink: (roomId: string) => `/v1/rooms/${roomId}/links/analyze`,
-    linkAnalysis: (roomId: string, linkId: number) =>
-      `/v1/rooms/${roomId}/links/${linkId}/analysis`,
-    linkPlaces: (roomId: string, linkId: number) => `/v1/rooms/${roomId}/links/${linkId}/places`,
+    linkAnalysisRequests: (roomId: string) => `/v1/rooms/${roomId}/link-analysis-requests`,
+    linkAnalysisRequest: (roomId: string, analysisRequestId: number) =>
+      `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}`,
+    linkAnalysisRequestPlaces: (roomId: string, analysisRequestId: number) =>
+      `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/places`,
+    linkAnalysisRequestManualPlace: (roomId: string, analysisRequestId: number) =>
+      `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/places/manual`,
+    placeCandidatesExternal: (roomId: string) => `/v1/rooms/${roomId}/place-candidates/external`,
+    places: (roomId: string) => `/v1/rooms/${roomId}/places`,
+    place: (roomId: string, roomPlaceId: number) => `/v1/rooms/${roomId}/places/${roomPlaceId}`,
   },
   links: {
     root: "/v1/links",

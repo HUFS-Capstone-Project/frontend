@@ -15,6 +15,7 @@ export type RequestLinkAnalysisRequest = {
 };
 
 export type LinkAnalysisRequestResultDto = {
+  analysisRequestId: number;
   linkId: number;
   jobId: string | null;
   status: LinkAnalysisStatus;
@@ -29,7 +30,7 @@ export type LinkAnalysisDto = {
 };
 
 export type CandidatePlaceDisabledReason =
-  | "ALREADY_SAVED"
+  | "ALREADY_IN_ROOM"
   | "MISSING_KAKAO_PLACE_ID"
   | (string & {});
 
@@ -46,19 +47,21 @@ export type CandidatePlaceDto = {
   phone?: string | null;
   placeUrl?: string | null;
   sourceKeyword?: string | null;
-  alreadySaved?: boolean | null;
+  alreadyInRoom?: boolean | null;
   selectable?: boolean | null;
   roomPlaceId?: number | null;
   disabledReason?: CandidatePlaceDisabledReason | null;
 };
 
 export type LinkAnalysisRequestResult = {
+  analysisRequestId: number;
   linkId: number;
   jobId?: string;
   status: LinkAnalysisStatus;
 };
 
 export type LinkAnalysis = {
+  analysisRequestId: number;
   linkId: number;
   status: LinkAnalysisStatus;
   candidatePlaces: CandidatePlace[];
@@ -79,7 +82,7 @@ export type CandidatePlace = {
   phone: string | null;
   placeUrl: string | null;
   sourceKeyword: string | null;
-  alreadySaved: boolean;
+  alreadyInRoom: boolean;
   selectable: boolean;
   roomPlaceId: number | null;
   disabledReason: CandidatePlaceDisabledReason | null;
@@ -91,28 +94,49 @@ export type SaveCandidatePlacesRequest = {
 
 export type SavedCandidatePlaceDto = {
   roomPlaceId: number;
+  placeId?: number;
   kakaoPlaceId: string;
-  placeName: string;
+  name?: string;
+  placeName?: string;
   created: boolean;
-  alreadySaved: boolean;
+  alreadyInRoom?: boolean;
+  alreadySaved?: boolean;
 };
 
 export type SaveCandidatePlacesResponseDto = {
+  analysisRequestId: number;
   linkId: number;
   places: SavedCandidatePlaceDto[];
 };
 
 export type SavedCandidatePlace = {
   roomPlaceId: number;
+  placeId: number | null;
   kakaoPlaceId: string;
   placeName: string;
   created: boolean;
-  alreadySaved: boolean;
+  alreadyInRoom: boolean;
 };
 
 export type SaveCandidatePlacesResult = {
+  analysisRequestId: number;
   linkId: number;
   places: SavedCandidatePlace[];
+};
+
+export type SaveManualPlaceRequest = {
+  kakaoPlaceId: string;
+  name: string;
+  address?: string | null;
+  roadAddress?: string | null;
+  latitude: number;
+  longitude: number;
+  categoryName?: string | null;
+  categoryGroupCode?: string | null;
+  categoryGroupName?: string | null;
+  phone?: string | null;
+  placeUrl?: string | null;
+  sourceKeyword?: string | null;
 };
 
 export type LinkAnalysisCommonResponse<T> = CommonResponse<T>;

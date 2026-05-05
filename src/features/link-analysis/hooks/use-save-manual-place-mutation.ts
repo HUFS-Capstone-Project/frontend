@@ -4,27 +4,27 @@ import { roomPlaceQueryKeys } from "@/features/room-places";
 
 import { linkAnalysisService } from "../api/link-analysis-service";
 import { linkAnalysisQueryKeys } from "../query-keys";
-import type { SaveCandidatePlacesRequest } from "../types";
+import type { SaveManualPlaceRequest } from "../types";
 
-type UseSaveCandidatePlacesMutationOptions = {
+type UseSaveManualPlaceMutationOptions = {
   roomId: string | null;
   analysisRequestId: number | null;
 };
 
-export function useSaveCandidatePlacesMutation({
+export function useSaveManualPlaceMutation({
   roomId,
   analysisRequestId,
-}: UseSaveCandidatePlacesMutationOptions) {
+}: UseSaveManualPlaceMutationOptions) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: [...linkAnalysisQueryKeys.all, "save-candidate-places", roomId, analysisRequestId],
-    mutationFn: (payload: SaveCandidatePlacesRequest) => {
+    mutationKey: [...linkAnalysisQueryKeys.all, "save-manual-place", roomId, analysisRequestId],
+    mutationFn: (payload: SaveManualPlaceRequest) => {
       if (!roomId || analysisRequestId == null) {
         throw new Error("roomId and analysisRequestId are required");
       }
 
-      return linkAnalysisService.saveCandidatePlaces(roomId, analysisRequestId, payload);
+      return linkAnalysisService.saveManualPlace(roomId, analysisRequestId, payload);
     },
     onSuccess: async () => {
       if (!roomId || analysisRequestId == null) {

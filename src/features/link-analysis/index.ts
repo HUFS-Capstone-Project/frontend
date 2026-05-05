@@ -2,6 +2,7 @@ export { linkAnalysisService } from "./api/link-analysis-service";
 export { useRequestLinkAnalysisMutation } from "./hooks/use-link-analysis-mutation";
 export { useLinkAnalysisStatusQuery } from "./hooks/use-link-analysis-status-query";
 export { useSaveCandidatePlacesMutation } from "./hooks/use-save-candidate-places-mutation";
+export { useSaveManualPlaceMutation } from "./hooks/use-save-manual-place-mutation";
 export {
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
@@ -27,4 +28,5 @@ export type {
   SaveCandidatePlacesResult,
   SavedCandidatePlace,
   SavedCandidatePlaceDto,
+  SaveManualPlaceRequest,
 } from "./types";

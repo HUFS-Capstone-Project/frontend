@@ -8,6 +8,7 @@ import {
   type KakaoMarkerImage,
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
 import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
 
@@ -134,7 +135,12 @@ export function KakaoMapView({
     if (fitBoundsPlaces.length === 1) {
       const [place] = fitBoundsPlaces;
       mapInstance.setLevel(level);
-      mapInstance.setCenter(new maps.LatLng(place.latitude, place.longitude));
+      const position = new maps.LatLng(place.latitude, place.longitude);
+      if (viewportKey.startsWith("pan-")) {
+        mapInstance.panTo(position);
+      } else {
+        mapInstance.setCenter(position);
+      }
       return;
     }
 
@@ -254,17 +260,22 @@ export function KakaoMapView({
 
     clearMarkers();
     markerInstancesRef.current = places.map((place) => {
+      const detailPlaceId = resolveMockDetailPlaceId(place);
       const marker = new maps.Marker({
         map: mapInstance,
         title: place.name,
         position: new maps.LatLng(place.latitude, place.longitude),
-        image: place.id === selectedPlaceId ? selectedMarkerImage : markerImage,
+        image:
+          place.id === selectedPlaceId || detailPlaceId === selectedPlaceId
+            ? selectedMarkerImage
+            : markerImage,
       });
 
       maps.event.addListener(marker, "click", () => {
+        mapInstance.panTo(new maps.LatLng(place.latitude, place.longitude));
         window.dispatchEvent(
           new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
-            detail: { placeId: place.id },
+            detail: { placeId: detailPlaceId },
           }),
         );
       });
@@ -279,10 +290,7 @@ export function KakaoMapView({
 
   return (
     <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>
-      <div
-        ref={mapContainerRef}
-        className="relative z-0 h-full w-full [touch-action:pan-x_pan-y]"
-      />
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full [touch-action:none]" />
 
       {hasMapKey && loadState === "loading" ? (
         <div className="bg-background/30 pointer-events-none absolute inset-0" aria-hidden />
@@ -298,4 +306,36 @@ export function KakaoMapView({
       ) : null}
     </div>
   );
+}
+
+function resolveMockDetailPlaceId(place: SavedPlace): string {
+  if (SAVED_PLACE_MOCKS.some((mock) => mock.id === place.id)) {
+    return place.id;
+  }
+
+  const normalizedName = normalizePlaceText(place.name);
+  const normalizedAddress = normalizePlaceText(place.address);
+  const textMatched = SAVED_PLACE_MOCKS.find(
+    (mock) =>
+      normalizePlaceText(mock.name) === normalizedName ||
+      normalizePlaceText(mock.address) === normalizedAddress,
+  );
+  if (textMatched) {
+    return textMatched.id;
+  }
+
+  const nearest = SAVED_PLACE_MOCKS.reduce(
+    (best, mock) => {
+      const distance =
+        Math.abs(mock.latitude - place.latitude) + Math.abs(mock.longitude - place.longitude);
+      return distance < best.distance ? { id: mock.id, distance } : best;
+    },
+    { id: SAVED_PLACE_MOCKS[0]?.id ?? place.id, distance: Number.POSITIVE_INFINITY },
+  );
+
+  return nearest.id;
+}
+
+function normalizePlaceText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, "");
 }
