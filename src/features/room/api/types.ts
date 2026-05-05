@@ -17,6 +17,7 @@ export type LinkSource = "WEB" | "APP" | null;
 export type RoomSummaryResponse = {
   roomId: string;
   roomName: string;
+  inviteCode: string;
   pinned: boolean;
   createdAt: string;
   linkCount: number;

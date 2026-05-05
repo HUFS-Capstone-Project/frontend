@@ -31,6 +31,7 @@ function mapCreateRoomToSummary(createdRoom: CreateRoomResponse): RoomSummaryRes
   return {
     roomId: createdRoom.roomId,
     roomName: createdRoom.roomName,
+    inviteCode: createdRoom.inviteCode,
     pinned: createdRoom.pinned,
     createdAt: createdRoom.createdAt,
     linkCount: 0,

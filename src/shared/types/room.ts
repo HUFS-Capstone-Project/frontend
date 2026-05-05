@@ -9,6 +9,6 @@ export type FriendRoomRow = {
   isPinned?: boolean;
   /** 고정 시각 (ms). 고정 그룹 내 정렬에 사용 */
   pinnedAt?: number;
-  /** 초대코드 (base62 문자열). API 연동 시 서버 값 사용 */
+  /** 초대코드 (base62). GET /rooms 목록·방 상세 등 서버 값 사용 */
   inviteCode?: string;
 };

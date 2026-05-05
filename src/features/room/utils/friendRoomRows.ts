@@ -1,6 +1,27 @@
 import type { FriendRoomRow } from "@/shared/types/room";
 
+import type { RoomSummaryResponse } from "../api/types";
+
 export type PinOverride = { isPinned: boolean; pinnedAt?: number };
+
+export function toNonNegativeRoomCount(value: number | null | undefined, fallback: number): number {
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return fallback;
+  }
+
+  return value;
+}
+
+export function mapRoomSummaryToFriendRow(room: RoomSummaryResponse): FriendRoomRow {
+  return {
+    id: room.roomId,
+    displayName: room.roomName,
+    inviteCode: room.inviteCode,
+    memberCount: toNonNegativeRoomCount(room.memberCount, 1),
+    placeCount: toNonNegativeRoomCount(room.placeCount ?? room.linkCount, 0),
+    isPinned: room.pinned,
+  };
+}
 
 /**
  * 서버/목 데이터 행에 로컬 고정 오버레이를 합칩니다. 추후 API 응답 + optimistic 업데이트에도 동일 패턴을 쓸 수 있습니다.

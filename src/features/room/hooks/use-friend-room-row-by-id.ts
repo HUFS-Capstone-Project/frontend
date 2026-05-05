@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import type { FriendRoomRow } from "@/shared/types/room";
 
-import type { RoomSummaryResponse } from "../api";
+import { mapRoomSummaryToFriendRow } from "../utils/friendRoomRows";
 import { useRoomsQuery } from "./use-rooms-query";
 
 export function useFriendRoomRowById(roomId: string | undefined): FriendRoomRow | null {
@@ -16,7 +16,7 @@ export function useFriendRoomRowById(roomId: string | undefined): FriendRoomRow 
     const rooms = roomsQuery.data ?? [];
     const summary = rooms.find((r) => r.roomId === roomId);
     if (summary) {
-      return mapRoomSummaryToRow(summary);
+      return mapRoomSummaryToFriendRow(summary);
     }
 
     return {
@@ -27,22 +27,4 @@ export function useFriendRoomRowById(roomId: string | undefined): FriendRoomRow 
       isPinned: false,
     };
   }, [roomId, roomsQuery.data]);
-}
-
-function mapRoomSummaryToRow(room: RoomSummaryResponse): FriendRoomRow {
-  return {
-    id: room.roomId,
-    displayName: room.roomName,
-    memberCount: toNonNegativeNumber(room.memberCount, 1),
-    placeCount: toNonNegativeNumber(room.placeCount ?? room.linkCount, 0),
-    isPinned: room.pinned,
-  };
-}
-
-function toNonNegativeNumber(value: number | null | undefined, fallback: number): number {
-  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return fallback;
-  }
-
-  return value;
 }

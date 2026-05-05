@@ -5,10 +5,13 @@ import type { ApiError } from "@/shared/api/axios";
 import { isApiError } from "@/shared/api/axios";
 import type { FriendRoomRow } from "@/shared/types/room";
 
-import type { RoomSummaryResponse } from "../api";
 import { roomQueryKeys } from "../query-keys";
 import type { RoomActionType } from "../roomActionTypes";
-import { sortFriendRoomRows } from "../utils/friendRoomRows";
+import {
+  mapRoomSummaryToFriendRow,
+  sortFriendRoomRows,
+  toNonNegativeRoomCount,
+} from "../utils/friendRoomRows";
 import { removeRoomFromCache } from "../utils/room-query-cache";
 import { useLeaveRoomMutation } from "./use-leave-room-mutation";
 import { useRoomDetailQuery } from "./use-room-detail-query";
@@ -58,7 +61,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const roomRows = useMemo(() => {
     const rooms = roomsQuery.data ?? [];
 
-    return rooms.map(mapRoomSummaryToRow);
+    return rooms.map(mapRoomSummaryToFriendRow);
   }, [roomsQuery.data]);
 
   const sortedRows = useMemo(() => sortFriendRoomRows(roomRows), [roomRows]);
@@ -82,8 +85,8 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       ...inviteCodeRoom,
       displayName: detail.roomName,
       inviteCode: detail.inviteCode,
-      memberCount: toNonNegativeNumber(detail.memberCount, inviteCodeRoom.memberCount),
-      placeCount: toNonNegativeNumber(
+      memberCount: toNonNegativeRoomCount(detail.memberCount, inviteCodeRoom.memberCount),
+      placeCount: toNonNegativeRoomCount(
         detail.placeCount ?? detail.linkCount,
         inviteCodeRoom.placeCount,
       ),
@@ -275,24 +278,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     openAddRoom,
     closeAddRoom,
   };
-}
-
-function mapRoomSummaryToRow(room: RoomSummaryResponse): FriendRoomRow {
-  return {
-    id: room.roomId,
-    displayName: room.roomName,
-    memberCount: toNonNegativeNumber(room.memberCount, 1),
-    placeCount: toNonNegativeNumber(room.placeCount ?? room.linkCount, 0),
-    isPinned: room.pinned,
-  };
-}
-
-function toNonNegativeNumber(value: number | null | undefined, fallback: number): number {
-  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return fallback;
-  }
-
-  return value;
 }
 
 function validateRoomName(value: string): string | null {
