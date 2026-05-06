@@ -8,6 +8,9 @@ type PlaceSelectCardProps = {
   place: SavedPlace;
   selected: boolean;
   disabled: boolean;
+  corrected?: boolean;
+  saved?: boolean;
+  disabledReason?: string | null;
   onSelect: () => void;
   onEdit?: () => void;
 };
@@ -16,6 +19,9 @@ export function PlaceSelectCard({
   place,
   selected,
   disabled,
+  corrected = false,
+  saved = false,
+  disabledReason = null,
   onSelect,
   onEdit,
 }: PlaceSelectCardProps) {
@@ -52,6 +58,11 @@ export function PlaceSelectCard({
                 <Pencil className="h-4 w-4" strokeWidth={2.4} />
               </button>
             ) : null}
+            {corrected ? (
+              <span className="shrink-0 rounded-full bg-[var(--brand-coral-light)] px-2 py-0.5 text-[10px] font-medium whitespace-nowrap text-[var(--brand-coral-solid)]/75">
+                수정됨
+              </span>
+            ) : null}
           </div>
           <p className="mt-2 flex min-w-0 items-center gap-1.5 text-[11px] leading-tight">
             <MapPin className="size-4 shrink-0 text-neutral-400" aria-hidden />
@@ -61,7 +72,7 @@ export function PlaceSelectCard({
 
         {disabled ? (
           <span className="shrink-0 text-xs font-medium whitespace-nowrap text-black/45">
-            저장됨
+            {getDisabledLabel(disabledReason, saved)}
           </span>
         ) : (
           <button
@@ -80,4 +91,16 @@ export function PlaceSelectCard({
       </article>
     </li>
   );
+}
+
+function getDisabledLabel(disabledReason: string | null, saved: boolean): string {
+  if (saved || disabledReason === "ALREADY_IN_ROOM") {
+    return "저장됨";
+  }
+
+  if (disabledReason === "MISSING_KAKAO_PLACE_ID") {
+    return "저장 불가";
+  }
+
+  return "선택 불가";
 }

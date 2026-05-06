@@ -10,7 +10,7 @@ import type {
 export const placeCandidateApi = {
   searchExternal: async (
     roomId: string,
-    params: Required<ExternalPlaceCandidateParams>,
+    params: ExternalPlaceCandidateParams,
   ): Promise<ExternalPlaceCandidate[]> => {
     const response = await api.get<CommonResponse<ExternalPlaceCandidate[]>>(
       API_PATHS.rooms.placeCandidatesExternal(roomId),

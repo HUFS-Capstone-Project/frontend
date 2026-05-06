@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { LINK_ADD_FLOW_ROOT_CLASS } from "@/features/place-flow/link-flow-layout";
 import type { LinkAddCandidatesBootstrap } from "@/features/room/hooks";
 import { useLinkAddFlow } from "@/features/room/hooks";
@@ -18,9 +19,7 @@ export type LinkAddFlowViewProps = {
   room: FriendRoomRow | null;
   draftSessionId?: string | null;
   candidatesBootstrap?: LinkAddCandidatesBootstrap | null;
-  /** 후보 화면만 (전용 라우트) */
   candidatesOnly?: boolean;
-  /** 링크 분석 완료 후 후보 라우트로 replace 이동 (from-link 라우트 전용) */
   autoNavigateToCandidates?: boolean;
   onExit: () => void;
   onPlacesSaved?: () => void;
@@ -80,6 +79,7 @@ export function LinkAddFlowView({
       if (!roomId) {
         return;
       }
+
       useLinkAddDraftStore.getState().clearForRoom(roomId);
       cancelOngoingSubmission();
       navigate(ROOM_APP_PATHS.placeSearch(roomId), {
@@ -131,13 +131,12 @@ export function LinkAddFlowView({
     if (shouldAutoExitToInperson(renderAnalysisResult)) {
       return;
     }
+
     const analysisRequestId = renderAnalysisResult.analysisRequestId;
-    if (analysisRequestId == null) {
+    if (analysisRequestId == null || didNavigateToCandidatesRef.current) {
       return;
     }
-    if (didNavigateToCandidatesRef.current) {
-      return;
-    }
+
     didNavigateToCandidatesRef.current = true;
     const trimmedUrl = url.trim();
     setLinkAddPendingUrl(room.id, analysisRequestId, trimmedUrl);
@@ -166,15 +165,7 @@ export function LinkAddFlowView({
     if (renderStep !== "analysisResult" || renderAnalysisResult == null) {
       return (
         <div className="flex flex-1 items-center justify-center px-6 pt-24 pb-10">
-          <p className="text-muted-foreground text-sm">불러오는 중…</p>
-        </div>
-      );
-    }
-
-    if (shouldAutoExitToInperson(renderAnalysisResult)) {
-      return (
-        <div className="flex flex-1 items-center justify-center px-6 pt-24 pb-10">
-          <p className="text-muted-foreground text-sm">이동 중…</p>
+          <BrandMarkerLoader />
         </div>
       );
     }
@@ -191,6 +182,12 @@ export function LinkAddFlowView({
         onClose={handleRequestClose}
         onRetry={() => {
           void retryLinkAnalysis();
+        }}
+        onSearchManually={() => {
+          exitToPlaceSearch(
+            renderAnalysisResult.originalUrl,
+            renderAnalysisResult.analysisRequestId,
+          );
         }}
         onToggleCandidatePlace={toggleCandidatePlace}
         onSave={() => {
@@ -235,6 +232,12 @@ export function LinkAddFlowView({
           onClose={handleRequestClose}
           onRetry={() => {
             void retryLinkAnalysis();
+          }}
+          onSearchManually={() => {
+            exitToPlaceSearch(
+              renderAnalysisResult.originalUrl,
+              renderAnalysisResult.analysisRequestId,
+            );
           }}
           onToggleCandidatePlace={toggleCandidatePlace}
           onSave={() => {

@@ -35,6 +35,8 @@ export type CandidatePlaceDisabledReason =
   | (string & {});
 
 export type CandidatePlaceDto = {
+  candidateId?: number | null;
+  overrideId?: number | null;
   kakaoPlaceId?: string | null;
   placeName: string;
   categoryName?: string | null;
@@ -49,6 +51,9 @@ export type CandidatePlaceDto = {
   sourceKeyword?: string | null;
   alreadyInRoom?: boolean | null;
   selectable?: boolean | null;
+  originalCandidate?: boolean | null;
+  corrected?: boolean | null;
+  editable?: boolean | null;
   roomPlaceId?: number | null;
   disabledReason?: CandidatePlaceDisabledReason | null;
 };
@@ -70,6 +75,8 @@ export type LinkAnalysis = {
 };
 
 export type CandidatePlace = {
+  candidateId: number | null;
+  overrideId: number | null;
   kakaoPlaceId: string | null;
   placeName: string;
   categoryName: string | null;
@@ -84,9 +91,36 @@ export type CandidatePlace = {
   sourceKeyword: string | null;
   alreadyInRoom: boolean;
   selectable: boolean;
+  originalCandidate: boolean;
+  corrected: boolean;
+  editable: boolean;
   roomPlaceId: number | null;
   disabledReason: CandidatePlaceDisabledReason | null;
 };
+
+export type OverrideCandidatePlaceRequest = {
+  kakaoPlaceId: string;
+  name: string;
+  address?: string | null;
+  roadAddress?: string | null;
+  latitude: number;
+  longitude: number;
+  categoryName?: string | null;
+  categoryGroupCode?: string | null;
+  categoryGroupName?: string | null;
+  phone?: string | null;
+  placeUrl?: string | null;
+  sourceKeyword?: string | null;
+};
+
+export type OverrideCandidatePlaceResponseDto = {
+  candidateId: number;
+  overrideId: number;
+  kakaoPlaceId: string;
+  name: string;
+};
+
+export type OverrideCandidatePlaceResult = OverrideCandidatePlaceResponseDto;
 
 export type SaveCandidatePlacesRequest = {
   kakaoPlaceIds: string[];

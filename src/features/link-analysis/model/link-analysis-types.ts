@@ -7,6 +7,8 @@ import type {
   LinkAnalysisRequestResult,
   LinkAnalysisRequestResultDto,
   LinkAnalysisStatus,
+  OverrideCandidatePlaceResponseDto,
+  OverrideCandidatePlaceResult,
   SaveCandidatePlacesResponseDto,
   SaveCandidatePlacesResult,
 } from "../types";
@@ -74,6 +76,8 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
   });
 
   return {
+    candidateId: dto.candidateId ?? null,
+    overrideId: dto.overrideId ?? null,
     kakaoPlaceId,
     placeName: dto.placeName,
     categoryName: dto.categoryName ?? null,
@@ -88,6 +92,9 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
     sourceKeyword: dto.sourceKeyword ?? null,
     alreadyInRoom,
     selectable: dto.selectable === true,
+    originalCandidate: dto.originalCandidate !== false,
+    corrected: dto.corrected === true,
+    editable: dto.editable === true,
     roomPlaceId: dto.roomPlaceId ?? null,
     disabledReason,
   };
@@ -103,6 +110,23 @@ export function hasKakaoPlaceId(place: CandidatePlace): place is CandidatePlace 
   kakaoPlaceId: string;
 } {
   return typeof place.kakaoPlaceId === "string" && place.kakaoPlaceId.trim().length > 0;
+}
+
+export function canEditCandidatePlace(place: CandidatePlace): place is CandidatePlace & {
+  candidateId: number;
+} {
+  return place.editable && typeof place.candidateId === "number";
+}
+
+export function toOverrideCandidatePlaceResult(
+  dto: OverrideCandidatePlaceResponseDto,
+): OverrideCandidatePlaceResult {
+  return {
+    candidateId: dto.candidateId,
+    overrideId: dto.overrideId,
+    kakaoPlaceId: dto.kakaoPlaceId,
+    name: dto.name,
+  };
 }
 
 export function toSaveCandidatePlacesResult(

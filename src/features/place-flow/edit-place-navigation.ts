@@ -5,8 +5,10 @@ export type EditPlaceLocationState = {
   placeName?: string;
   returnTo?: EditPlaceReturnTo;
   linkAddRoomId?: string;
+  linkAddAnalysisRequestId?: number | string;
   /** 링크 후보 화면 URL(`.../links/:linkId/candidates`) 복귀용 */
   linkAddLinkId?: number | string;
+  linkAddCandidateId?: number;
   linkAddDraftSession?: string;
   /** @deprecated `returnTo` 사용 */
   onConfirmNavigate?: string;

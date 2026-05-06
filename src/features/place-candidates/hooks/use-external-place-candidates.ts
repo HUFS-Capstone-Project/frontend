@@ -9,7 +9,10 @@ import type {
 
 const DEFAULT_EXTERNAL_PLACE_LIMIT = 10;
 
-type NormalizedExternalPlaceCandidateParams = Required<ExternalPlaceCandidateParams>;
+type NormalizedExternalPlaceCandidateParams = ExternalPlaceCandidateParams & {
+  keyword: string;
+  limit: number;
+};
 type ExternalPlaceCandidatesQueryKey = ReturnType<typeof placeCandidateQueryKeys.external>;
 
 type UseExternalPlaceCandidatesOptions = {
@@ -32,8 +35,6 @@ function normalizeExternalPlaceCandidateParams(
 ): NormalizedExternalPlaceCandidateParams {
   return {
     keyword: params.keyword.trim(),
-    region: params.region?.trim() ?? "",
-    categoryGroupCode: params.categoryGroupCode?.trim() ?? "",
     limit: params.limit ?? DEFAULT_EXTERNAL_PLACE_LIMIT,
   };
 }

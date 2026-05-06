@@ -5,6 +5,7 @@ import { getXsrfHeader, withCsrfRetry } from "@/shared/api/csrf";
 import {
   toLinkAnalysis,
   toLinkAnalysisRequestResult,
+  toOverrideCandidatePlaceResult,
   toSaveCandidatePlacesResult,
 } from "../model/link-analysis-types";
 import type {
@@ -13,6 +14,9 @@ import type {
   LinkAnalysisDto,
   LinkAnalysisRequestResult,
   LinkAnalysisRequestResultDto,
+  OverrideCandidatePlaceRequest,
+  OverrideCandidatePlaceResponseDto,
+  OverrideCandidatePlaceResult,
   RequestLinkAnalysisRequest,
   SaveCandidatePlacesRequest,
   SaveCandidatePlacesResponseDto,
@@ -62,6 +66,26 @@ export const linkAnalysisService = {
       );
 
       return toSaveCandidatePlacesResult(res.data.data);
+    });
+  },
+
+  overrideCandidatePlace: async (
+    roomId: string,
+    analysisRequestId: number,
+    candidateId: number,
+    payload: OverrideCandidatePlaceRequest,
+  ): Promise<OverrideCandidatePlaceResult> => {
+    return withCsrfRetry(async () => {
+      const res = await api.put<LinkAnalysisCommonResponse<OverrideCandidatePlaceResponseDto>>(
+        API_PATHS.rooms.linkAnalysisCandidateOverride(roomId, analysisRequestId, candidateId),
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
+
+      return toOverrideCandidatePlaceResult(res.data.data);
     });
   },
 

@@ -21,7 +21,5 @@ export type ExternalPlaceCandidate = ExternalPlaceCandidateDto;
 
 export type ExternalPlaceCandidateParams = {
   keyword: string;
-  region?: string;
-  categoryGroupCode?: string;
   limit?: number;
 };

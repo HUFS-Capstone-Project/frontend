@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
@@ -8,7 +8,11 @@ import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCanc
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PillButton } from "@/components/ui/PillButton";
 import type { CandidatePlace } from "@/features/link-analysis";
-import { canRetryLinkAnalysis, canSelectCandidatePlace } from "@/features/link-analysis";
+import {
+  canEditCandidatePlace,
+  canRetryLinkAnalysis,
+  canSelectCandidatePlace,
+} from "@/features/link-analysis";
 import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { LINK_FLOW_AFTER_HEADLINES_CLASS } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
@@ -21,9 +25,7 @@ import {
 } from "@/features/place-flow/prompt-flow-layout";
 import type { LinkAnalysisResult } from "@/features/room/link-add";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { SavedPlace } from "@/shared/types/map-home";
-import { useEditPlaceStore } from "@/store/edit-place-store";
 
 export type CandidatePlaceResultScreenProps = {
   linkAddRoomId: string;
@@ -34,6 +36,7 @@ export type CandidatePlaceResultScreenProps = {
   canSave?: boolean;
   onClose: () => void;
   onRetry: () => void;
+  onSearchManually?: () => void;
   onToggleCandidatePlace: (place: CandidatePlace) => void;
   onSave: () => void;
   persistDraftForEdit: () => string;
@@ -48,13 +51,12 @@ export function CandidatePlaceResultScreen({
   canSave = false,
   onClose,
   onRetry,
+  onSearchManually,
   onToggleCandidatePlace,
   onSave,
   persistDraftForEdit,
 }: CandidatePlaceResultScreenProps) {
   const navigate = useNavigate();
-  const editingPlaceId = useEditPlaceStore((s) => s.editingPlaceId);
-  const selectedResultId = useEditPlaceStore((s) => s.selectedResultId);
   const { copyLabel, copyText } = useCopyFeedback();
 
   const isSucceeded = result.status === "SUCCEEDED";
@@ -68,25 +70,13 @@ export function CandidatePlaceResultScreen({
     selectableCount,
   });
 
-  const resolveRowDisplay = useCallback(
-    (slotId: string, base: SavedPlace): SavedPlace => {
-      if (editingPlaceId === slotId && selectedResultId) {
-        const fromMock = SAVED_PLACE_MOCKS.find((p) => p.id === selectedResultId);
-        return fromMock ?? base;
-      }
-      return base;
-    },
-    [editingPlaceId, selectedResultId],
-  );
-
   const rowEntries = useMemo(() => {
     return result.candidatePlaces.map((place, index) => {
       const slotId = place.kakaoPlaceId ?? `candidate-${index}`;
       const base = candidatePlaceToSavedPlace(place, index);
-      const displayPlace = resolveRowDisplay(slotId, base);
-      return { place, index, slotId, displayPlace };
+      return { place, index, slotId, displayPlace: base };
     });
-  }, [resolveRowDisplay, result.candidatePlaces]);
+  }, [result.candidatePlaces]);
 
   const showNotFoundHelp = !isSucceeded || rowEntries.length === 0;
   const showSuccessHeader = isSucceeded && rowEntries.length > 0;
@@ -114,7 +104,7 @@ export function CandidatePlaceResultScreen({
           </section>
         ) : null}
 
-        {showNotFoundHelp && canRetry ? (
+        {showNotFoundHelp ? (
           <div className="space-y-4">
             <PlaceFlowHeadlines
               titleId="link-candidate-not-found-title"
@@ -142,9 +132,12 @@ export function CandidatePlaceResultScreen({
                   place={displayPlace}
                   selected={selected}
                   disabled={!selectable}
+                  corrected={place.corrected}
+                  saved={place.alreadyInRoom}
+                  disabledReason={place.disabledReason}
                   onSelect={() => onToggleCandidatePlace(place)}
                   onEdit={
-                    selectable
+                    canEditCandidatePlace(place)
                       ? () => {
                           const sessionId = persistDraftForEdit();
                           navigate(APP_ROUTES.editPlace, {
@@ -153,7 +146,9 @@ export function CandidatePlaceResultScreen({
                               placeName: displayPlace.name,
                               returnTo: "link-add",
                               linkAddRoomId,
+                              linkAddAnalysisRequestId: result.analysisRequestId ?? undefined,
                               linkAddLinkId: result.analysisRequestId ?? undefined,
+                              linkAddCandidateId: place.candidateId,
                               linkAddDraftSession: sessionId,
                             },
                           });
@@ -201,6 +196,19 @@ export function CandidatePlaceResultScreen({
           right={
             <PillButton type="button" variant="onboarding" onClick={onRetry}>
               {PLACE_FLOW_COPY.retry}
+            </PillButton>
+          }
+        />
+      ) : showNotFoundHelp && isSucceeded && onSearchManually ? (
+        <TwoButtonFooter
+          left={
+            <PlaceFlowCancelPillButton onClick={onClose}>
+              {PLACE_FLOW_COPY.cancel}
+            </PlaceFlowCancelPillButton>
+          }
+          right={
+            <PillButton type="button" variant="onboarding" onClick={onSearchManually}>
+              직접 검색
             </PillButton>
           }
         />

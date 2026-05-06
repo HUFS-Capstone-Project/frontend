@@ -1,9 +1,11 @@
 export { linkAnalysisService } from "./api/link-analysis-service";
 export { useRequestLinkAnalysisMutation } from "./hooks/use-link-analysis-mutation";
 export { useLinkAnalysisStatusQuery } from "./hooks/use-link-analysis-status-query";
+export { useOverrideCandidatePlaceMutation } from "./hooks/use-override-candidate-place-mutation";
 export { useSaveCandidatePlacesMutation } from "./hooks/use-save-candidate-places-mutation";
 export { useSaveManualPlaceMutation } from "./hooks/use-save-manual-place-mutation";
 export {
+  canEditCandidatePlace,
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
   hasKakaoPlaceId,
@@ -22,6 +24,9 @@ export type {
   LinkAnalysisRequestResultDto,
   LinkAnalysisSource,
   LinkAnalysisStatus,
+  OverrideCandidatePlaceRequest,
+  OverrideCandidatePlaceResponseDto,
+  OverrideCandidatePlaceResult,
   RequestLinkAnalysisRequest,
   SaveCandidatePlacesRequest,
   SaveCandidatePlacesResponseDto,
