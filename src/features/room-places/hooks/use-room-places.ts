@@ -2,11 +2,14 @@ import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 
 import { roomPlaceApi } from "../api/room-place-api";
 import { roomPlaceQueryKeys } from "../query-keys";
-import type { RoomPlaceListParams, RoomPlaceListResponse } from "../types/room-place.types";
+import type {
+  NormalizedRoomPlaceListParams,
+  RoomPlaceListParams,
+  RoomPlaceListResponse,
+} from "../types/room-place.types";
 
 const DEFAULT_ROOM_PLACE_LIMIT = 20;
 
-type NormalizedRoomPlaceListParams = Required<RoomPlaceListParams>;
 type RoomPlacesQueryKey = ReturnType<typeof roomPlaceQueryKeys.list>;
 
 type UseRoomPlacesOptions = {
@@ -24,10 +27,13 @@ export function normalizeRoomPlaceListParams(
 ): NormalizedRoomPlaceListParams {
   return {
     keyword: params.keyword?.trim() ?? "",
+    category: params.category?.trim() ?? "",
     categoryCode: params.categoryCode ?? "",
     tagCode: params.tagCode ?? "",
+    sidoCode: params.sidoCode?.trim() ?? "",
+    sigunguCode: params.sigunguCode?.trim() ?? "",
     page: params.page ?? 0,
-    limit: params.limit ?? DEFAULT_ROOM_PLACE_LIMIT,
+    size: params.size ?? params.limit ?? DEFAULT_ROOM_PLACE_LIMIT,
   };
 }
 

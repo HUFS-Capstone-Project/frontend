@@ -5,6 +5,7 @@ export { useUpdateRoomPlaceMemo } from "./hooks/use-update-room-place-memo";
 export { roomPlaceToSavedPlace } from "./lib/room-place-mappers";
 export { roomPlaceQueryKeys } from "./query-keys";
 export type {
+  NormalizedRoomPlaceListParams,
   RoomPlace,
   RoomPlaceDto,
   RoomPlaceListParams,

@@ -75,7 +75,7 @@ export function MapHomePageContent({
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
   const roomPlacesQuery = useRoomPlaces({
     roomId: selectedRoom?.id ?? null,
-    params: { page: 0, limit: 20 },
+    params: { page: 0, size: 20 },
   });
   const savedPlaces = useMemo(
     () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),

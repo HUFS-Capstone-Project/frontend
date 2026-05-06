@@ -1,4 +1,4 @@
-import { Coffee, LayoutGrid, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Coffee, LayoutGrid, Sparkles, Utensils } from "lucide-react";
 import type { JSX } from "react";
 
 type IconProps = {
@@ -10,8 +10,10 @@ function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.E
   switch (categoryName) {
     case "전체":
       return <LayoutGrid {...props} aria-hidden />;
-    case "맛집":
-      return <UtensilsCrossed {...props} aria-hidden />;
+    case "음식점":
+    case "음식":
+    case "FOOD":
+      return <Utensils {...props} aria-hidden />;
     case "카페":
       return <Coffee {...props} aria-hidden />;
     case "놀거리":

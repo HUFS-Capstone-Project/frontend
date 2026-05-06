@@ -7,19 +7,19 @@ import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 export const FALLBACK_PLACE_FILTER_DATA: PlaceFilterData = {
   categories: [
     {
-      code: "맛집",
-      name: "맛집",
+      code: "음식점",
+      name: "음식점",
       sortOrder: 1,
       tagGroups: [
         {
-          code: "맛집-default",
+          code: "음식점-default",
           name: null,
           sortOrder: 1,
           tags: [
             { code: "ALL", name: "전체", sortOrder: 0 },
-            { code: "맛집-한식", name: "한식", sortOrder: 1 },
-            { code: "맛집-중식", name: "중식", sortOrder: 2 },
-            { code: "맛집-일식", name: "일식", sortOrder: 3 },
+            { code: "음식점-한식", name: "한식", sortOrder: 1 },
+            { code: "음식점-중식", name: "중식", sortOrder: 2 },
+            { code: "음식점-일식", name: "일식", sortOrder: 3 },
           ],
         },
       ],

@@ -18,8 +18,8 @@ const items: {
 }[] = [
   { id: "list", label: "목록", Icon: Menu },
   { id: "room", label: "방", Icon: House },
-  { id: "map", label: "지도", Icon: MapPinned },
-  { id: "course", label: "코스 짜기", Icon: Map },
+  { id: "map", label: "지도", Icon: Map },
+  { id: "course", label: "코스 짜기", Icon: MapPinned },
   { id: "mypage", label: "마이페이지", Icon: User },
 ];
 

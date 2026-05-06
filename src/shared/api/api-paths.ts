@@ -36,6 +36,10 @@ export const API_PATHS = {
     places: (roomId: string) => `/v1/rooms/${roomId}/places`,
     place: (roomId: string, roomPlaceId: number) => `/v1/rooms/${roomId}/places/${roomPlaceId}`,
   },
+  regions: {
+    sidos: "/v1/regions/sidos",
+    sigungus: (sidoCode: string) => `/v1/regions/sidos/${sidoCode}/sigungus`,
+  },
   links: {
     root: "/v1/links",
   },

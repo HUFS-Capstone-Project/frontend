@@ -376,15 +376,15 @@ export function KakaoMapView({
           ) : null}
           <button
             type="button"
-            className="shadow-floating pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border border-black/5 bg-white text-neutral-500 transition-colors hover:bg-white/95 active:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted-foreground/85 shadow-floating pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border border-black/5 bg-white transition-colors hover:bg-white/95 active:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="현재 위치로 이동"
             aria-busy={isLocating}
             disabled={loadState !== "ready" || isLocating}
             onClick={handleMoveToCurrentLocation}
           >
             <LocateFixed
-              className={cn("size-5", isLocating && "animate-pulse text-neutral-500")}
-              strokeWidth={2.4}
+              className={cn("size-5", isLocating && "animate-pulse")}
+              strokeWidth={1.75}
               aria-hidden
             />
           </button>

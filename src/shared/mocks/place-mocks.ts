@@ -9,12 +9,12 @@ export const MAP_INITIAL_CENTER: MapCoordinate = {
 };
 
 export const SAVED_PLACE_MOCKS: SavedPlace[] = [
-  // 맛집
+  // 음식점
   {
     id: "restaurant-1",
     name: "영화장",
-    category: "맛집",
-    tagKeys: ["맛집-중식"],
+    category: "음식점",
+    tagKeys: ["음식점-중식"],
     latitude: 37.5973,
     longitude: 127.0606,
     address: "서울 동대문구 이문로 107",
@@ -35,8 +35,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-2",
     name: "카츠이로하",
-    category: "맛집",
-    tagKeys: ["맛집-일식"],
+    category: "음식점",
+    tagKeys: ["음식점-일식"],
     latitude: 37.5915,
     longitude: 127.0567,
     address: "서울 동대문구 회기로 173",
@@ -57,8 +57,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-3",
     name: "79번지국수집",
-    category: "맛집",
-    tagKeys: ["맛집-한식"],
+    category: "음식점",
+    tagKeys: ["음식점-한식"],
     latitude: 37.596,
     longitude: 127.062,
     address: "서울 동대문구 이문로 79",
@@ -80,8 +80,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-4",
     name: "페어링테이블",
-    category: "맛집",
-    tagKeys: ["맛집-양식"],
+    category: "음식점",
+    tagKeys: ["음식점-양식"],
     latitude: 35.8699,
     longitude: 128.5963,
     address: "대구 중구 동성로2길 4-3",
@@ -102,8 +102,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-5",
     name: "갓잇 대구수성못점",
-    category: "맛집",
-    tagKeys: ["맛집-양식"],
+    category: "음식점",
+    tagKeys: ["음식점-양식"],
     latitude: 35.8279,
     longitude: 128.6175,
     address: "대구 수성구 수성못2길 15 1층",
@@ -124,8 +124,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-6",
     name: "써브웨이 대구동성로점",
-    category: "맛집",
-    tagKeys: ["맛집-양식"],
+    category: "음식점",
+    tagKeys: ["음식점-양식"],
     latitude: 35.8707,
     longitude: 128.5962,
     address: "대구광역시 중구 국채보상로 598",
@@ -146,8 +146,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-7",
     name: "써브웨이 송도센트럴파크점",
-    category: "맛집",
-    tagKeys: ["맛집-양식"],
+    category: "음식점",
+    tagKeys: ["음식점-양식"],
     latitude: 37.3935,
     longitude: 126.639,
     address: "인천광역시 연수구 센트럴로 194",
@@ -168,8 +168,8 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   {
     id: "restaurant-8",
     name: "써브웨이 외대점",
-    category: "맛집",
-    tagKeys: ["맛집-양식"],
+    category: "음식점",
+    tagKeys: ["음식점-양식"],
     latitude: 37.5969,
     longitude: 127.0609,
     address: "서울 동대문구 이문로 116",

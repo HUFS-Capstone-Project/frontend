@@ -17,6 +17,14 @@ import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import {
+  REGION_ALL_CODE,
+  REGION_ALL_OPTION,
+  type RegionSelectionOption,
+  useSidosQuery,
+  useSigungusQueries,
+  useSigungusQuery,
+} from "@/features/regions";
+import {
   roomPlaceToSavedPlace,
   useDeleteRoomPlace,
   useRoomPlaces,
@@ -42,19 +50,44 @@ function formatCount(count: number) {
   return count > 999 ? "999+" : String(count);
 }
 
-function placeMatchesRegion(placeAddress: string, city: string, district: string) {
-  const matchesCity = placeAddress.includes(city);
-  const matchesDistrict = district === "전체" || placeAddress.includes(district);
-  return matchesCity && matchesDistrict;
-}
-
 export default function PlaceListPage() {
   const now = useKoreanNow();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
+  const [selectedSido, setSelectedSido] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
+  const [selectedSigungu, setSelectedSigungu] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
+  const [draftSido, setDraftSido] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
+  const [draftSigungu, setDraftSigungu] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
+  const [regionSearchKeyword, setRegionSearchKeyword] = useState("");
+  const [isRegionPanelOpen, setIsRegionPanelOpen] = useState(false);
+  const roomPlaceListParams = useMemo(() => {
+    const hasSido = selectedSido.code !== REGION_ALL_CODE;
+    const hasSigungu = hasSido && selectedSigungu.code !== REGION_ALL_CODE;
+
+    return {
+      page: 0,
+      size: 20,
+      ...(hasSido ? { sidoCode: selectedSido.code } : {}),
+      ...(hasSigungu ? { sigunguCode: selectedSigungu.code } : {}),
+    };
+  }, [selectedSido.code, selectedSigungu.code]);
   const roomPlacesQuery = useRoomPlaces({
     roomId: selectedRoom?.id ?? null,
-    params: { page: 0, limit: 20 },
+    params: roomPlaceListParams,
+  });
+  const sidosQuery = useSidosQuery();
+  const sigungusQuery = useSigungusQuery({
+    sidoCode: draftSido.code,
+    enabled: isRegionPanelOpen,
+  });
+  const searchableSidoOptions = useMemo(
+    () => sidosQuery.data?.filter((sido) => sido.code !== REGION_ALL_CODE) ?? [],
+    [sidosQuery.data],
+  );
+  const isRegionSearching = regionSearchKeyword.trim().length > 0;
+  const allSigungusQueries = useSigungusQueries({
+    sidoCodes: searchableSidoOptions.map((sido) => sido.code),
+    enabled: isRegionPanelOpen && isRegionSearching,
   });
   const updateRoomPlaceMemoMutation = useUpdateRoomPlaceMemo({
     roomId: selectedRoom?.id ?? null,
@@ -98,29 +131,56 @@ export default function PlaceListPage() {
     categoriesOnly: true,
   });
 
-  const [selectedCity, setSelectedCity] = useState("서울");
-  const [selectedDistrict, setSelectedDistrict] = useState("전체");
-  const [draftCity, setDraftCity] = useState("서울");
-  const [draftDistrict, setDraftDistrict] = useState("전체");
-  const [isRegionPanelOpen, setIsRegionPanelOpen] = useState(false);
+  const sidoOptions = sidosQuery.data?.length ? sidosQuery.data : [REGION_ALL_OPTION];
+  const allSigunguOptions = useMemo((): RegionSelectionOption[] => {
+    return allSigungusQueries.flatMap((query, index) => {
+      const parentSido = searchableSidoOptions[index];
+      if (!parentSido || !query.data) {
+        return [];
+      }
+
+      return query.data
+        .filter((sigungu) => sigungu.code !== REGION_ALL_CODE)
+        .map((sigungu) => ({
+          code: sigungu.code,
+          name: sigungu.name,
+          displayName: `${parentSido.name} ${sigungu.name}`,
+          parentSidoCode: parentSido.code,
+          parentSidoName: parentSido.name,
+        }));
+    });
+  }, [allSigungusQueries, searchableSidoOptions]);
+  const sigunguOptions = isRegionSearching
+    ? allSigunguOptions
+    : draftSido.code === REGION_ALL_CODE
+      ? [REGION_ALL_OPTION]
+      : sigungusQuery.data?.length
+        ? sigungusQuery.data
+        : [REGION_ALL_OPTION];
+  const isAllSigunguSearchLoading =
+    isRegionSearching &&
+    allSigungusQueries.some((query) => query.isLoading || query.isFetching) &&
+    allSigunguOptions.length === 0;
+  const isAllSigunguSearchError =
+    isRegionSearching &&
+    allSigungusQueries.length > 0 &&
+    allSigungusQueries.every((query) => query.isError);
 
   const categoryFilteredPlaces = filteredPlaces;
 
   const listPlacesBase = useMemo((): SavedPlace[] => {
-    return categoryFilteredPlaces
-      .filter((place) => placeMatchesRegion(place.address, selectedCity, selectedDistrict))
-      .map((place) => ({
-        id: place.id,
-        name: place.name,
-        address: place.address,
-        category: place.category,
-        tagKeys: place.tagKeys,
-        latitude: place.latitude,
-        longitude: place.longitude,
-        shareLinkUrl: place.shareLinkUrl,
-        memo: place.memo,
-      }));
-  }, [categoryFilteredPlaces, selectedCity, selectedDistrict]);
+    return categoryFilteredPlaces.map((place) => ({
+      id: place.id,
+      name: place.name,
+      address: place.address,
+      category: place.category,
+      tagKeys: place.tagKeys,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      shareLinkUrl: place.shareLinkUrl,
+      memo: place.memo,
+    }));
+  }, [categoryFilteredPlaces]);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
@@ -155,23 +215,45 @@ export default function PlaceListPage() {
   }, [mapPins, selectedPlaceId]);
 
   const regionFieldValue =
-    selectedDistrict === "전체" ? selectedCity : `${selectedCity} ${selectedDistrict}`;
+    selectedSido.code === REGION_ALL_CODE
+      ? REGION_ALL_OPTION.name
+      : selectedSigungu.code === REGION_ALL_CODE
+        ? selectedSido.name
+        : `${selectedSido.name} ${selectedSigungu.name}`;
 
   const handleOpenRegionSelect = () => {
     closeTagPanel();
-    setDraftCity(selectedCity);
-    setDraftDistrict(selectedDistrict);
+    setDraftSido(selectedSido);
+    setDraftSigungu(selectedSigungu);
+    setRegionSearchKeyword("");
     setIsRegionPanelOpen(true);
   };
 
-  const handleSelectDraftCity = (city: string) => {
-    setDraftCity(city);
-    setDraftDistrict("전체");
+  const handleSelectDraftSido = (sidoName: string, option?: RegionSelectionOption) => {
+    setDraftSido(option ?? { code: sidoName, name: sidoName });
+    setDraftSigungu(REGION_ALL_OPTION);
+  };
+
+  const handleSelectDraftSigungu = (sigunguName: string, option?: RegionSelectionOption) => {
+    if (option?.parentSidoCode && option.parentSidoName) {
+      setDraftSido({ code: option.parentSidoCode, name: option.parentSidoName });
+      setDraftSigungu({ code: option.code, name: option.name });
+      return;
+    }
+
+    setDraftSigungu(option ?? { code: sigunguName, name: sigunguName });
   };
 
   const handleConfirmRegion = () => {
-    setSelectedCity(draftCity);
-    setSelectedDistrict(draftDistrict);
+    if (draftSido.code === REGION_ALL_CODE) {
+      setSelectedSido(REGION_ALL_OPTION);
+      setSelectedSigungu(REGION_ALL_OPTION);
+      setIsRegionPanelOpen(false);
+      return;
+    }
+
+    setSelectedSido(draftSido);
+    setSelectedSigungu(draftSigungu);
     setIsRegionPanelOpen(false);
   };
 
@@ -185,8 +267,14 @@ export default function PlaceListPage() {
         ? `${formatCount(shownCount)}개 · 전체 ${formatCount(categoryTotal)}`
         : `${formatCount(shownCount)}개 · 전체 ${formatCount(regionTotal)}`;
 
-  const emptyMessage =
-    resolvedPlaces.length === 0 ? PLACE_LIST_TEXT.emptySaved : PLACE_LIST_TEXT.emptyFiltered;
+  const hasRegionFilter = selectedSido.code !== REGION_ALL_CODE;
+  const emptyMessage = roomPlacesQuery.isError
+    ? "장소 목록을 불러오지 못했어요."
+    : roomPlacesQuery.isLoading
+      ? "장소 목록을 불러오는 중이에요."
+      : resolvedPlaces.length === 0 && !hasRegionFilter
+        ? PLACE_LIST_TEXT.emptySaved
+        : PLACE_LIST_TEXT.emptyFiltered;
 
   const handleHeaderBack = () => {
     if (detailOpen) {
@@ -339,11 +427,31 @@ export default function PlaceListPage() {
         onClose={() => setIsRegionPanelOpen(false)}
       >
         <RegionSelectionPanel
-          selectedCity={draftCity}
-          selectedDistrict={draftDistrict}
-          onSelectCity={handleSelectDraftCity}
-          onSelectDistrict={setDraftDistrict}
-          onClose={() => setIsRegionPanelOpen(false)}
+          selectedCity={draftSido.name}
+          selectedDistrict={draftSigungu.name}
+          cityOptions={sidoOptions}
+          districtOptions={sigunguOptions}
+          isCityLoading={sidosQuery.isLoading}
+          isDistrictLoading={
+            isAllSigunguSearchLoading ||
+            (!isRegionSearching && draftSido.code !== REGION_ALL_CODE && sigungusQuery.isLoading)
+          }
+          cityErrorMessage={sidosQuery.isError ? "지역 정보를 불러오지 못했어요." : null}
+          districtErrorMessage={
+            isAllSigunguSearchError
+              ? "시/군/구 정보를 확인할 수 없어요."
+              : !isRegionSearching && draftSido.code !== REGION_ALL_CODE && sigungusQuery.isError
+                ? "시/군/구 정보를 확인할 수 없어요."
+                : null
+          }
+          searchKeyword={regionSearchKeyword}
+          onSearchKeywordChange={setRegionSearchKeyword}
+          onSelectCity={handleSelectDraftSido}
+          onSelectDistrict={handleSelectDraftSigungu}
+          onClose={() => {
+            setRegionSearchKeyword("");
+            setIsRegionPanelOpen(false);
+          }}
           onConfirm={handleConfirmRegion}
         />
       </CoursePlannerBottomSheet>

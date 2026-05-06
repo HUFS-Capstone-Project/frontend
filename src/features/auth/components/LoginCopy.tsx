@@ -56,7 +56,7 @@ export function LoginCopy({ variant }: LoginCopyProps) {
     <div className="max-w-sm text-left leading-relaxed">
       <AnimatedText
         id="login-marketing-heading"
-        prefix="SNS에서 본 맛집과 카페,"
+        prefix="SNS에서 본 음식점과 카페,"
         texts={MARKETING_TEXTS}
         interval={2800}
         durationMs={650}

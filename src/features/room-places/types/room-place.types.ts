@@ -1,9 +1,24 @@
 export type RoomPlaceListParams = {
   keyword?: string;
+  category?: string;
   categoryCode?: string;
   tagCode?: string;
+  sidoCode?: string;
+  sigunguCode?: string;
   page?: number;
+  size?: number;
   limit?: number;
+};
+
+export type NormalizedRoomPlaceListParams = {
+  keyword: string;
+  category: string;
+  categoryCode: string;
+  tagCode: string;
+  sidoCode: string;
+  sigunguCode: string;
+  page: number;
+  size: number;
 };
 
 export type RoomPlaceDto = {
@@ -22,6 +37,10 @@ export type RoomPlaceDto = {
   serviceCategoryName: string | null;
   serviceTagCode: string | null;
   serviceTagName: string | null;
+  sidoCode: string | null;
+  sidoName: string | null;
+  sigunguCode: string | null;
+  sigunguName: string | null;
   memo: string | null;
   sourceType: string | null;
   sourceRoomLinkId: number | null;
