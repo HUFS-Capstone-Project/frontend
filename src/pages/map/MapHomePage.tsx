@@ -302,6 +302,7 @@ export function MapHomePageContent({
             fitBoundsPlaces={effectiveMapViewport.fitBoundsPlaces}
             geocodeKeyword={effectiveMapViewport.geocodeKeyword}
             viewportKey={effectiveMapViewport.key}
+            showCurrentLocationButton
             onMapClick={handleMapClick}
             className="absolute inset-0"
           />
@@ -343,7 +344,7 @@ export function MapHomePageContent({
           friends={fabFriends}
           open={friendMenuOpen}
           onToggle={() => setFriendMenuOpen((prev) => !prev)}
-          className="bottom-fab-above-nav end-page-safe absolute z-10"
+          className="bottom-fab-above-nav absolute left-[max(1rem,env(safe-area-inset-left))] z-10"
         />
         <BottomNavigationBar activeId="map" onSelect={handleSelectBottomNav} />
       </div>

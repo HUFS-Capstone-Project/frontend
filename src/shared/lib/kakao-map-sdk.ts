@@ -23,6 +23,7 @@ export type KakaoMapInstance = {
   panTo: (position: KakaoLatLng) => void;
   setBounds: (bounds: KakaoLatLngBounds) => void;
   setLevel: (level: number) => void;
+  setDraggable: (draggable: boolean) => void;
 };
 
 export type KakaoLatLngBounds = {

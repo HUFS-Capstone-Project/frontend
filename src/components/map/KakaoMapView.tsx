@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { LocateFixed } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +22,7 @@ export type KakaoMapViewProps = {
   viewportKey?: string;
   level?: number;
   className?: string;
+  showCurrentLocationButton?: boolean;
   onMapClick?: () => void;
 };
 
@@ -39,6 +41,7 @@ export function KakaoMapView({
   viewportKey = "initial",
   level = 4,
   className,
+  showCurrentLocationButton = false,
   onMapClick,
 }: KakaoMapViewProps) {
   const mapKey = appKey?.trim() ?? "";
@@ -52,6 +55,8 @@ export function KakaoMapView({
   const selectedMarkerImageRef = useRef<KakaoMarkerImage | null>(null);
   const markerInstancesRef = useRef<KakaoMarker[]>([]);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const selectedPlaceId = usePlaceDetailStore((state) =>
     state.isOpen ? state.selectedPlaceId : null,
   );
@@ -86,6 +91,7 @@ export function KakaoMapView({
           ),
           level: initialLevelRef.current,
         });
+        mapInstance.setDraggable(true);
 
         mapsRef.current = kakao.maps;
         mapRef.current = mapInstance;
@@ -242,6 +248,62 @@ export function KakaoMapView({
     };
   }, [loadState, onMapClick]);
 
+  const handleMoveToCurrentLocation = useCallback(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current || isLocating) {
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      setLocationError("현재 위치를 확인할 수 없어요.");
+      return;
+    }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const maps = mapsRef.current;
+        const mapInstance = mapRef.current;
+        if (!maps || !mapInstance) {
+          setIsLocating(false);
+          return;
+        }
+
+        const currentPosition = new maps.LatLng(
+          position.coords.latitude,
+          position.coords.longitude,
+        );
+        mapInstance.setLevel(level);
+        mapInstance.panTo(currentPosition);
+        setIsLocating(false);
+      },
+      () => {
+        setLocationError("현재 위치를 확인할 수 없어요.");
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30_000,
+        timeout: 8_000,
+      },
+    );
+  }, [isLocating, level, loadState]);
+
+  useEffect(() => {
+    if (!locationError) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setLocationError(null);
+    }, 2_500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [locationError]);
+
   // effect C: places 변경 시 marker만 갱신
   useEffect(() => {
     if (
@@ -290,7 +352,7 @@ export function KakaoMapView({
 
   return (
     <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>
-      <div ref={mapContainerRef} className="relative z-0 h-full w-full [touch-action:none]" />
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full" />
 
       {hasMapKey && loadState === "loading" ? (
         <div className="bg-background/30 pointer-events-none absolute inset-0" aria-hidden />
@@ -302,6 +364,30 @@ export function KakaoMapView({
           <p className="text-muted-foreground mt-1 leading-4">
             `.env.*`에 `VITE_KAKAO_MAP_APP_KEY`를 설정하면 Kakao 지도가 표시됩니다.
           </p>
+        </div>
+      ) : null}
+
+      {showCurrentLocationButton && hasMapKey && loadState !== "error" ? (
+        <div className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[calc(max(0.5rem,env(safe-area-inset-bottom))+4.25rem)] z-10 flex flex-col items-end gap-2">
+          {locationError ? (
+            <div className="bg-background/95 border-border-subtle rounded-full border px-3 py-2 text-xs font-medium text-black/65 shadow-sm">
+              {locationError}
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="shadow-floating pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border border-black/5 bg-white text-neutral-500 transition-colors hover:bg-white/95 active:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="현재 위치로 이동"
+            aria-busy={isLocating}
+            disabled={loadState !== "ready" || isLocating}
+            onClick={handleMoveToCurrentLocation}
+          >
+            <LocateFixed
+              className={cn("size-5", isLocating && "animate-pulse text-neutral-500")}
+              strokeWidth={2.4}
+              aria-hidden
+            />
+          </button>
         </div>
       ) : null}
     </div>
