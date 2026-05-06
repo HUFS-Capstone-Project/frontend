@@ -218,11 +218,11 @@ export function MySavedCoursesPage({
           headerBackdrop,
         )}
       >
-        <div className="flex h-12 items-center px-5">
+        <div className="grid h-12 grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center px-5">
           <button
             type="button"
             onClick={handleHeaderBack}
-            className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
+            className="touch-target-min -ml-3 flex items-center justify-center justify-self-start rounded-full"
           >
             <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
             <span className="sr-only">
@@ -230,18 +230,13 @@ export function MySavedCoursesPage({
                 ? "장소 상세 닫기"
                 : selectedCourse
                   ? "코스 상세 닫기"
-                  : "마이페이지로 돌아가기"}
+              : "마이페이지로 돌아가기"}
             </span>
           </button>
-          <h1 className="flex-1 text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
+          <h1 className="min-w-0 truncate text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
             저장된 데이트 코스
           </h1>
-          <span
-            className={cn(
-              "text-right text-xs font-semibold text-[#555555]",
-              overlayMapOpen ? "w-14 shrink-0" : "max-w-[48%] truncate",
-            )}
-          >
+          <span className="w-14 justify-self-end truncate text-right text-xs font-semibold text-[#555555]">
             총 {formatCount(visibleCourses.length)}개
           </span>
         </div>
