@@ -5,20 +5,27 @@ import { SavedPlaceMemoEditor } from "@/components/mypage/SavedPlaceMemoEditor";
 import { BusinessHoursAccordion } from "@/components/place/BusinessHoursAccordion";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { roomPlaceToSavedPlace, useRoomPlace } from "@/features/room-places";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { sharePlace } from "@/shared/lib/share-place";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import { SAVED_PLACE_BY_ID, SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
+type DetailSavedPlace = MySavedPlace &
+  Partial<Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours">>;
+
 type PlaceDetailSheetProps = {
-  savedPlaces?: MySavedPlace[];
+  roomId?: string | null;
+  savedPlaces?: DetailSavedPlace[];
   onSaveMemo?: (placeId: string, memo: string) => void;
   onDeletePlace?: (placeId: string) => void;
 };
 
 export function PlaceDetailSheet({
+  roomId = null,
   savedPlaces,
   onSaveMemo,
   onDeletePlace,
@@ -32,38 +39,87 @@ export function PlaceDetailSheet({
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [localMemos, setLocalMemos] = useState<Record<string, string>>({});
   const [localRemovedPlaceIds, setLocalRemovedPlaceIds] = useState<string[]>([]);
-
-  const savedPlaceById = useMemo(() => {
-    if (!savedPlaces) {
+  const selectedRoomPlaceId = useMemo(() => {
+    if (!selectedPlaceId) {
       return null;
     }
-    return new Map(savedPlaces.map((place) => [place.id, place]));
-  }, [savedPlaces]);
+
+    const parsed = Number(selectedPlaceId);
+    return Number.isInteger(parsed) ? parsed : null;
+  }, [selectedPlaceId]);
+  const shouldFetchRoomPlaceDetail = savedPlaces == null && roomId != null;
+  const roomPlaceDetailQuery = useRoomPlace({
+    roomId,
+    roomPlaceId: selectedRoomPlaceId,
+    enabled: isOpen && shouldFetchRoomPlaceDetail,
+  });
 
   const places = useMemo(() => {
     const localRemoved = new Set(localRemovedPlaceIds);
-    const sourcePlaces = SAVED_PLACE_MOCKS.filter((place) => {
-      if (savedPlaceById) {
-        return savedPlaceById.has(place.id);
-      }
-      return !localRemoved.has(place.id);
-    }).map((place) => ({
-      ...place,
-      memo: savedPlaceById?.get(place.id)?.memo ?? localMemos[place.id],
-    }));
+    let sourcePlaces: MapSavedPlace[];
+
+    if (savedPlaces) {
+      sourcePlaces = savedPlaces
+        .filter((place) => !localRemoved.has(place.id))
+        .map((place) => {
+          const mock = SAVED_PLACE_BY_ID.get(place.id);
+          return {
+            id: place.id,
+            name: place.name,
+            category: place.category,
+            tagKeys: place.tagKeys ?? mock?.tagKeys,
+            latitude: place.latitude ?? mock?.latitude ?? 0,
+            longitude: place.longitude ?? mock?.longitude ?? 0,
+            address: place.address,
+            shareLinkUrl: place.shareLinkUrl ?? mock?.shareLinkUrl ?? null,
+            memo: place.memo ?? localMemos[place.id],
+            businessHours:
+              "businessHours" in place
+                ? (place.businessHours ?? null)
+                : (mock?.businessHours ?? null),
+          };
+        });
+    } else if (shouldFetchRoomPlaceDetail) {
+      sourcePlaces = roomPlaceDetailQuery.data
+        ? [
+            {
+              ...roomPlaceToSavedPlace(roomPlaceDetailQuery.data),
+              memo:
+                localMemos[String(roomPlaceDetailQuery.data.roomPlaceId)] ??
+                roomPlaceDetailQuery.data.memo ??
+                undefined,
+            },
+          ].filter((place) => !localRemoved.has(place.id))
+        : [];
+    } else {
+      sourcePlaces = SAVED_PLACE_MOCKS.filter((place) => !localRemoved.has(place.id)).map(
+        (place) => ({
+          ...place,
+          memo: localMemos[place.id],
+        }),
+      );
+    }
 
     return resolveSavedPlacesBusinessHours(sourcePlaces, now);
-  }, [localMemos, localRemovedPlaceIds, now, savedPlaceById]);
+  }, [
+    localMemos,
+    localRemovedPlaceIds,
+    now,
+    roomPlaceDetailQuery.data,
+    savedPlaces,
+    shouldFetchRoomPlaceDetail,
+  ]);
 
   const place = places.find((item) => item.id === selectedPlaceId) ?? null;
+  const isRoomPlaceDetailLoading = shouldFetchRoomPlaceDetail && roomPlaceDetailQuery.isLoading;
 
   usePointerDownOutside(menuChromeRef, isOpen && isMenuOpen, () => setIsMenuOpen(false));
 
   useEffect(() => {
-    if (isOpen && selectedPlaceId && !place) {
+    if (isOpen && selectedPlaceId && !place && !isRoomPlaceDetailLoading) {
       closeDetail();
     }
-  }, [closeDetail, isOpen, place, selectedPlaceId]);
+  }, [closeDetail, isOpen, isRoomPlaceDetailLoading, place, selectedPlaceId]);
 
   const handleStartMemo = useCallback(() => {
     if (!place) {
@@ -235,7 +291,9 @@ export function PlaceDetailSheet({
             </button>
           ) : null}
 
-          <BusinessHoursAccordion businessHours={place.businessHours} />
+          {place.businessHours ? (
+            <BusinessHoursAccordion businessHours={place.businessHours} />
+          ) : null}
         </div>
       </BottomSheet>
 

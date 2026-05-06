@@ -4,6 +4,7 @@ import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { MapHomePageContent } from "@/pages/map/MapHomePage";
 import { PLACE_DETAIL_OPEN_EVENT, usePlaceDetailStore } from "@/store/place-detail-store";
+import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 type MapHomeWithDetailProps = {
   defaultFilterPanelOpen?: boolean;
@@ -19,6 +20,7 @@ export default function MapHomeWithDetail({
   filterDataOverride = null,
 }: MapHomeWithDetailProps): JSX.Element {
   const openDetail = usePlaceDetailStore((state) => state.openDetail);
+  const selectedRoomId = useRoomSelectionStore((state) => state.selectedRoom?.id ?? null);
 
   useEffect(() => {
     const handleOpenDetail = (event: Event) => {
@@ -43,7 +45,7 @@ export default function MapHomeWithDetail({
         defaultFilterPanelOpen={defaultFilterPanelOpen}
         filterDataOverride={filterDataOverride}
       />
-      <PlaceDetailSheet />
+      <PlaceDetailSheet roomId={selectedRoomId} />
     </>
   );
 }

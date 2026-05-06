@@ -68,7 +68,8 @@ export function MySavedPlacesPage({
           latitude: mock?.latitude ?? 0,
           longitude: mock?.longitude ?? 0,
           shareLinkUrl: mock?.shareLinkUrl,
-          businessHours: mock?.businessHours,
+          businessHours:
+            "businessHours" in place ? (place.businessHours ?? null) : mock?.businessHours,
         };
       }),
     [places],

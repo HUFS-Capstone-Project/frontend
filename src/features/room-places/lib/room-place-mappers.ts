@@ -1,6 +1,7 @@
 import type { SavedPlace } from "@/shared/types/map-home";
 
 import type { RoomPlace } from "../types/room-place.types";
+import { getResolvedRoomPlaceBusinessHours } from "./business-hours";
 
 export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
   return {
@@ -8,10 +9,20 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     name: place.name,
     category: place.serviceCategoryCode ?? place.categoryGroupCode ?? place.categoryName ?? "",
     tagKeys: place.serviceTagCode ? [place.serviceTagCode] : undefined,
-    latitude: place.latitude,
-    longitude: place.longitude,
+    latitude: toCoordinateNumber(place.latitude),
+    longitude: toCoordinateNumber(place.longitude),
     address: place.roadAddress ?? place.address ?? "",
-    shareLinkUrl: null,
+    shareLinkUrl: place.sourceUrl ?? null,
     memo: place.memo ?? undefined,
+    businessHours: getResolvedRoomPlaceBusinessHours(place),
   };
+}
+
+function toCoordinateNumber(value: string | number | null | undefined): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }

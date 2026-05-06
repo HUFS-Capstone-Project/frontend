@@ -21,6 +21,29 @@ export type NormalizedRoomPlaceListParams = {
   size: number;
 };
 
+export type RoomPlaceBusinessHoursStatus =
+  | "PENDING"
+  | "FETCHING"
+  | "SUCCESS"
+  | "NOT_FOUND"
+  | "CRAWL_FAILED"
+  | "PARSE_FAILED"
+  | "ENQUEUE_FAILED"
+  | (string & {});
+
+export type RoomPlaceBusinessHoursDailyHour = {
+  day?: string | null;
+  date?: string | null;
+  raw?: string | null;
+  open?: string | null;
+  close?: string | null;
+};
+
+export type RoomPlaceBusinessHours = {
+  daily_hours?: RoomPlaceBusinessHoursDailyHour[] | null;
+  [key: string]: unknown;
+};
+
 export type RoomPlaceDto = {
   roomPlaceId: number;
   placeId: number;
@@ -28,8 +51,9 @@ export type RoomPlaceDto = {
   name: string;
   address: string | null;
   roadAddress: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: string | number | null;
+  longitude: string | number | null;
+  sourceUrl?: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   categoryGroupName: string | null;
@@ -46,6 +70,12 @@ export type RoomPlaceDto = {
   sourceRoomLinkId: number | null;
   createdBy: number | null;
   createdAt: string | null;
+  businessHours?: RoomPlaceBusinessHours | null;
+  businessHoursRaw?: string | null;
+  businessHoursStatus?: RoomPlaceBusinessHoursStatus | null;
+  businessHoursFetchedAt?: string | null;
+  businessHoursExpiresAt?: string | null;
+  businessHoursSource?: string | null;
 };
 
 export type RoomPlace = RoomPlaceDto;
@@ -57,6 +87,8 @@ export type RoomPlaceListResponse = {
   totalElements: number;
   totalPages: number;
 };
+
+export type RoomPlaceDetailResponse = RoomPlaceDto;
 
 export type UpdateRoomPlaceMemoRequest = {
   memo: string;

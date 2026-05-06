@@ -5,6 +5,7 @@ import type { CommonResponse } from "@/shared/types/api-types";
 
 import type {
   NormalizedRoomPlaceListParams,
+  RoomPlaceDetailResponse,
   RoomPlaceListResponse,
   UpdateRoomPlaceMemoRequest,
 } from "../types/room-place.types";
@@ -20,6 +21,13 @@ export const roomPlaceApi = {
       {
         params: queryParams,
       },
+    );
+    return response.data.data;
+  },
+
+  getRoomPlace: async (roomId: string, roomPlaceId: number): Promise<RoomPlaceDetailResponse> => {
+    const response = await api.get<CommonResponse<RoomPlaceDetailResponse>>(
+      API_PATHS.rooms.place(roomId, roomPlaceId),
     );
     return response.data.data;
   },

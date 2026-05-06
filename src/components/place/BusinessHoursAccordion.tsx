@@ -26,11 +26,7 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
   }, [businessHours]);
 
   if (!businessHours) {
-    return (
-      <section>
-        <p className="text-muted-foreground text-sm">영업시간 정보 없음</p>
-      </section>
-    );
+    return null;
   }
 
   return (
