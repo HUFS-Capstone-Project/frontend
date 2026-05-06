@@ -230,7 +230,7 @@ export function MySavedCoursesPage({
                 ? "장소 상세 닫기"
                 : selectedCourse
                   ? "코스 상세 닫기"
-              : "마이페이지로 돌아가기"}
+                  : "마이페이지로 돌아가기"}
             </span>
           </button>
           <h1 className="min-w-0 truncate text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
