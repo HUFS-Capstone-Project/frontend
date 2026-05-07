@@ -136,9 +136,6 @@ export function RegionSelectionPanel({
             시/도
           </div>
           <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
-            {isCityLoading ? (
-              <p className="text-muted-foreground px-4 py-3 text-sm">지역을 불러오는 중이에요</p>
-            ) : null}
             {!isCityLoading && cityErrorMessage ? (
               <p className="text-muted-foreground px-4 py-3 text-sm">{cityErrorMessage}</p>
             ) : null}
@@ -173,9 +170,6 @@ export function RegionSelectionPanel({
             시/구/군
           </div>
           <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
-            {isDistrictLoading ? (
-              <p className="text-muted-foreground px-4 py-3 text-sm">지역을 불러오는 중이에요</p>
-            ) : null}
             {!isDistrictLoading && districtErrorMessage ? (
               <p className="text-muted-foreground px-4 py-3 text-sm">{districtErrorMessage}</p>
             ) : null}
