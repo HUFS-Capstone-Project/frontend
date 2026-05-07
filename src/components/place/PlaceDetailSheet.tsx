@@ -14,6 +14,9 @@ import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
+const BUSINESS_HOURS_POLLING_INTERVAL_MS = 5_000;
+const BUSINESS_HOURS_MAX_POLLING_MS = 20_000;
+
 type DetailSavedPlace = MySavedPlace &
   Partial<Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours">>;
 
@@ -39,6 +42,9 @@ export function PlaceDetailSheet({
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [localMemos, setLocalMemos] = useState<Record<string, string>>({});
   const [localRemovedPlaceIds, setLocalRemovedPlaceIds] = useState<string[]>([]);
+  const [businessHoursPollingStartedAt, setBusinessHoursPollingStartedAt] = useState<number | null>(
+    null,
+  );
   const selectedRoomPlaceId = useMemo(() => {
     if (!selectedPlaceId) {
       return null;
@@ -52,6 +58,24 @@ export function PlaceDetailSheet({
     roomId,
     roomPlaceId: selectedRoomPlaceId,
     enabled: isOpen && shouldFetchRoomPlaceDetail,
+    queryOptions: {
+      refetchInterval: (query) => {
+        if (
+          !isOpen ||
+          !shouldFetchRoomPlaceDetail ||
+          businessHoursPollingStartedAt == null ||
+          !shouldPollBusinessHoursStatus(query.state.data?.businessHoursStatus)
+        ) {
+          return false;
+        }
+
+        const elapsedMs = Date.now() - businessHoursPollingStartedAt;
+        return elapsedMs < BUSINESS_HOURS_MAX_POLLING_MS
+          ? BUSINESS_HOURS_POLLING_INTERVAL_MS
+          : false;
+      },
+      refetchIntervalInBackground: false,
+    },
   });
 
   const places = useMemo(() => {
@@ -114,6 +138,31 @@ export function PlaceDetailSheet({
   const isRoomPlaceDetailLoading = shouldFetchRoomPlaceDetail && roomPlaceDetailQuery.isLoading;
 
   usePointerDownOutside(menuChromeRef, isOpen && isMenuOpen, () => setIsMenuOpen(false));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!isOpen || !shouldFetchRoomPlaceDetail || selectedRoomPlaceId == null) {
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setBusinessHoursPollingStartedAt(null);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setBusinessHoursPollingStartedAt(Date.now());
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, selectedRoomPlaceId, shouldFetchRoomPlaceDetail]);
 
   useEffect(() => {
     if (isOpen && selectedPlaceId && !place && !isRoomPlaceDetailLoading) {
@@ -207,7 +256,7 @@ export function PlaceDetailSheet({
         open={isOpen}
         onClose={closeDetail}
         hideHandle
-        className="z-[85]"
+        className="z-85"
         overlayClassName="bg-black/10"
         panelClassName="rounded-t-3xl shadow-xl"
       >
@@ -249,7 +298,7 @@ export function PlaceDetailSheet({
                     <button
                       type="button"
                       onClick={handleRequestDelete}
-                      className="block w-full px-4 py-2.5 text-left text-xs font-semibold text-[var(--brand-coral-solid)] active:bg-[#f7f7f7]"
+                      className="block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) active:bg-[#f7f7f7]"
                     >
                       삭제
                     </button>
@@ -303,11 +352,15 @@ export function PlaceDetailSheet({
         description="삭제하면 목록에서 더 이상 보이지 않아요."
         cancelLabel="취소"
         confirmLabel="삭제"
-        className="z-[95]"
+        className="z-95"
         confirmButtonClassName="text-[var(--brand-coral-solid)]"
         onCancel={() => setDeleteTargetId(null)}
         onConfirm={handleConfirmDelete}
       />
     </>
   );
+}
+
+function shouldPollBusinessHoursStatus(status: string | null | undefined): boolean {
+  return status === "PENDING" || status === "FETCHING";
 }
