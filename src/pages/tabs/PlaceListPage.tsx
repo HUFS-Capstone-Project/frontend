@@ -493,7 +493,7 @@ export default function PlaceListPage() {
       </div>
 
       <PlaceDetailSheet
-        savedPlaces={displayedPlaces}
+        roomId={selectedRoom?.id ?? null}
         onSaveMemo={handleSavePlaceMemo}
         onDeletePlace={handleDeletePlace}
       />
