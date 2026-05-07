@@ -64,7 +64,7 @@ export function PlaceDetailSheet({
           !isOpen ||
           !shouldFetchRoomPlaceDetail ||
           businessHoursPollingStartedAt == null ||
-          !shouldPollBusinessHoursStatus(query.state.data?.businessHoursStatus)
+          !isBusinessHoursPendingOrFetching(query.state.data?.businessHoursStatus)
         ) {
           return false;
         }
@@ -250,6 +250,13 @@ export function PlaceDetailSheet({
     return null;
   }
 
+  const detailBusinessHoursStatus = roomPlaceDetailQuery.data?.businessHoursStatus;
+  const showBusinessHoursSkeleton =
+    shouldFetchRoomPlaceDetail &&
+    roomPlaceDetailQuery.data != null &&
+    isBusinessHoursPendingOrFetching(detailBusinessHoursStatus) &&
+    !place.businessHours;
+
   return (
     <>
       <BottomSheet
@@ -342,6 +349,8 @@ export function PlaceDetailSheet({
 
           {place.businessHours ? (
             <BusinessHoursAccordion businessHours={place.businessHours} />
+          ) : showBusinessHoursSkeleton ? (
+            <BusinessHoursSkeleton />
           ) : null}
         </div>
       </BottomSheet>
@@ -361,6 +370,22 @@ export function PlaceDetailSheet({
   );
 }
 
-function shouldPollBusinessHoursStatus(status: string | null | undefined): boolean {
+function isBusinessHoursPendingOrFetching(status: string | null | undefined): boolean {
   return status === "PENDING" || status === "FETCHING";
+}
+
+function BusinessHoursSkeleton(): JSX.Element {
+  return (
+    <section className="space-y-3" aria-busy="true" aria-label="영업시간 불러오는 중">
+      <span className="sr-only">영업시간을 불러오는 중입니다.</span>
+      <div className="space-y-2">
+        <div className="bg-muted/60 h-4 w-28 animate-pulse rounded-md" />
+        <div className="bg-muted/45 h-4 max-w-48 animate-pulse rounded-md" />
+        <div className="border-border mt-2 border-t pt-3">
+          <div className="bg-muted/40 mb-2 h-4 max-w-56 animate-pulse rounded-md" />
+          <div className="bg-muted/35 h-3 w-20 animate-pulse rounded-md" />
+        </div>
+      </div>
+    </section>
+  );
 }
