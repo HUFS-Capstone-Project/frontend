@@ -89,7 +89,6 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
     latitude: dto.latitude ?? null,
     phone: dto.phone ?? null,
     placeUrl: dto.placeUrl ?? null,
-    sourceKeyword: dto.sourceKeyword ?? null,
     alreadyInRoom,
     selectable: dto.selectable === true,
     originalCandidate: dto.originalCandidate !== false,

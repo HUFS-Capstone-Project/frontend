@@ -24,8 +24,10 @@ export type NormalizedRoomPlaceListParams = {
 export type RoomPlaceBusinessHoursStatus =
   | "PENDING"
   | "FETCHING"
+  | "SUCCEEDED"
   | "SUCCESS"
   | "NOT_FOUND"
+  | "FAILED"
   | "CRAWL_FAILED"
   | "PARSE_FAILED"
   | "ENQUEUE_FAILED"
@@ -71,11 +73,9 @@ export type RoomPlaceDto = {
   createdBy: number | null;
   createdAt: string | null;
   businessHours?: RoomPlaceBusinessHours | null;
-  businessHoursRaw?: string | null;
   businessHoursStatus?: RoomPlaceBusinessHoursStatus | null;
   businessHoursFetchedAt?: string | null;
   businessHoursExpiresAt?: string | null;
-  businessHoursSource?: string | null;
 };
 
 export type RoomPlace = RoomPlaceDto;

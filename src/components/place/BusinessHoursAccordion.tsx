@@ -31,13 +31,8 @@ export function BusinessHoursAccordion({ businessHours }: BusinessHoursAccordion
 
   return (
     <section className="space-y-3">
-      <div className="space-y-1">
+      <div>
         <p className="text-foreground text-sm font-semibold">{buildStatusSummary(businessHours)}</p>
-        {businessHours.holidayNotice ? (
-          <p className="text-muted-foreground text-[0.75rem] leading-snug">
-            {businessHours.holidayNotice}
-          </p>
-        ) : null}
       </div>
 
       {todayHours ? (

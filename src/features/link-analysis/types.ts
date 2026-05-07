@@ -48,7 +48,6 @@ export type CandidatePlaceDto = {
   latitude?: number | null;
   phone?: string | null;
   placeUrl?: string | null;
-  sourceKeyword?: string | null;
   alreadyInRoom?: boolean | null;
   selectable?: boolean | null;
   originalCandidate?: boolean | null;
@@ -88,7 +87,6 @@ export type CandidatePlace = {
   latitude: number | null;
   phone: string | null;
   placeUrl: string | null;
-  sourceKeyword: string | null;
   alreadyInRoom: boolean;
   selectable: boolean;
   originalCandidate: boolean;
@@ -110,7 +108,6 @@ export type OverrideCandidatePlaceRequest = {
   categoryGroupName?: string | null;
   phone?: string | null;
   placeUrl?: string | null;
-  sourceKeyword?: string | null;
 };
 
 export type OverrideCandidatePlaceResponseDto = {
@@ -170,7 +167,6 @@ export type SaveManualPlaceRequest = {
   categoryGroupName?: string | null;
   phone?: string | null;
   placeUrl?: string | null;
-  sourceKeyword?: string | null;
 };
 
 export type LinkAnalysisCommonResponse<T> = CommonResponse<T>;

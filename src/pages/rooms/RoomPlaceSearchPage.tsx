@@ -145,7 +145,6 @@ export default function RoomPlaceSearchPage() {
           categoryGroupName: selectedExternalPlace.categoryGroupName,
           phone: selectedExternalPlace.phone,
           placeUrl: selectedExternalPlace.placeUrl,
-          sourceKeyword: trimmedKeyword,
         },
         {
           onSuccess: () => {
@@ -241,7 +240,7 @@ export default function RoomPlaceSearchPage() {
           </ul>
         ) : null}
         {saveError ? (
-          <p className="px-5 pt-3 text-sm font-medium text-[var(--brand-coral-solid)]" role="alert">
+          <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">
             {saveError}
           </p>
         ) : null}

@@ -2,7 +2,7 @@ import type { PlaceBusinessHourRow, ResolvedPlaceBusinessHours } from "@/shared/
 
 import type { RoomPlace, RoomPlaceBusinessHoursDailyHour } from "../types/room-place.types";
 
-const BUSINESS_HOURS_SUCCESS_STATUS = "SUCCESS";
+const BUSINESS_HOURS_SUCCESS_STATUSES = new Set(["SUCCEEDED", "SUCCESS"]);
 const KOREA_TIME_ZONE = "Asia/Seoul";
 const KOREAN_DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 const WEEKDAY_LABELS: Record<string, string> = {
@@ -17,13 +17,8 @@ const WEEKDAY_LABELS: Record<string, string> = {
 const DEFAULT_CLOSING_SOON_MINUTES = 60;
 
 export function getBusinessHoursText(place: RoomPlace): string | null {
-  if (place.businessHoursStatus !== BUSINESS_HOURS_SUCCESS_STATUS) {
+  if (!BUSINESS_HOURS_SUCCESS_STATUSES.has(place.businessHoursStatus ?? "")) {
     return null;
-  }
-
-  const raw = normalizeText(place.businessHoursRaw);
-  if (raw) {
-    return raw;
   }
 
   const [firstDailyHour] = getDisplayableDailyHours(place);

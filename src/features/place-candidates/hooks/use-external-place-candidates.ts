@@ -35,6 +35,8 @@ function normalizeExternalPlaceCandidateParams(
 ): NormalizedExternalPlaceCandidateParams {
   return {
     keyword: params.keyword.trim(),
+    region: params.region?.trim(),
+    categoryGroupCode: params.categoryGroupCode?.trim(),
     limit: params.limit ?? DEFAULT_EXTERNAL_PLACE_LIMIT,
   };
 }

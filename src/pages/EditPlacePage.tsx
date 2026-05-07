@@ -198,7 +198,6 @@ export default function EditPlacePage() {
               categoryGroupName: selectedExternalPlace.categoryGroupName,
               phone: selectedExternalPlace.phone,
               placeUrl: selectedExternalPlace.placeUrl,
-              sourceKeyword: trimmedKeyword,
             },
           },
           {
@@ -300,12 +299,12 @@ export default function EditPlacePage() {
           </div>
         ) : null}
         {overrideError ? (
-          <p className="px-5 pt-3 text-sm font-medium text-[var(--brand-coral-solid)]" role="alert">
+          <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">
             {overrideError}
           </p>
         ) : null}
         {externalPlaceCandidatesQuery.isError ? (
-          <p className="px-5 pt-3 text-sm font-medium text-[var(--brand-coral-solid)]" role="alert">
+          <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">
             검색 결과를 불러오지 못했어요. 다시 시도해 주세요.
           </p>
         ) : null}
