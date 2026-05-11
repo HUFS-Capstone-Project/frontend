@@ -178,7 +178,7 @@ export function useMapSearchFilters({
           const normalized = previous.filter((current) => categoryCodeSet.has(current));
           const isSelected = normalized.includes(category);
           if (!isSelected) {
-            return [...normalized, category];
+            return [category];
           }
           return normalized.filter((current) => current !== category);
         });
