@@ -14,6 +14,7 @@ import { useLinkAddDraftStore } from "@/store/link-add-draft-store";
 import { CandidatePlaceResultScreen } from "./CandidatePlaceResultScreen";
 import { LinkInputScreen } from "./LinkInputScreen";
 import { LinkProcessingScreen } from "./LinkProcessingScreen";
+import { ManualPlaceFallbackScreen } from "./ManualPlaceFallbackScreen";
 
 export type LinkAddFlowViewProps = {
   room: FriendRoomRow | null;
@@ -73,48 +74,12 @@ export function LinkAddFlowView({
     onExit();
   }, [cancelOngoingSubmission, onExit, room]);
 
-  const exitToPlaceSearch = useCallback(
-    (resultUrl: string, analysisRequestId: number | null) => {
-      const roomId = room?.id;
-      if (!roomId) {
-        return;
-      }
-
-      useLinkAddDraftStore.getState().clearForRoom(roomId);
-      cancelOngoingSubmission();
-      navigate(ROOM_APP_PATHS.placeSearch(roomId), {
-        state: {
-          linkAddAnalysisRequestId: analysisRequestId ?? undefined,
-          linkAddOriginalUrl: resultUrl,
-        },
-      });
-    },
-    [cancelOngoingSubmission, navigate, room],
-  );
-
-  const autoExitInpersonRef = useRef(false);
-
-  useLayoutEffect(() => {
-    if (renderStep === "input") {
-      autoExitInpersonRef.current = false;
-      return;
+  const handleManualPlaceSaved = useCallback(() => {
+    if (room?.id) {
+      useLinkAddDraftStore.getState().clearForRoom(room.id);
     }
-
-    if (renderStep !== "analysisResult" || renderAnalysisResult == null) {
-      return;
-    }
-
-    if (!shouldAutoExitToInperson(renderAnalysisResult)) {
-      return;
-    }
-
-    if (autoExitInpersonRef.current) {
-      return;
-    }
-
-    autoExitInpersonRef.current = true;
-    exitToPlaceSearch(renderAnalysisResult.originalUrl, renderAnalysisResult.analysisRequestId);
-  }, [exitToPlaceSearch, renderAnalysisResult, renderStep]);
+    handleSaveSuccess();
+  }, [handleSaveSuccess, room]);
 
   const didNavigateToCandidatesRef = useRef(false);
 
@@ -170,6 +135,17 @@ export function LinkAddFlowView({
       );
     }
 
+    if (shouldAutoExitToInperson(renderAnalysisResult)) {
+      return (
+        <ManualPlaceFallbackScreen
+          roomId={room.id}
+          result={renderAnalysisResult}
+          onClose={handleRequestClose}
+          onSaved={handleManualPlaceSaved}
+        />
+      );
+    }
+
     return (
       <CandidatePlaceResultScreen
         linkAddRoomId={room.id}
@@ -182,12 +158,6 @@ export function LinkAddFlowView({
         onClose={handleRequestClose}
         onRetry={() => {
           void retryLinkAnalysis();
-        }}
-        onSearchManually={() => {
-          exitToPlaceSearch(
-            renderAnalysisResult.originalUrl,
-            renderAnalysisResult.analysisRequestId,
-          );
         }}
         onToggleCandidatePlace={toggleCandidatePlace}
         onSave={() => {
@@ -202,6 +172,10 @@ export function LinkAddFlowView({
     renderAnalysisResult != null &&
     !shouldAutoExitToInperson(renderAnalysisResult) &&
     !autoNavigateToCandidates;
+  const showManualPlaceFallbackScreen =
+    renderStep === "analysisResult" &&
+    renderAnalysisResult != null &&
+    shouldAutoExitToInperson(renderAnalysisResult);
 
   return (
     <div className={LINK_ADD_FLOW_ROOT_CLASS}>
@@ -220,6 +194,15 @@ export function LinkAddFlowView({
 
       {renderStep === "processing" ? <LinkProcessingScreen /> : null}
 
+      {showManualPlaceFallbackScreen ? (
+        <ManualPlaceFallbackScreen
+          roomId={room.id}
+          result={renderAnalysisResult}
+          onClose={handleRequestClose}
+          onSaved={handleManualPlaceSaved}
+        />
+      ) : null}
+
       {showCandidateResultScreen ? (
         <CandidatePlaceResultScreen
           linkAddRoomId={room.id}
@@ -232,12 +215,6 @@ export function LinkAddFlowView({
           onClose={handleRequestClose}
           onRetry={() => {
             void retryLinkAnalysis();
-          }}
-          onSearchManually={() => {
-            exitToPlaceSearch(
-              renderAnalysisResult.originalUrl,
-              renderAnalysisResult.analysisRequestId,
-            );
           }}
           onToggleCandidatePlace={toggleCandidatePlace}
           onSave={() => {

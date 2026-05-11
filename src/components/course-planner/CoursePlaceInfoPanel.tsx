@@ -21,6 +21,7 @@ import { courseStopFromSavedPlace } from "@/components/course-planner/course-pla
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
 import { CoursePlaceAddSheet } from "@/components/course-planner/CoursePlaceAddSheet";
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
+import { PLACE_FLOW_LINK_CHIP_CLASS } from "@/components/place-flow/PlaceFlowOriginalLinkChipRow";
 import { cn } from "@/lib/utils";
 import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/map-home";
@@ -219,7 +220,7 @@ export function CoursePlaceInfoPanel({
                   <button
                     type="button"
                     onClick={() => openDetail(stop.placeId)}
-                    className="bg-muted text-muted-foreground hover:bg-muted/80 mt-2 inline-flex h-7 items-center gap-1 rounded-full px-3 text-xs font-medium transition-colors"
+                    className={cn(PLACE_FLOW_LINK_CHIP_CLASS, "mt-2 h-7 px-3 font-medium")}
                   >
                     <MapPin className="size-3" aria-hidden />
                     장소 정보

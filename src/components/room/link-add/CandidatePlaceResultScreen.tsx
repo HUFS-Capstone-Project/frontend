@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
 import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
 import { PlaceSelectCard } from "@/components/link-place/PlaceSelectCard";
 import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
+import { PlaceFlowOriginalLinkChipRow } from "@/components/place-flow/PlaceFlowOriginalLinkChipRow";
 import { PillButton } from "@/components/ui/PillButton";
 import type { CandidatePlace } from "@/features/link-analysis";
 import {
@@ -13,7 +13,6 @@ import {
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
 } from "@/features/link-analysis";
-import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { LINK_FLOW_AFTER_HEADLINES_CLASS } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
@@ -57,7 +56,6 @@ export function CandidatePlaceResultScreen({
   persistDraftForEdit,
 }: CandidatePlaceResultScreenProps) {
   const navigate = useNavigate();
-  const { copyLabel, copyText } = useCopyFeedback();
 
   const isSucceeded = result.status === "SUCCEEDED";
   const canRetry = canRetryLinkAnalysis(result.status);
@@ -69,6 +67,8 @@ export function CandidatePlaceResultScreen({
     selectedCount,
     selectableCount,
   });
+
+  const trimmedOriginalUrl = result.originalUrl?.trim() ?? "";
 
   const rowEntries = useMemo(() => {
     return result.candidatePlaces.map((place, index) => {
@@ -93,13 +93,9 @@ export function CandidatePlaceResultScreen({
             />
 
             <div className={LINK_FLOW_AFTER_HEADLINES_CLASS}>
-              <CopyableLinkBar
-                url={result.originalUrl}
-                copyLabel={copyLabel}
-                onCopy={() => {
-                  void copyText(result.originalUrl);
-                }}
-              />
+              {trimmedOriginalUrl ? (
+                <PlaceFlowOriginalLinkChipRow linkUrl={trimmedOriginalUrl} />
+              ) : null}
             </div>
           </section>
         ) : null}
@@ -148,6 +144,7 @@ export function CandidatePlaceResultScreen({
                               linkAddRoomId,
                               linkAddAnalysisRequestId: result.analysisRequestId ?? undefined,
                               linkAddLinkId: result.analysisRequestId ?? undefined,
+                              linkAddOriginalUrl: result.originalUrl,
                               linkAddCandidateId: place.candidateId,
                               linkAddDraftSession: sessionId,
                             },

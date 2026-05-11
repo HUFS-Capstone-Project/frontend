@@ -13,7 +13,6 @@ import { PillButton } from "@/components/ui/PillButton";
 import { useSaveManualPlaceMutation } from "@/features/link-analysis";
 import type { ExternalPlaceCandidate } from "@/features/place-candidates";
 import { useExternalPlaceCandidates } from "@/features/place-candidates";
-import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
   PROMPT_FLOW_BELOW_HEADLINES_CLASS,
@@ -49,7 +48,6 @@ export default function RoomPlaceSearchPage() {
   const reset = useInpersonPlaceStore((state) => state.reset);
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
   const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
-  const { copyLabel, copyText } = useCopyFeedback();
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const analysisRequestId =
@@ -112,10 +110,6 @@ export default function RoomPlaceSearchPage() {
         selectedExternalPlace.selectable &&
         !saveManualPlaceMutation.isPending));
 
-  const handleCopyLinkPreview = () => {
-    void copyText(linkPreviewUrl);
-  };
-
   const handleCancel = () => {
     reset();
     navigate(-1);
@@ -155,7 +149,9 @@ export default function RoomPlaceSearchPage() {
             });
           },
           onError: (error) => {
-            setSaveError(isApiError(error) ? error.message : "?μ냼 ??μ뿉 ?ㅽ뙣?덉뒿?덈떎.");
+            setSaveError(
+              isApiError(error) ? error.message : "장소 저장에 실패했어요. 다시 시도해 주세요.",
+            );
           },
         },
       );
@@ -186,11 +182,7 @@ export default function RoomPlaceSearchPage() {
         />
 
         <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
-          <CopyableLinkBar
-            url={linkPreviewUrl}
-            copyLabel={copyLabel}
-            onCopy={handleCopyLinkPreview}
-          />
+          <CopyableLinkBar url={linkPreviewUrl} />
 
           <PlaceFlowSearchFieldRow
             id="inperson-place-search"

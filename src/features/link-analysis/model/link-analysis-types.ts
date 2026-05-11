@@ -61,6 +61,7 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     linkId: dto.linkId,
     status: dto.status,
     candidatePlaces: (dto.candidatePlaces ?? []).map(toCandidatePlace),
+    captionRaw: dto.captionRaw ?? null,
     errorCode: dto.errorCode ?? undefined,
     errorMessage: dto.errorMessage ?? undefined,
   };

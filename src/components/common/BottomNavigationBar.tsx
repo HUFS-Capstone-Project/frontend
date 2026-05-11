@@ -1,4 +1,4 @@
-import { House, Map, MapPinned, Menu, User } from "lucide-react";
+import { House, Map, MapPinned, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { BottomNavId } from "@/shared/config/navigation";
@@ -16,7 +16,6 @@ const items: {
   label: string;
   Icon: typeof MapPinned;
 }[] = [
-  { id: "list", label: "목록", Icon: Menu },
   { id: "room", label: "방", Icon: House },
   { id: "map", label: "지도", Icon: Map },
   { id: "course", label: "코스 짜기", Icon: MapPinned },

@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
-import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
 import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
-import { EditPlaceResultCard } from "@/components/link-place/EditPlaceResultCard";
-import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
-import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
-import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearchEmptyRow";
-import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
-import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
-import { PillButton } from "@/components/ui/PillButton";
+import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
 import { useOverrideCandidatePlaceMutation } from "@/features/link-analysis";
 import type { ExternalPlaceCandidate } from "@/features/place-candidates";
 import { useExternalPlaceCandidates } from "@/features/place-candidates";
@@ -19,14 +11,7 @@ import {
   linkCandidatesResumeState,
   resolveEditPlaceReturnTo,
 } from "@/features/place-flow/edit-place-navigation";
-import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
-import {
-  PROMPT_FLOW_BELOW_HEADLINES_CLASS,
-  PROMPT_FLOW_HEADER_CLASS,
-  PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
-  PROMPT_FLOW_SCROLL_BODY_CLASS,
-} from "@/features/place-flow/prompt-flow-layout";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { isApiError } from "@/shared/api/axios";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
@@ -47,7 +32,6 @@ export default function EditPlacePage() {
   const setKeyword = useEditPlaceStore((state) => state.setKeyword);
   const setSelectedResult = useEditPlaceStore((state) => state.setSelectedResult);
   const reset = useEditPlaceStore((state) => state.reset);
-  const { copyLabel, copyText } = useCopyFeedback();
   const [overrideError, setOverrideError] = useState<string | null>(null);
   const [externalSearchKeyword, setExternalSearchKeyword] = useState("");
 
@@ -95,6 +79,10 @@ export default function EditPlacePage() {
   });
 
   const externalCandidates = externalPlaceCandidatesQuery.data ?? EMPTY_EXTERNAL_CANDIDATES;
+  const linkPreviewUrl =
+    typeof routeState.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
+      ? routeState.linkAddOriginalUrl
+      : LINK_PREVIEW_MOCK;
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
       return [];
@@ -128,10 +116,6 @@ export default function EditPlacePage() {
       (linkAddCandidateId != null &&
         selectedExternalPlace != null &&
         !overrideCandidatePlaceMutation.isPending));
-
-  const handleCopyLinkPreview = useCallback(() => {
-    void copyText(LINK_PREVIEW_MOCK);
-  }, [copyText]);
 
   const resumeLinkAdd = useCallback(() => {
     const roomId = routeState.linkAddRoomId;
@@ -231,101 +215,47 @@ export default function EditPlacePage() {
 
   return (
     <FullscreenFlowRouteMount>
-      <header className={PROMPT_FLOW_HEADER_CLASS}>
-        <PlaceFlowHeadlines
-          titleId="edit-place-title"
-          title={PLACE_FLOW_COPY.searchToCorrect.title}
-          subtitle={PLACE_FLOW_COPY.searchToCorrect.subtitle}
-        />
-
-        <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
-          <CopyableLinkBar
-            url={LINK_PREVIEW_MOCK}
-            copyLabel={copyLabel}
-            onCopy={handleCopyLinkPreview}
-          />
-
-          <PlaceFlowSearchFieldRow
-            id="edit-place-search"
-            value={searchKeyword}
-            onChange={(next) => {
-              setKeyword(next);
-              setSelectedResult(null);
-              setOverrideError(null);
-            }}
-            placeholder={PLACE_FLOW_COPY.searchPlaceholder}
-            searchButtonLabel={PLACE_FLOW_COPY.searchButton}
-            onSubmitSearch={() => {
-              if (!canSearch) return;
-              if (isLinkAddCorrection) {
-                if (submittedExternalKeyword === trimmedKeyword) {
-                  void externalPlaceCandidatesQuery.refetch();
-                  return;
-                }
-                setExternalSearchKeyword(trimmedKeyword);
-                return;
-              }
-              if (searchResults.length === 1) {
-                setSelectedResult(searchResults[0].id);
-              }
-            }}
-            searchButtonDisabled={!canSearch}
-          />
-        </div>
-      </header>
-
-      <div className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
-        {trimmedKeyword ? (
-          <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
-            {searchResults.length === 0 &&
-            !externalPlaceCandidatesQuery.isFetching &&
-            isExternalInputSubmitted ? (
-              <PlaceFlowSearchEmptyRow />
-            ) : (
-              searchResults.map((place) => (
-                <EditPlaceResultCard
-                  key={place.id}
-                  place={place}
-                  selected={selectedResultId === place.id}
-                  onSelect={() => setSelectedResult(place.id)}
-                />
-              ))
-            )}
-          </ul>
-        ) : null}
-        {externalPlaceCandidatesQuery.isFetching ? (
-          <div className="flex justify-center px-5 py-8">
-            <BrandMarkerLoader />
-          </div>
-        ) : null}
-        {overrideError ? (
-          <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">
-            {overrideError}
-          </p>
-        ) : null}
-        {externalPlaceCandidatesQuery.isError ? (
-          <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">
-            검색 결과를 불러오지 못했어요. 다시 시도해 주세요.
-          </p>
-        ) : null}
-      </div>
-
-      <TwoButtonFooter
-        left={
-          <PlaceFlowCancelPillButton onClick={handleBack}>
-            {PLACE_FLOW_COPY.cancel}
-          </PlaceFlowCancelPillButton>
-        }
-        right={
-          <PillButton
-            type="button"
-            variant={canConfirm ? "onboarding" : "onboardingMuted"}
-            disabled={!canConfirm}
-            onClick={handleConfirm}
-          >
-            {overrideCandidatePlaceMutation.isPending ? "변경 중..." : PLACE_FLOW_COPY.applyChange}
-          </PillButton>
-        }
+      <PlaceSearchMapSheet
+        title={PLACE_FLOW_COPY.searchToCorrect.title}
+        subtitle={PLACE_FLOW_COPY.searchToCorrect.subtitle}
+        linkUrl={linkPreviewUrl}
+        initialMode="search"
+        keyword={searchKeyword}
+        selectedPlaceId={selectedResultId}
+        searchResults={searchResults}
+        isSearching={externalPlaceCandidatesQuery.isFetching}
+        isSearchError={externalPlaceCandidatesQuery.isError && isExternalInputSubmitted}
+        showEmptyResult={!isLinkAddCorrection || isExternalInputSubmitted}
+        saveError={overrideError}
+        canConfirm={canConfirm}
+        confirmLabel={PLACE_FLOW_COPY.applyChange}
+        confirmPendingLabel="변경 중..."
+        collapsedResetLabel="다시 고르기"
+        collapsedConfirmLabel="이 장소로 변경"
+        isConfirmPending={overrideCandidatePlaceMutation.isPending}
+        onKeywordChange={(next) => {
+          setKeyword(next);
+          setSelectedResult(null);
+          setOverrideError(null);
+        }}
+        onSubmitSearch={() => {
+          if (!canSearch) return;
+          if (isLinkAddCorrection) {
+            if (submittedExternalKeyword === trimmedKeyword) {
+              void externalPlaceCandidatesQuery.refetch();
+              return;
+            }
+            setExternalSearchKeyword(trimmedKeyword);
+            return;
+          }
+          if (searchResults.length === 1) {
+            setSelectedResult(searchResults[0].id);
+          }
+        }}
+        onSelectPlace={(placeId) => setSelectedResult(placeId)}
+        onClearSelectedPlace={() => setSelectedResult(null)}
+        onCancel={handleBack}
+        onConfirm={handleConfirm}
       />
     </FullscreenFlowRouteMount>
   );

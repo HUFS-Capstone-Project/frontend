@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/common/EmptyState";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { FilterBar } from "@/components/map/FilterBar";
 import {
@@ -193,7 +194,7 @@ export function MySavedPlacesPage({
     <div
       className={cn(
         "relative flex min-h-0 w-full flex-1 flex-col overflow-hidden",
-        detailOpen ? "bg-[var(--map-placeholder-bg,#ece8e5)]" : "bg-background",
+        detailOpen ? "bg-(--map-placeholder-bg,#ece8e5)" : "bg-background",
       )}
     >
       {detailOpen ? (
@@ -213,7 +214,7 @@ export function MySavedPlacesPage({
         className={cn(
           "relative z-20 shrink-0 pt-[max(1rem,env(safe-area-inset-top))]",
           detailOpen
-            ? "border-border/55 bg-background/93 supports-[backdrop-filter]:bg-background/82 border-b border-transparent shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
+            ? "border-border/55 bg-background/93 supports-backdrop-filter:bg-background/82 border-b shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
             : "bg-background sticky top-0",
         )}
       >
@@ -237,7 +238,7 @@ export function MySavedPlacesPage({
         </div>
 
         {!detailOpen ? (
-          <div ref={filterChromeRef} className="px-5 pb-2">
+          <div ref={filterChromeRef} className={LIST_TOP_BAR_AFTER_TITLE_CLASS}>
             <FilterBar
               hideTagPanel
               categories={categories}
@@ -270,6 +271,7 @@ export function MySavedPlacesPage({
                 <SavedPlaceItem
                   key={place.id}
                   place={place}
+                  categoryNameByCode={categoryNameByCode}
                   isMenuOpen={openMenuId === place.id}
                   isEditing={editingPlaceId === place.id}
                   memoDraft={memoDraft}

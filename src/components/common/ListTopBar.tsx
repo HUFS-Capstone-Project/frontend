@@ -19,6 +19,8 @@ type ListTopBarProps = {
 const LIST_TOP_BAR_OVERLAY_CLASS =
   "border-border/55 bg-background/93 supports-[backdrop-filter]:bg-background/82 border-b border-transparent shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150";
 
+export const LIST_TOP_BAR_AFTER_TITLE_CLASS = "px-5 pt-2 pb-2";
+
 export function ListTopBar({
   title,
   trailing,

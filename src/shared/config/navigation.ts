@@ -1,9 +1,8 @@
 import { APP_ROUTES } from "./routes";
 
-export type BottomNavId = "list" | "room" | "map" | "course" | "mypage";
+export type BottomNavId = "room" | "map" | "course" | "mypage";
 
 export const BOTTOM_NAV_ROUTE_BY_ID: Record<BottomNavId, string> = {
-  list: APP_ROUTES.list,
   room: APP_ROUTES.room,
   map: APP_ROUTES.map,
   course: APP_ROUTES.course,
@@ -11,7 +10,6 @@ export const BOTTOM_NAV_ROUTE_BY_ID: Record<BottomNavId, string> = {
 };
 
 export const ROOM_SCOPED_BOTTOM_NAV_IDS = [
-  "list",
   "map",
   "course",
 ] as const satisfies readonly BottomNavId[];

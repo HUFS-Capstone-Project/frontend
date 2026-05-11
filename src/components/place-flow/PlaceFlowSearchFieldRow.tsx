@@ -1,4 +1,7 @@
+import type { Ref } from "react";
+
 import { SearchField } from "@/components/common/SearchField";
+import { cn } from "@/lib/utils";
 
 export type PlaceFlowSearchFieldRowProps = {
   id: string;
@@ -8,6 +11,12 @@ export type PlaceFlowSearchFieldRowProps = {
   searchButtonLabel: string;
   onSubmitSearch: () => void;
   searchButtonDisabled: boolean;
+  inputRef?: Ref<HTMLInputElement>;
+  className?: string;
+  inputClassName?: string;
+  readOnly?: boolean;
+  onClick?: () => void;
+  onFocus?: () => void;
 };
 
 /** 풀스크린 검색 라벨 + `SearchField` — 동일 패딩·높이 */
@@ -19,12 +28,20 @@ export function PlaceFlowSearchFieldRow({
   searchButtonLabel,
   onSubmitSearch,
   searchButtonDisabled,
+  inputRef,
+  className,
+  inputClassName,
+  readOnly = false,
+  onClick,
+  onFocus,
 }: PlaceFlowSearchFieldRowProps) {
   return (
-    <label className="flex min-h-14 items-center gap-2" htmlFor={id}>
+    <label className={cn("flex min-h-14 items-center gap-2", className)} htmlFor={id}>
       <SearchField
+        ref={inputRef}
         id={id}
         className="min-w-0 flex-1"
+        inputClassName={inputClassName}
         value={value}
         onChange={(event) => {
           onChange(event.target.value);
@@ -33,6 +50,9 @@ export function PlaceFlowSearchFieldRow({
         searchButtonLabel={searchButtonLabel}
         onSubmitSearch={onSubmitSearch}
         searchButtonDisabled={searchButtonDisabled}
+        readOnly={readOnly}
+        onClick={onClick}
+        onFocus={onFocus}
       />
     </label>
   );

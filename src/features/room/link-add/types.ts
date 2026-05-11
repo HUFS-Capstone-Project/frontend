@@ -9,6 +9,7 @@ export type LinkAnalysisResult = {
   originalUrl: string;
   status: LinkAnalysisStatus;
   candidatePlaces: CandidatePlace[];
+  captionRaw?: string | null;
   completed: boolean;
   errorCode?: string;
   errorMessage?: string;
@@ -28,6 +29,7 @@ export function mapLinkAnalysisToResult(params: {
     originalUrl,
     status: linkAnalysis.status,
     candidatePlaces: linkAnalysis.candidatePlaces,
+    captionRaw: linkAnalysis.captionRaw ?? null,
     completed: true,
     errorCode: linkAnalysis.errorCode,
     errorMessage: resolveAnalysisErrorMessage(linkAnalysis),

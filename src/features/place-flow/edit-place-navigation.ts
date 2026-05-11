@@ -8,6 +8,7 @@ export type EditPlaceLocationState = {
   linkAddAnalysisRequestId?: number | string;
   /** 링크 후보 화면 URL(`.../links/:linkId/candidates`) 복귀용 */
   linkAddLinkId?: number | string;
+  linkAddOriginalUrl?: string;
   linkAddCandidateId?: number;
   linkAddDraftSession?: string;
   /** @deprecated `returnTo` 사용 */

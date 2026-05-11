@@ -1,5 +1,5 @@
 import { type JSX, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
@@ -59,6 +59,7 @@ export function MapHomePageContent({
   filterDataOverride = null,
 }: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
+  const navigate = useNavigate();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -285,13 +286,17 @@ export function MapHomePageContent({
     handleCloseTagPanel();
   }, [clearSearchKeepViewport, handleCloseTagPanel]);
 
+  const handleOpenPlaceList = useCallback(() => {
+    navigate(APP_ROUTES.list);
+  }, [navigate]);
+
   if (!selectedRoom) {
     return <Navigate to={APP_ROUTES.room} replace />;
   }
 
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <MapHeader title={mapTitle} />
+      <MapHeader title={mapTitle} onOpenList={handleOpenPlaceList} />
 
       <main className="relative min-h-0 flex-1">
         <Suspense fallback={<div className="absolute inset-0" aria-hidden />}>
@@ -338,7 +343,7 @@ export function MapHomePageContent({
         </div>
       </main>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <FriendFloatingMenu
           friends={fabFriends}

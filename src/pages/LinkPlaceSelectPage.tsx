@@ -8,7 +8,6 @@ import { PlaceSelectCard } from "@/components/link-place/PlaceSelectCard";
 import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PillButton } from "@/components/ui/PillButton";
-import { useCopyFeedback } from "@/features/place-flow/hooks/use-copy-feedback";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
   PROMPT_FLOW_BELOW_HEADLINES_CLASS,
@@ -38,7 +37,6 @@ export default function LinkPlaceSelectPage() {
   const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
   const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
-  const { copyLabel, copyText } = useCopyFeedback();
 
   const placeRows = useMemo(
     () =>
@@ -67,13 +65,7 @@ export default function LinkPlaceSelectPage() {
         />
 
         <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
-          <CopyableLinkBar
-            url={LINK_PREVIEW_MOCK}
-            copyLabel={copyLabel}
-            onCopy={() => {
-              void copyText(LINK_PREVIEW_MOCK);
-            }}
-          />
+          <CopyableLinkBar url={LINK_PREVIEW_MOCK} />
         </div>
       </header>
 

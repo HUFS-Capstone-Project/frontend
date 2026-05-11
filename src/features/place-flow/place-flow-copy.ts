@@ -16,6 +16,13 @@ export const PLACE_FLOW_COPY = {
   applyChange: "변경하기",
   notFoundTitle: "장소를 찾지 못했어요",
   notFoundHint: "원하는 장소를 직접 검색해 주세요",
+  /** 링크 분석 후 수동 검색 유도(PlaceSearchMapSheet intro) */
+  manualPlaceFallback: {
+    subtitle: "해당 장소를 직접 검색해 주세요",
+  },
+  /** 인라인 캡션 블록 섹션 라벨 */
+  captionSectionLabel: "CAPTION",
+  captionEmptyHint: "캡션 정보가 없어요",
   saving: "저장 중...",
   save: "저장하기",
   pickPlaces: "장소 선택",

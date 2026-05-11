@@ -25,6 +25,7 @@ export type LinkAnalysisDto = {
   linkId: number;
   status: LinkAnalysisStatus;
   candidatePlaces?: CandidatePlaceDto[] | null;
+  captionRaw?: string | null;
   errorCode: string | null;
   errorMessage: string | null;
 };
@@ -69,6 +70,7 @@ export type LinkAnalysis = {
   linkId: number;
   status: LinkAnalysisStatus;
   candidatePlaces: CandidatePlace[];
+  captionRaw?: string | null;
   errorCode?: string;
   errorMessage?: string;
 };

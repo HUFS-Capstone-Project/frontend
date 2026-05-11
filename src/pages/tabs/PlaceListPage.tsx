@@ -2,10 +2,12 @@ import "@/components/map/filter-bar.css";
 
 import { AlertCircle, ArrowLeft, MapPin } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
@@ -34,6 +36,7 @@ import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
+import { APP_ROUTES } from "@/shared/config/routes";
 import { PLACE_LIST_TEXT } from "@/shared/config/text";
 import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import type { SavedPlace } from "@/shared/types/map-home";
@@ -51,6 +54,7 @@ function formatCount(count: number) {
 }
 
 export default function PlaceListPage() {
+  const navigate = useNavigate();
   const now = useKoreanNow();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
@@ -267,6 +271,7 @@ export default function PlaceListPage() {
       : shownCount === regionTotal
         ? `${formatCount(shownCount)}개 · 전체 ${formatCount(categoryTotal)}`
         : `${formatCount(shownCount)}개 · 전체 ${formatCount(regionTotal)}`;
+  const pageTitle = selectedRoom ? `${selectedRoom.name} 목록` : "목록";
 
   const hasRegionFilter = selectedSido.code !== REGION_ALL_CODE;
   const emptyMessage = roomPlacesQuery.isError
@@ -280,7 +285,10 @@ export default function PlaceListPage() {
   const handleHeaderBack = () => {
     if (detailOpen) {
       closeDetail();
+      return;
     }
+
+    navigate(APP_ROUTES.map);
   };
 
   const handleStartMemo = (place: MySavedPlace) => {
@@ -359,25 +367,23 @@ export default function PlaceListPage() {
         className={cn(
           "relative z-20 shrink-0 pt-[max(1rem,env(safe-area-inset-top))]",
           detailOpen
-            ? "border-border/55 bg-background/93 supports-[backdrop-filter]:bg-background/82 border-b border-transparent shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
+            ? "border-border/55 bg-background/93 supports-backdrop-filter:bg-background/82 border-b shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
             : "bg-background sticky top-0",
         )}
       >
         <div className="flex h-12 items-center px-5">
-          {detailOpen ? (
-            <button
-              type="button"
-              onClick={handleHeaderBack}
-              className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
-            >
-              <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
-              <span className="sr-only">장소 상세 닫기</span>
-            </button>
-          ) : (
-            <span className="w-9 shrink-0" aria-hidden />
-          )}
-          <h1 className="flex-1 text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
-            목록
+          <button
+            type="button"
+            onClick={handleHeaderBack}
+            className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
+          >
+            <ArrowLeft className="text-foreground size-5" aria-hidden />
+            <span className="sr-only">
+              {detailOpen ? "장소 상세 닫기" : "지도 화면으로 돌아가기"}
+            </span>
+          </button>
+          <h1 className="text-foreground min-w-0 flex-1 truncate text-center text-base leading-tight font-semibold tracking-tight">
+            {pageTitle}
           </h1>
           <span className="max-w-[48%] shrink-0 truncate text-right text-xs font-semibold text-[#555555]">
             {displayedCountLabel}
@@ -385,13 +391,13 @@ export default function PlaceListPage() {
         </div>
 
         {!detailOpen ? (
-          <div className="space-y-2 px-5 pb-2">
+          <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-2")}>
             <button
               type="button"
               onClick={handleOpenRegionSelect}
               className="border-border bg-background hover:bg-muted/35 focus-visible:ring-ring/50 flex h-11 w-full min-w-0 items-center gap-3 rounded-lg border px-3 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none"
             >
-              <MapPin className="text-muted-foreground size-[1.125rem] shrink-0" aria-hidden />
+              <MapPin className="text-muted-foreground size-4.5 shrink-0" aria-hidden />
               <span className="text-foreground truncate text-sm font-medium">
                 {regionFieldValue}
               </span>
@@ -465,6 +471,7 @@ export default function PlaceListPage() {
                 <SavedPlaceItem
                   key={place.id}
                   place={place}
+                  categoryNameByCode={categoryNameByCode}
                   isMenuOpen={openMenuId === place.id}
                   isEditing={editingPlaceId === place.id}
                   memoDraft={memoDraft}
@@ -487,9 +494,9 @@ export default function PlaceListPage() {
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
-        <BottomNavigationBar activeId="list" onSelect={handleSelectBottomNav} />
+        <BottomNavigationBar activeId="map" onSelect={handleSelectBottomNav} />
       </div>
 
       <PlaceDetailSheet

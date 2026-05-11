@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Pin, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
@@ -189,14 +190,14 @@ export function MySavedCoursesPage({
   };
 
   const headerBackdrop = overlayMapOpen
-    ? "border-border/55 bg-background/93 supports-[backdrop-filter]:bg-background/82 border-b border-transparent shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
+    ? "border-border/55 bg-background/93 supports-backdrop-filter:bg-background/82 border-b shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
     : "bg-background sticky top-0";
 
   return (
     <div
       className={cn(
         "relative flex min-h-0 w-full flex-1 flex-col overflow-hidden",
-        overlayMapOpen ? "bg-[var(--map-placeholder-bg,#ece8e5)]" : "bg-background",
+        overlayMapOpen ? "bg-(--map-placeholder-bg,#ece8e5)" : "bg-background",
       )}
     >
       {overlayMapOpen ? (
@@ -244,7 +245,10 @@ export function MySavedCoursesPage({
         {!overlayMapOpen ? (
           <div
             ref={filterChromeRef}
-            className="relative flex flex-wrap gap-2 overflow-visible px-5 pb-2"
+            className={cn(
+              LIST_TOP_BAR_AFTER_TITLE_CLASS,
+              "relative flex flex-wrap gap-2 overflow-visible",
+            )}
           >
             <button
               type="button"
@@ -284,7 +288,7 @@ export function MySavedCoursesPage({
                   aria-label="방 목록 필터"
                   className={cn(
                     MAP_FILTER_PANEL_BASE_CLASS,
-                    "absolute left-0 z-40 !mt-1 flex max-h-[min(18.5rem,calc(100vh-12rem))] w-[min(16.5rem,calc(100vw-4rem))] min-w-36 flex-col !rounded-lg backdrop-saturate-150",
+                    "absolute left-0 z-40 mt-1! flex max-h-[min(18.5rem,calc(100vh-12rem))] w-[min(16.5rem,calc(100vw-4rem))] min-w-36 flex-col rounded-lg! backdrop-saturate-150",
                   )}
                 >
                   {isRoomsLoading ? (
@@ -299,7 +303,7 @@ export function MySavedCoursesPage({
                             <div className="bg-muted/60 h-3 w-[55%] animate-pulse rounded-sm" />
                             <div className="bg-muted/50 h-2.5 w-[40%] animate-pulse rounded-sm" />
                           </div>
-                          <div className="bg-muted/50 size-[1.125rem] shrink-0 animate-pulse rounded-full" />
+                          <div className="bg-muted/50 size-4.5 shrink-0 animate-pulse rounded-full" />
                         </div>
                       ))}
                     </div>
@@ -309,7 +313,7 @@ export function MySavedCoursesPage({
                         <AlertCircle className="size-4 opacity-50" strokeWidth={1.75} aria-hidden />
                       </div>
                       <p className="text-xs leading-snug font-medium">참여 중인 방이 없습니다.</p>
-                      <p className="text-muted-foreground/85 max-w-[13rem] text-[0.65rem] leading-relaxed">
+                      <p className="text-muted-foreground/85 max-w-52 text-[0.65rem] leading-relaxed">
                         방에 참여하면 여기서 코스를 방별로 모아볼 수 있어요.
                       </p>
                     </div>
@@ -342,7 +346,7 @@ export function MySavedCoursesPage({
                                 className="bg-muted text-muted-foreground col-start-1 row-span-2 row-start-1 flex size-9 shrink-0 items-center justify-center self-center rounded-full"
                                 aria-hidden
                               >
-                                <User className="size-[1.125rem]" strokeWidth={2} />
+                                <User className="size-4.5" strokeWidth={2} />
                               </span>
 
                               <div className="text-foreground col-start-2 row-start-1 min-w-0 text-xs leading-tight font-semibold">
@@ -372,7 +376,7 @@ export function MySavedCoursesPage({
                               >
                                 <span
                                   className={cn(
-                                    "flex size-[1.125rem] items-center justify-center rounded-full border transition-colors duration-150",
+                                    "flex size-4.5 items-center justify-center rounded-full border transition-colors duration-150",
                                     checked
                                       ? "border-primary bg-primary text-primary-foreground"
                                       : "border-muted-foreground/35 bg-background group-hover:border-muted-foreground/55",
@@ -447,7 +451,7 @@ export function MySavedCoursesPage({
               ))}
             </div>
           ) : (
-            <div className="flex min-h-[12rem] flex-col items-center justify-center py-8 text-center">
+            <div className="flex min-h-48 flex-col items-center justify-center py-8 text-center">
               <span className="flex size-11 items-center justify-center rounded-full bg-[#777777] text-white">
                 <AlertCircle className="size-5" aria-hidden />
               </span>

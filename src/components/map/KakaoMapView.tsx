@@ -21,8 +21,10 @@ export type KakaoMapViewProps = {
   viewportKey?: string;
   level?: number;
   className?: string;
+  selectedPlaceId?: string | null;
   showCurrentLocationButton?: boolean;
   onMapClick?: () => void;
+  onPlaceMarkerClick?: (place: SavedPlace) => void;
 };
 
 type MapLoadState = "loading" | "ready" | "error";
@@ -40,8 +42,10 @@ export function KakaoMapView({
   viewportKey = "initial",
   level = 4,
   className,
+  selectedPlaceId: selectedPlaceIdOverride,
   showCurrentLocationButton = false,
   onMapClick,
+  onPlaceMarkerClick,
 }: KakaoMapViewProps) {
   const mapKey = appKey?.trim() ?? "";
   const hasMapKey = mapKey.length > 0;
@@ -56,9 +60,10 @@ export function KakaoMapView({
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const selectedPlaceId = usePlaceDetailStore((state) =>
+  const detailSelectedPlaceId = usePlaceDetailStore((state) =>
     state.isOpen ? state.selectedPlaceId : null,
   );
+  const selectedPlaceId = selectedPlaceIdOverride ?? detailSelectedPlaceId;
 
   const clearMarkers = () => {
     markerInstancesRef.current.forEach((marker) => marker.setMap(null));
@@ -96,13 +101,13 @@ export function KakaoMapView({
         mapRef.current = mapInstance;
         markerImageRef.current = new kakao.maps.MarkerImage(
           "/assets/map-marker.svg",
-          new kakao.maps.Size(30, 40),
-          { offset: new kakao.maps.Point(15, 39) },
+          new kakao.maps.Size(26, 35),
+          { offset: new kakao.maps.Point(13, 34) },
         );
         selectedMarkerImageRef.current = new kakao.maps.MarkerImage(
           "/assets/map-marker-selected.png",
-          new kakao.maps.Size(42, 56),
-          { offset: new kakao.maps.Point(21, 55) },
+          new kakao.maps.Size(36, 48),
+          { offset: new kakao.maps.Point(18, 47) },
         );
 
         setLoadState("ready");
@@ -330,6 +335,10 @@ export function KakaoMapView({
 
       maps.event.addListener(marker, "click", () => {
         mapInstance.panTo(new maps.LatLng(place.latitude, place.longitude));
+        if (onPlaceMarkerClick) {
+          onPlaceMarkerClick(place);
+          return;
+        }
         window.dispatchEvent(
           new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
             detail: { placeId: place.id },
@@ -343,7 +352,7 @@ export function KakaoMapView({
     return () => {
       clearMarkers();
     };
-  }, [loadState, places, selectedPlaceId]);
+  }, [loadState, onPlaceMarkerClick, places, selectedPlaceId]);
 
   return (
     <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>
