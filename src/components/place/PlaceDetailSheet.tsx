@@ -16,7 +16,6 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { roomPlaceToSavedPlace, useRoomPlace } from "@/features/room-places";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { sharePlace } from "@/shared/lib/share-place";
 import { SAVED_PLACE_BY_ID, SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
@@ -43,12 +42,11 @@ export function PlaceDetailSheet({
   onDeletePlace,
 }: PlaceDetailSheetProps = {}): JSX.Element | null {
   const { isOpen, selectedPlaceId, closeDetail } = usePlaceDetailStore((state) => state);
-  const now = useKoreanNow();
   const [isMemoEditing, setIsMemoEditing] = useState(false);
   const [memoDraft, setMemoDraft] = useState("");
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
-  const overflowMenuRef = useRef<HTMLDivElement>(null);
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
   const [localMemos, setLocalMemos] = useState<Record<string, string>>({});
   const [localRemovedPlaceIds, setLocalRemovedPlaceIds] = useState<string[]>([]);
   const [businessHoursPollingStartedAt, setBusinessHoursPollingStartedAt] = useState<number | null>(
@@ -133,11 +131,10 @@ export function PlaceDetailSheet({
       );
     }
 
-    return resolveSavedPlacesBusinessHours(sourcePlaces, now);
+    return sourcePlaces;
   }, [
     localMemos,
     localRemovedPlaceIds,
-    now,
     roomPlaceDetailQuery.data,
     savedPlaces,
     shouldFetchRoomPlaceDetail,
@@ -250,20 +247,20 @@ export function PlaceDetailSheet({
     closeDetail();
   }, [closeDetail, deleteTargetId, onDeletePlace]);
 
-  const closeOverflowMenu = useCallback(() => {
-    setIsOverflowMenuOpen(false);
+  const closeOptionsMenu = useCallback(() => {
+    setIsOptionsMenuOpen(false);
   }, []);
 
-  usePointerDownOutside(overflowMenuRef, isOverflowMenuOpen, closeOverflowMenu);
+  usePointerDownOutside(optionsMenuRef, isOptionsMenuOpen, closeOptionsMenu);
 
   useEffect(() => {
     if (!isOpen) {
-      queueMicrotask(() => setIsOverflowMenuOpen(false));
+      queueMicrotask(() => setIsOptionsMenuOpen(false));
     }
   }, [isOpen]);
 
   useEffect(() => {
-    queueMicrotask(() => setIsOverflowMenuOpen(false));
+    queueMicrotask(() => setIsOptionsMenuOpen(false));
   }, [selectedPlaceId]);
 
   if (!place) {
@@ -293,60 +290,64 @@ export function PlaceDetailSheet({
         <div className="px-6 pt-2 pb-2">
           <div className="bg-muted-foreground/25 mx-auto h-1 w-12 rounded-full" aria-hidden />
         </div>
-        <div className="space-y-5 px-6 pt-8 pb-6">
-          <div className="space-y-4">
-            <div className="space-y-0.5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-                  <h2 className="text-foreground min-w-0 shrink truncate text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
-                    {place.name}
-                  </h2>
-                  {categoryLabel ? (
-                    <span
-                      className={cn(
-                        "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
-                      )}
-                      title={categoryLabel}
-                      aria-label={`카테고리 ${categoryLabel}`}
-                    >
-                      {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
-                    </span>
-                  ) : null}
-                </div>
-                <div ref={overflowMenuRef} className="relative -mt-1 -mr-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsOverflowMenuOpen((current) => !current)}
-                    className="touch-target-min text-foreground hover:bg-muted/70 active:bg-muted flex shrink-0 items-center justify-center rounded-full transition-colors"
+        <div className="px-6 pt-6 pb-7">
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="text-foreground min-w-0 shrink truncate text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
+                  {place.name}
+                </h2>
+                {categoryLabel ? (
+                  <span
+                    className={cn(
+                      "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
+                    )}
+                    title={categoryLabel}
+                    aria-label={`카테고리 ${categoryLabel}`}
                   >
-                    <MoreVertical className="size-4" aria-hidden />
-                    <span className="sr-only">장소 메뉴 열기</span>
-                  </button>
-
-                  {isOverflowMenuOpen ? (
-                    <div className="absolute top-[calc(100%-6px)] right-2 z-10 w-24 overflow-hidden rounded-md border border-[#eaeaea] bg-white py-0.5 shadow-[0_1px_4px_rgb(0_0_0/_0.035)]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsOverflowMenuOpen(false);
-                          handleRequestDelete();
-                        }}
-                        className="block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) active:bg-[#f7f7f7]"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                    {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
+                  </span>
+                ) : null}
               </div>
+              <div ref={optionsMenuRef} className="relative -mr-1 shrink-0 pt-px">
+                <button
+                  type="button"
+                  onClick={() => setIsOptionsMenuOpen((current) => !current)}
+                  className="text-foreground/85 hover:bg-muted/55 active:bg-muted/70 inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors"
+                  aria-expanded={isOptionsMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  <MoreVertical className="size-4.5" aria-hidden />
+                  <span className="sr-only">장소 메뉴 열기</span>
+                </button>
 
-              <div className="text-muted-foreground flex items-start gap-2 text-[0.75rem] leading-snug">
-                <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                <p>{place.address}</p>
+                {isOptionsMenuOpen ? (
+                  <div
+                    role="menu"
+                    className="border-border bg-popover absolute top-full right-0 z-10 mt-1 w-24 overflow-hidden rounded-md border py-0.5 shadow-sm"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setIsOptionsMenuOpen(false);
+                        handleRequestDelete();
+                      }}
+                      className="hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) transition-colors"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="text-muted-foreground mt-0.5 flex items-start gap-2 text-[0.75rem] leading-snug">
+              <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              <p>{place.address}</p>
+            </div>
+
+            <div className="scrollbar-hide mt-4 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
               {trimmedShareUrl ? (
                 <PlaceFlowOriginalLinkChipRow linkUrl={trimmedShareUrl} className="contents" />
               ) : null}
@@ -371,27 +372,31 @@ export function PlaceDetailSheet({
           </div>
 
           {place.memo && !isMemoEditing ? (
-            <p className="text-foreground border-border/50 bg-muted/20 rounded-lg border px-3 py-2 text-xs leading-relaxed font-medium">
+            <p className="text-foreground border-border/50 bg-muted/20 mt-4 rounded-lg border px-3 py-2 text-xs leading-relaxed font-medium">
               {place.memo}
             </p>
           ) : null}
 
           {isMemoEditing ? (
-            <SavedPlaceMemoEditor
-              value={memoDraft}
-              onChange={setMemoDraft}
-              onSave={handleSaveMemo}
-              onClear={() => setMemoDraft("")}
-            />
+            <div className="mt-4">
+              <SavedPlaceMemoEditor
+                value={memoDraft}
+                onChange={setMemoDraft}
+                onSave={handleSaveMemo}
+                onClear={() => setMemoDraft("")}
+              />
+            </div>
           ) : null}
 
           {place.businessHours ? (
-            <div className="space-y-3 pt-1">
+            <div className="mt-6 space-y-4">
               <BusinessHoursStatusSummary businessHours={place.businessHours} />
               <BusinessHoursAccordion businessHours={place.businessHours} />
             </div>
           ) : showBusinessHoursSkeleton ? (
-            <BusinessHoursSkeleton />
+            <div className="mt-6">
+              <BusinessHoursSkeleton />
+            </div>
           ) : null}
         </div>
       </BottomSheet>
@@ -399,11 +404,11 @@ export function PlaceDetailSheet({
       <RoomConfirmModal
         open={deleteTargetId != null}
         message="이 장소를 삭제할까요?"
-        description="삭제하면 목록에서 더 이상 보이지 않아요."
+        description="삭제하면 방 목록에서 더 이상 보이지 않아요"
         cancelLabel="취소"
         confirmLabel="삭제"
         className="z-95"
-        confirmButtonClassName="text-(--brand-coral-solid)"
+        confirmButtonClassName="text-primary"
         onCancel={() => setDeleteTargetId(null)}
         onConfirm={handleConfirmDelete}
       />

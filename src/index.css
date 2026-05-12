@@ -49,8 +49,7 @@ body {
   --elevation-nav: 0 -1px 10px oklch(0 0 0 / 0.05);
   --elevation-filter-panel: 0 8px 20px oklch(0 0 0 / 0.08);
 
-  /* 지도·크롬 (index.html theme-color 와 동기: --app-theme-color) */
-  --map-placeholder-bg: #ece8e5;
+  /* 지도 자리 표시자 등: 컴포넌트는 `bg-muted` 사용 (`--muted`와 동일 시맨틱) */
   --app-theme-color: var(--brand-coral-solid);
 
   /* 스플래시 타이틀 (순백 #fff 대신 근사 톤) */
@@ -344,7 +343,6 @@ body {
   --color-overlay-scrim: var(--overlay-scrim);
   --color-overlay-scrim-strong: var(--overlay-scrim-strong);
   --color-border-subtle: var(--border-subtle);
-  --color-map-placeholder-bg: var(--map-placeholder-bg);
   --color-success-soft: var(--success-soft);
   --color-success-foreground: var(--success-foreground);
   --color-error-soft: var(--error-soft);

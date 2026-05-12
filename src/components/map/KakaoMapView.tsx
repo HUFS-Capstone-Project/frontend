@@ -355,7 +355,7 @@ export function KakaoMapView({
   }, [loadState, onPlaceMarkerClick, places, selectedPlaceId]);
 
   return (
-    <div className={cn("bg-map-placeholder-bg relative h-full w-full", className)}>
+    <div className={cn("bg-muted relative h-full w-full", className)}>
       <div ref={mapContainerRef} className="relative z-0 h-full w-full" />
 
       {hasMapKey && loadState === "loading" ? (

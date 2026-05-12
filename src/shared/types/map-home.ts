@@ -1,3 +1,5 @@
+import type { BusinessHoursDisplay } from "@/shared/types/business-hours";
+
 export type MapPlaceCategory = string;
 export type MapPrimaryCategory = string;
 
@@ -18,36 +20,7 @@ export type SavedPlace = {
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
   memo?: string;
-  businessHours?: PlaceBusinessHours | ResolvedPlaceBusinessHours | null;
-};
-
-export type ResolvedSavedPlace = Omit<SavedPlace, "businessHours"> & {
-  businessHours?: ResolvedPlaceBusinessHours | null;
-};
-
-export type PlaceBusinessHourRow = {
-  label: string;
-  hours: string;
-  isToday?: boolean;
-};
-
-export type PlaceBusinessHours = {
-  holidayNotice?: string | null;
-  weeklySchedule: PlaceBusinessScheduleRow[];
-  closingSoonMinutes?: number;
-};
-
-export type ResolvedPlaceBusinessHours = {
-  status: string;
-  openTime?: string | null;
-  holidayNotice?: string | null;
-  weeklyHours: PlaceBusinessHourRow[];
-};
-
-export type PlaceBusinessScheduleRow = {
-  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  openTime: string | null;
-  closeTime: string | null;
+  businessHours?: BusinessHoursDisplay | null;
 };
 
 export type RoomFriend = {

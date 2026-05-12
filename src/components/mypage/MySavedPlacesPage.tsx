@@ -16,7 +16,6 @@ import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { SAVED_PLACE_BY_ID } from "@/shared/mocks/place-mocks";
 import { type SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -46,7 +45,6 @@ export function MySavedPlacesPage({
   onChangePlaces,
   onSelectPlace,
 }: MySavedPlacesPageProps) {
-  const now = useKoreanNow();
   const {
     filterCategories,
     categories,
@@ -103,10 +101,7 @@ export function MySavedPlacesPage({
       }));
   }, [filteredPlaces, places]);
 
-  const mapPins = useMemo(
-    () => resolveSavedPlacesBusinessHours(mapPlacesMatchingMySaved(listPlaces), now),
-    [listPlaces, now],
-  );
+  const mapPins = useMemo(() => mapPlacesMatchingMySaved(listPlaces), [listPlaces]);
 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
@@ -194,12 +189,12 @@ export function MySavedPlacesPage({
     <div
       className={cn(
         "relative flex min-h-0 w-full flex-1 flex-col overflow-hidden",
-        detailOpen ? "bg-(--map-placeholder-bg,#ece8e5)" : "bg-background",
+        detailOpen ? "bg-muted" : "bg-background",
       )}
     >
       {detailOpen ? (
         <MapBackdropLayer>
-          <Suspense fallback={<div className="bg-map-placeholder-bg h-full w-full" aria-hidden />}>
+          <Suspense fallback={<div className="bg-muted h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
               places={mapPins}
@@ -224,15 +219,15 @@ export function MySavedPlacesPage({
             onClick={handleHeaderBack}
             className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
           >
-            <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
+            <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">
               {detailOpen ? "장소 상세 닫기" : "마이페이지로 돌아가기"}
             </span>
           </button>
-          <h1 className="flex-1 text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
+          <h1 className="text-foreground flex-1 text-center text-base leading-tight font-semibold tracking-tight">
             나의 장소
           </h1>
-          <span className="max-w-[48%] truncate text-right text-xs font-semibold text-[#555555]">
+          <span className="text-muted-foreground max-w-[48%] truncate text-right text-xs font-semibold">
             {displayedCountLabel}
           </span>
         </div>
@@ -297,10 +292,10 @@ export function MySavedPlacesPage({
       <RoomConfirmModal
         open={pendingDeletePlaceId != null}
         message="이 장소를 삭제할까요?"
-        description="삭제하면 목록에서 더 이상 보이지 않아요."
+        description="삭제하면 목록에서 더 이상 보이지 않아요"
         cancelLabel="취소"
         confirmLabel="삭제"
-        confirmButtonClassName="text-[var(--brand-coral-solid)]"
+        confirmButtonClassName="text-primary"
         onCancel={() => setPendingDeletePlaceId(null)}
         onConfirm={handleConfirmDeletePlace}
       />

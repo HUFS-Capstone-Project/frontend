@@ -38,7 +38,6 @@ import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { PLACE_LIST_TEXT } from "@/shared/config/text";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import type { SavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -55,7 +54,6 @@ function formatCount(count: number) {
 
 export default function PlaceListPage() {
   const navigate = useNavigate();
-  const now = useKoreanNow();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
   const [selectedSido, setSelectedSido] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
@@ -101,12 +99,8 @@ export default function PlaceListPage() {
   });
 
   const resolvedPlaces = useMemo(
-    () =>
-      resolveSavedPlacesBusinessHours(
-        (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
-        now,
-      ),
-    [now, roomPlacesQuery.data?.items],
+    () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
+    [roomPlacesQuery.data?.items],
   );
 
   const {
@@ -194,10 +188,7 @@ export default function PlaceListPage() {
 
   const displayedPlaces = listPlacesBase;
 
-  const mapPins = useMemo(
-    () => resolveSavedPlacesBusinessHours(displayedPlaces, now),
-    [displayedPlaces, now],
-  );
+  const mapPins = displayedPlaces;
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
@@ -352,7 +343,7 @@ export default function PlaceListPage() {
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       {detailOpen ? (
         <MapBackdropLayer>
-          <Suspense fallback={<div className="bg-map-placeholder-bg h-full w-full" aria-hidden />}>
+          <Suspense fallback={<div className="bg-muted h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
               places={mapPins}
@@ -385,7 +376,7 @@ export default function PlaceListPage() {
           <h1 className="text-foreground min-w-0 flex-1 truncate text-center text-base leading-tight font-semibold tracking-tight">
             {pageTitle}
           </h1>
-          <span className="max-w-[48%] shrink-0 truncate text-right text-xs font-semibold text-[#555555]">
+          <span className="text-muted-foreground max-w-[48%] shrink-0 truncate text-right text-xs font-semibold">
             {displayedCountLabel}
           </span>
         </div>
@@ -508,10 +499,10 @@ export default function PlaceListPage() {
       <RoomConfirmModal
         open={pendingDeletePlaceId != null}
         message="이 장소를 삭제할까요?"
-        description="삭제하면 목록에서 더 이상 보이지 않아요."
+        description="삭제하면 목록에서 더 이상 보이지 않아요"
         cancelLabel="취소"
         confirmLabel="삭제"
-        confirmButtonClassName="text-[var(--brand-coral-solid)]"
+        confirmButtonClassName="text-primary"
         onCancel={() => setPendingDeletePlaceId(null)}
         onConfirm={handleConfirmDeletePlace}
       />

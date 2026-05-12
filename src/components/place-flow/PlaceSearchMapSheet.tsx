@@ -163,7 +163,7 @@ export function PlaceSearchMapSheet({
   const isCollapsedSearchMode = mode === "search" && isSearchCollapsed && selectedPlace != null;
 
   return (
-    <div className="bg-map-placeholder-bg relative h-full min-h-0 overflow-hidden">
+    <div className="bg-muted relative h-full min-h-0 overflow-hidden">
       <Suspense fallback={<div className="absolute inset-0" aria-hidden />}>
         <KakaoMapView
           appKey={KAKAO_MAP_APP_KEY}

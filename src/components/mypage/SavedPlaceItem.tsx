@@ -58,7 +58,7 @@ export function SavedPlaceItem({
     categoryRaw.length === 0 ? "" : (categoryNameByCode?.[categoryRaw]?.trim() ?? categoryRaw);
 
   return (
-    <article className="rounded-lg border border-[#e8e8e8] bg-white px-3 py-3">
+    <article className="border-border bg-card rounded-lg border px-3 py-3">
       <div className="flex items-start gap-2">
         <button
           type="button"
@@ -66,7 +66,7 @@ export function SavedPlaceItem({
           className="min-w-0 flex-1 space-y-2 text-left"
         >
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="min-w-0 shrink truncate text-sm leading-snug font-semibold tracking-[-0.01em] text-[#222222]">
+            <h3 className="text-foreground min-w-0 shrink truncate text-sm leading-snug font-semibold tracking-[-0.01em]">
               {place.name}
             </h3>
             {categoryLabel ? (
@@ -82,8 +82,8 @@ export function SavedPlaceItem({
             ) : null}
           </div>
 
-          <p className="flex min-w-0 items-start gap-1.5 text-[0.7rem] leading-snug font-medium text-[#777777]">
-            <MapPin className="mt-0.5 size-3.5 shrink-0 text-neutral-400" aria-hidden />
+          <p className="text-muted-foreground flex min-w-0 items-start gap-1.5 text-[0.7rem] leading-snug font-medium">
+            <MapPin className="text-muted-foreground mt-0.5 size-3.5 shrink-0" aria-hidden />
             <span className="min-w-0 truncate">{place.address}</span>
           </p>
         </button>
@@ -100,25 +100,25 @@ export function SavedPlaceItem({
             </button>
 
             {isMenuOpen ? (
-              <div className="absolute top-full right-0 z-10 mt-1 w-24 overflow-hidden rounded-md border border-[#eaeaea] bg-white py-0.5 shadow-[0_1px_4px_rgb(0_0_0/_0.035)]">
+              <div className="border-border bg-popover absolute top-full right-0 z-10 mt-1 w-24 overflow-hidden rounded-md border py-0.5 shadow-sm">
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="block w-full px-4 py-2.5 text-left text-xs font-medium text-[#595959] active:bg-[#f7f7f7]"
+                  className="text-muted-foreground hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-medium transition-colors"
                 >
                   공유
                 </button>
                 <button
                   type="button"
                   onClick={() => onStartMemo?.(place)}
-                  className="block w-full px-4 py-2.5 text-left text-xs font-medium text-[#595959] active:bg-[#f7f7f7]"
+                  className="text-muted-foreground hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-medium transition-colors"
                 >
                   메모
                 </button>
                 <button
                   type="button"
                   onClick={() => onDelete?.(place.id)}
-                  className="block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) active:bg-[#f7f7f7]"
+                  className="hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) transition-colors"
                 >
                   삭제
                 </button>

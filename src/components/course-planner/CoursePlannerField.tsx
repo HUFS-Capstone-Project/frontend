@@ -1,4 +1,5 @@
-﻿import type { ReactNode } from "react";
+﻿import { ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function CoursePlannerField({
     <div className={cn("grid gap-2", className)}>
       <span className="text-foreground text-sm font-semibold">
         {label}
-        {required ? <span className="text-primary ml-0.5">*</span> : null}
+        {required ? <span className="text-primary ml-1">*</span> : null}
       </span>
 
       <button
@@ -44,7 +45,7 @@ export function CoursePlannerField({
           {hasValue ? value : placeholder}
         </span>
         <span className="text-muted-foreground" aria-hidden>
-          {icon ?? "›"}
+          {icon ?? <ChevronRight className="size-4" aria-hidden />}
         </span>
       </button>
     </div>

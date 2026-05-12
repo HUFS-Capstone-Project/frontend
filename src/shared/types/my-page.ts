@@ -1,8 +1,5 @@
-import type {
-  MapPrimaryCategory,
-  PlaceBusinessHours,
-  ResolvedPlaceBusinessHours,
-} from "@/shared/types/map-home";
+import type { BusinessHoursDisplay } from "@/shared/types/business-hours";
+import type { MapPrimaryCategory } from "@/shared/types/map-home";
 
 export type RecentPlace = {
   id: string;
@@ -20,5 +17,5 @@ export type SavedPlace = {
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
   memo?: string;
-  businessHours?: PlaceBusinessHours | ResolvedPlaceBusinessHours | null;
+  businessHours?: BusinessHoursDisplay | null;
 };

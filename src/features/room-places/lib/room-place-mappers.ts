@@ -1,7 +1,6 @@
 import type { SavedPlace } from "@/shared/types/map-home";
 
 import type { RoomPlace } from "../types/room-place.types";
-import { getResolvedRoomPlaceBusinessHours } from "./business-hours";
 
 export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
   return {
@@ -14,7 +13,7 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     address: place.roadAddress ?? place.address ?? "",
     shareLinkUrl: place.sourceUrl ?? null,
     memo: place.memo ?? undefined,
-    businessHours: getResolvedRoomPlaceBusinessHours(place),
+    businessHours: place.businessHoursStatus === "SUCCEEDED" ? place.businessHours : null,
   };
 }
 

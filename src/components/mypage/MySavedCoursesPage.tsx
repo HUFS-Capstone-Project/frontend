@@ -21,7 +21,6 @@ import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { useRoomsQuery } from "@/features/room";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -66,7 +65,6 @@ export function MySavedCoursesPage({
   onBack,
   onPersistCourse,
 }: MySavedCoursesPageProps) {
-  const now = useKoreanNow();
   const { data: roomsFromApi, isLoading: isRoomsLoading } = useRoomsQuery();
   const [selectedFilter, setSelectedFilter] = useState<CourseFilter>("all");
   const [openPopup, setOpenPopup] = useState<FilterPopup>(null);
@@ -132,11 +130,10 @@ export function MySavedCoursesPage({
   }, [courses, coursesHaveRoomLink, selectedDate, selectedFilter, selectedRoomIds]);
 
   const mapPins = useMemo(() => {
-    const raw = selectedCourse
+    return selectedCourse
       ? mapPlacesFromSavedCourses([selectedCourse], savedPlaces)
       : mapPlacesFromSavedCourses(visibleCourses, savedPlaces);
-    return resolveSavedPlacesBusinessHours(raw, now);
-  }, [now, savedPlaces, selectedCourse, visibleCourses]);
+  }, [savedPlaces, selectedCourse, visibleCourses]);
 
   const mapCenter = useMemo(() => {
     if (detailOpen && selectedPlaceId) {
@@ -197,12 +194,12 @@ export function MySavedCoursesPage({
     <div
       className={cn(
         "relative flex min-h-0 w-full flex-1 flex-col overflow-hidden",
-        overlayMapOpen ? "bg-(--map-placeholder-bg,#ece8e5)" : "bg-background",
+        overlayMapOpen ? "bg-muted" : "bg-background",
       )}
     >
       {overlayMapOpen ? (
         <MapBackdropLayer>
-          <Suspense fallback={<div className="bg-map-placeholder-bg h-full w-full" aria-hidden />}>
+          <Suspense fallback={<div className="bg-muted h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
               places={mapPins}
@@ -225,7 +222,7 @@ export function MySavedCoursesPage({
             onClick={handleHeaderBack}
             className="touch-target-min -ml-3 flex items-center justify-center justify-self-start rounded-full"
           >
-            <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
+            <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">
               {detailOpen
                 ? "장소 상세 닫기"
@@ -234,10 +231,10 @@ export function MySavedCoursesPage({
                   : "마이페이지로 돌아가기"}
             </span>
           </button>
-          <h1 className="min-w-0 truncate text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
+          <h1 className="text-foreground min-w-0 truncate text-center text-base leading-tight font-semibold tracking-tight">
             저장된 데이트 코스
           </h1>
-          <span className="w-14 justify-self-end truncate text-right text-xs font-semibold text-[#555555]">
+          <span className="text-muted-foreground w-14 justify-self-end truncate text-right text-xs font-semibold">
             총 {formatCount(visibleCourses.length)}개
           </span>
         </div>
@@ -452,10 +449,10 @@ export function MySavedCoursesPage({
             </div>
           ) : (
             <div className="flex min-h-48 flex-col items-center justify-center py-8 text-center">
-              <span className="flex size-11 items-center justify-center rounded-full bg-[#777777] text-white">
+              <span className="bg-muted-foreground text-primary-foreground flex size-11 items-center justify-center rounded-full">
                 <AlertCircle className="size-5" aria-hidden />
               </span>
-              <p className="mt-4 text-sm font-medium text-[#8a8a8a]">
+              <p className="text-muted-foreground mt-4 text-sm font-medium">
                 해당하는 데이트 코스가 없습니다.
               </p>
             </div>

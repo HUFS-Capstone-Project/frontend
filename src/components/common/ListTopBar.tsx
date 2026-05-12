@@ -45,18 +45,18 @@ export function ListTopBar({
             onClick={onBack}
             className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
           >
-            <ArrowLeft className="size-5 text-[#222222]" aria-hidden />
+            <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">{backLabel}</span>
           </button>
         ) : (
           <span className="w-9 shrink-0" aria-hidden />
         )}
-        <h1 className="flex-1 text-center text-base leading-tight font-semibold tracking-tight text-[#111111]">
+        <h1 className="text-foreground flex-1 text-center text-base leading-tight font-semibold tracking-tight">
           {title}
         </h1>
         <span
           className={cn(
-            "max-w-[48%] shrink-0 truncate text-right text-xs font-semibold text-[#555555]",
+            "text-muted-foreground max-w-[48%] shrink-0 truncate text-right text-xs font-semibold",
             trailingClassName,
           )}
         >

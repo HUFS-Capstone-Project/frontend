@@ -19,7 +19,6 @@ import {
 import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { resolveSavedPlacesBusinessHours, useKoreanNow } from "@/shared/lib/place-business-hours";
 import { MAP_INITIAL_CENTER, MAP_SEARCH_PLACEHOLDER } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, RoomFriend, SavedPlace } from "@/shared/types/map-home";
 import { PLACE_DETAIL_OPEN_EVENT } from "@/store/place-detail-store";
@@ -72,7 +71,6 @@ export function MapHomePageContent({
     key: "initial",
   });
   const searchHistoryPushedRef = useRef(false);
-  const now = useKoreanNow();
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
   const roomPlacesQuery = useRoomPlaces({
     roomId: selectedRoom?.id ?? null,
@@ -82,10 +80,7 @@ export function MapHomePageContent({
     () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
     [roomPlacesQuery.data?.items],
   );
-  const places = useMemo(
-    () => resolveSavedPlacesBusinessHours(savedPlaces, now),
-    [now, savedPlaces],
-  );
+  const places = savedPlaces;
   const {
     categories,
     categoryNameByCode,

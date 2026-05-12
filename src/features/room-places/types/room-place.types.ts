@@ -1,3 +1,5 @@
+import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
+
 export type RoomPlaceListParams = {
   keyword?: string;
   category?: string;
@@ -21,30 +23,8 @@ export type NormalizedRoomPlaceListParams = {
   size: number;
 };
 
-export type RoomPlaceBusinessHoursStatus =
-  | "PENDING"
-  | "FETCHING"
-  | "SUCCEEDED"
-  | "SUCCESS"
-  | "NOT_FOUND"
-  | "FAILED"
-  | "CRAWL_FAILED"
-  | "PARSE_FAILED"
-  | "ENQUEUE_FAILED"
-  | (string & {});
-
-export type RoomPlaceBusinessHoursDailyHour = {
-  day?: string | null;
-  date?: string | null;
-  raw?: string | null;
-  open?: string | null;
-  close?: string | null;
-};
-
-export type RoomPlaceBusinessHours = {
-  daily_hours?: RoomPlaceBusinessHoursDailyHour[] | null;
-  [key: string]: unknown;
-};
+export type RoomPlaceBusinessHoursStatus = BusinessHoursStatus;
+export type RoomPlaceBusinessHours = BusinessHoursDisplay;
 
 export type RoomPlaceDto = {
   roomPlaceId: number;
@@ -72,8 +52,8 @@ export type RoomPlaceDto = {
   sourceRoomLinkId: number | null;
   createdBy: number | null;
   createdAt: string | null;
-  businessHours?: RoomPlaceBusinessHours | null;
-  businessHoursStatus?: RoomPlaceBusinessHoursStatus | null;
+  businessHours: RoomPlaceBusinessHours | null;
+  businessHoursStatus: RoomPlaceBusinessHoursStatus;
   businessHoursFetchedAt?: string | null;
   businessHoursExpiresAt?: string | null;
 };

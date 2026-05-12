@@ -1,3 +1,4 @@
+import type { BusinessHoursDisplay, WeeklyBusinessHour } from "@/shared/types/business-hours";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
 
 export const MAP_HOME_TITLE = "친구 1님과의 데이트 지도";
@@ -7,6 +8,47 @@ export const MAP_INITIAL_CENTER: MapCoordinate = {
   latitude: 37.5935,
   longitude: 127.0567,
 };
+
+const MOCK_TODAY_DAY = "화";
+const MOCK_TODAY_DATE = "5/12";
+const MOCK_WEEK_DAYS = ["월", "화", "수", "목", "금", "토", "일"] as const;
+
+type MockWeekDay = (typeof MOCK_WEEK_DAYS)[number];
+
+function createMockWeeklyHours(
+  displayTexts: Record<MockWeekDay, string>,
+  subTextsByDay: Partial<Record<MockWeekDay, string[]>> = {},
+): WeeklyBusinessHour[] {
+  return MOCK_WEEK_DAYS.map((day) => ({
+    day,
+    date: day === MOCK_TODAY_DAY ? MOCK_TODAY_DATE : null,
+    isToday: day === MOCK_TODAY_DAY,
+    displayText: displayTexts[day],
+    subTexts: subTextsByDay[day] ?? [],
+  }));
+}
+
+function createMockBusinessHours({
+  businessStatus = "CLOSED",
+  statusDisplayText,
+  todayDisplayText,
+  weeklyHours,
+}: {
+  businessStatus?: string | null;
+  statusDisplayText: string;
+  todayDisplayText: string;
+  weeklyHours: WeeklyBusinessHour[];
+}): BusinessHoursDisplay {
+  return {
+    businessStatus,
+    statusDisplayText,
+    todayDisplayText,
+    nextOpenAt: null,
+    nextCloseAt: null,
+    today: null,
+    weeklyHours,
+  };
+}
 
 export const SAVED_PLACE_MOCKS: SavedPlace[] = [
   // 음식점
@@ -19,18 +61,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0606,
     address: "서울 동대문구 이문로 107",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_1/",
-    businessHours: {
-      holidayNotice: "매주 월요일 휴무",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: null, closeTime: null },
-        { dayOfWeek: 2, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 3, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 4, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 5, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 6, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 0, openTime: "11:30", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 11:30 영업 시작",
+      todayDisplayText: "오늘 11:30 - 21:00",
+      weeklyHours: createMockWeeklyHours({
+        월: "휴무",
+        화: "11:30 ~ 21:00",
+        수: "11:30 ~ 21:00",
+        목: "11:30 ~ 21:00",
+        금: "11:30 ~ 21:00",
+        토: "11:30 ~ 21:00",
+        일: "11:30 ~ 21:00",
+      }),
+    }),
   },
   {
     id: "restaurant-2",
@@ -41,18 +84,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0567,
     address: "서울 동대문구 회기로 173",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_2/",
-    businessHours: {
-      holidayNotice: "브레이크타임 있음",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 2, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 3, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 4, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 5, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 6, openTime: "11:30", closeTime: "21:00" },
-        { dayOfWeek: 0, openTime: "11:30", closeTime: "20:30" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 11:30 영업 시작",
+      todayDisplayText: "오늘 11:30 - 21:00",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "11:30 ~ 21:00",
+          화: "11:30 ~ 21:00",
+          수: "11:30 ~ 21:00",
+          목: "11:30 ~ 21:00",
+          금: "11:30 ~ 21:00",
+          토: "11:30 ~ 21:00",
+          일: "11:30 ~ 20:30",
+        },
+        { 화: ["브레이크타임 있음"] },
+      ),
+    }),
   },
   {
     id: "restaurant-3",
@@ -63,18 +110,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.062,
     address: "서울 동대문구 이문로 79",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_3/",
-    businessHours: {
-      holidayNotice: "연중무휴",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 2, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 3, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 4, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 5, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 6, openTime: "10:00", closeTime: "21:00" },
-        { dayOfWeek: 0, openTime: "10:00", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 10:00 영업 시작",
+      todayDisplayText: "오늘 10:00 - 21:00",
+      weeklyHours: createMockWeeklyHours({
+        월: "10:00 ~ 21:00",
+        화: "10:00 ~ 21:00",
+        수: "10:00 ~ 21:00",
+        목: "10:00 ~ 21:00",
+        금: "10:00 ~ 21:00",
+        토: "10:00 ~ 21:00",
+        일: "10:00 ~ 21:00",
+      }),
+    }),
   },
 
   {
@@ -86,18 +134,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 128.5963,
     address: "대구 중구 동성로2길 4-3",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_4/",
-    businessHours: {
-      holidayNotice: "운영시간 변동 가능",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "11:30", closeTime: "21:30" },
-        { dayOfWeek: 2, openTime: "11:30", closeTime: "21:30" },
-        { dayOfWeek: 3, openTime: "11:30", closeTime: "21:30" },
-        { dayOfWeek: 4, openTime: "11:30", closeTime: "21:30" },
-        { dayOfWeek: 5, openTime: "11:30", closeTime: "22:00" },
-        { dayOfWeek: 6, openTime: "11:30", closeTime: "22:00" },
-        { dayOfWeek: 0, openTime: "11:30", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 11:30 영업 시작",
+      todayDisplayText: "오늘 11:30 - 21:30",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "11:30 ~ 21:30",
+          화: "11:30 ~ 21:30",
+          수: "11:30 ~ 21:30",
+          목: "11:30 ~ 21:30",
+          금: "11:30 ~ 22:00",
+          토: "11:30 ~ 22:00",
+          일: "11:30 ~ 21:00",
+        },
+        { 화: ["운영시간 변동 가능"] },
+      ),
+    }),
   },
   {
     id: "restaurant-5",
@@ -108,18 +160,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 128.6175,
     address: "대구 수성구 수성못2길 15 1층",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_5/",
-    businessHours: {
-      holidayNotice: "연중무휴",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 2, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 3, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 4, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 5, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 6, openTime: "11:00", closeTime: "21:30" },
-        { dayOfWeek: 0, openTime: "11:00", closeTime: "21:30" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 11:00 영업 시작",
+      todayDisplayText: "오늘 11:00 - 21:30",
+      weeklyHours: createMockWeeklyHours({
+        월: "11:00 ~ 21:30",
+        화: "11:00 ~ 21:30",
+        수: "11:00 ~ 21:30",
+        목: "11:00 ~ 21:30",
+        금: "11:00 ~ 21:30",
+        토: "11:00 ~ 21:30",
+        일: "11:00 ~ 21:30",
+      }),
+    }),
   },
   {
     id: "restaurant-6",
@@ -130,18 +183,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 128.5962,
     address: "대구광역시 중구 국채보상로 598",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_6/",
-    businessHours: {
-      holidayNotice: "운영시간 변동 가능",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 2, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 3, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 4, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 5, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 6, openTime: "09:00", closeTime: "21:00" },
-        { dayOfWeek: 0, openTime: "09:00", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 08:00 영업 시작",
+      todayDisplayText: "오늘 08:00 - 22:00",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "08:00 ~ 22:00",
+          화: "08:00 ~ 22:00",
+          수: "08:00 ~ 22:00",
+          목: "08:00 ~ 22:00",
+          금: "08:00 ~ 22:00",
+          토: "09:00 ~ 21:00",
+          일: "09:00 ~ 21:00",
+        },
+        { 화: ["운영시간 변동 가능"] },
+      ),
+    }),
   },
   {
     id: "restaurant-7",
@@ -152,18 +209,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 126.639,
     address: "인천광역시 연수구 센트럴로 194",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_7/",
-    businessHours: {
-      holidayNotice: "연중무휴",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 2, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 3, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 4, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 5, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 6, openTime: "08:00", closeTime: "22:00" },
-        { dayOfWeek: 0, openTime: "08:00", closeTime: "22:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 08:00 영업 시작",
+      todayDisplayText: "오늘 08:00 - 22:00",
+      weeklyHours: createMockWeeklyHours({
+        월: "08:00 ~ 22:00",
+        화: "08:00 ~ 22:00",
+        수: "08:00 ~ 22:00",
+        목: "08:00 ~ 22:00",
+        금: "08:00 ~ 22:00",
+        토: "08:00 ~ 22:00",
+        일: "08:00 ~ 22:00",
+      }),
+    }),
   },
   {
     id: "restaurant-8",
@@ -174,18 +232,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0609,
     address: "서울 동대문구 이문로 116",
     shareLinkUrl: "https://www.instagram.com/p/hufs_restaurant_8/",
-    businessHours: {
-      holidayNotice: "운영시간 변동 가능",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "08:30", closeTime: "22:30" },
-        { dayOfWeek: 2, openTime: "08:30", closeTime: "22:30" },
-        { dayOfWeek: 3, openTime: "08:30", closeTime: "22:30" },
-        { dayOfWeek: 4, openTime: "08:30", closeTime: "22:30" },
-        { dayOfWeek: 5, openTime: "08:30", closeTime: "22:30" },
-        { dayOfWeek: 6, openTime: "09:00", closeTime: "21:00" },
-        { dayOfWeek: 0, openTime: "09:00", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 08:30 영업 시작",
+      todayDisplayText: "오늘 08:30 - 22:30",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "08:30 ~ 22:30",
+          화: "08:30 ~ 22:30",
+          수: "08:30 ~ 22:30",
+          목: "08:30 ~ 22:30",
+          금: "08:30 ~ 22:30",
+          토: "09:00 ~ 21:00",
+          일: "09:00 ~ 21:00",
+        },
+        { 화: ["운영시간 변동 가능"] },
+      ),
+    }),
   },
 
   // 카페
@@ -198,18 +260,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0607,
     address: "서울 동대문구 이문로 85",
     shareLinkUrl: "https://www.instagram.com/p/hufs_cafe_1/",
-    businessHours: {
-      holidayNotice: "디저트 소진 시 마감",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "12:00", closeTime: "21:00" },
-        { dayOfWeek: 2, openTime: "12:00", closeTime: "21:00" },
-        { dayOfWeek: 3, openTime: "12:00", closeTime: "21:00" },
-        { dayOfWeek: 4, openTime: "12:00", closeTime: "21:00" },
-        { dayOfWeek: 5, openTime: "12:00", closeTime: "22:00" },
-        { dayOfWeek: 6, openTime: "12:00", closeTime: "22:00" },
-        { dayOfWeek: 0, openTime: "12:00", closeTime: "20:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 12:00 영업 시작",
+      todayDisplayText: "오늘 12:00 - 21:00",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "12:00 ~ 21:00",
+          화: "12:00 ~ 21:00",
+          수: "12:00 ~ 21:00",
+          목: "12:00 ~ 21:00",
+          금: "12:00 ~ 22:00",
+          토: "12:00 ~ 22:00",
+          일: "12:00 ~ 20:00",
+        },
+        { 화: ["디저트 소진 시 마감"] },
+      ),
+    }),
   },
   {
     id: "cafe-2",
@@ -220,18 +286,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.057,
     address: "서울 동대문구 회기로 171",
     shareLinkUrl: "https://www.instagram.com/p/hufs_cafe_2/",
-    businessHours: {
-      holidayNotice: "매주 화요일 휴무",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "11:00", closeTime: "22:00" },
-        { dayOfWeek: 2, openTime: null, closeTime: null },
-        { dayOfWeek: 3, openTime: "11:00", closeTime: "22:00" },
-        { dayOfWeek: 4, openTime: "11:00", closeTime: "22:00" },
-        { dayOfWeek: 5, openTime: "11:00", closeTime: "23:00" },
-        { dayOfWeek: 6, openTime: "12:00", closeTime: "23:00" },
-        { dayOfWeek: 0, openTime: "12:00", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "오늘 휴무 · 내일 11:00 영업 시작",
+      todayDisplayText: "오늘 휴무",
+      weeklyHours: createMockWeeklyHours({
+        월: "11:00 ~ 22:00",
+        화: "휴무",
+        수: "11:00 ~ 22:00",
+        목: "11:00 ~ 22:00",
+        금: "11:00 ~ 23:00",
+        토: "12:00 ~ 23:00",
+        일: "12:00 ~ 21:00",
+      }),
+    }),
   },
   {
     id: "cafe-3",
@@ -242,18 +309,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0585,
     address: "서울 동대문구 회기로 165",
     shareLinkUrl: "https://www.instagram.com/p/hufs_cafe_3/",
-    businessHours: {
-      holidayNotice: "연중무휴",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "10:00", closeTime: "22:00" },
-        { dayOfWeek: 2, openTime: "10:00", closeTime: "22:00" },
-        { dayOfWeek: 3, openTime: "10:00", closeTime: "22:00" },
-        { dayOfWeek: 4, openTime: "10:00", closeTime: "22:00" },
-        { dayOfWeek: 5, openTime: "10:00", closeTime: "23:00" },
-        { dayOfWeek: 6, openTime: "11:00", closeTime: "23:00" },
-        { dayOfWeek: 0, openTime: "11:00", closeTime: "21:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 10:00 영업 시작",
+      todayDisplayText: "오늘 10:00 - 22:00",
+      weeklyHours: createMockWeeklyHours({
+        월: "10:00 ~ 22:00",
+        화: "10:00 ~ 22:00",
+        수: "10:00 ~ 22:00",
+        목: "10:00 ~ 22:00",
+        금: "10:00 ~ 23:00",
+        토: "11:00 ~ 23:00",
+        일: "11:00 ~ 21:00",
+      }),
+    }),
   },
 
   // 놀거리
@@ -266,18 +334,20 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0527,
     address: "서울 동대문구 경희대로 26",
     shareLinkUrl: "https://www.instagram.com/p/hufs_activity_1/",
-    businessHours: {
-      holidayNotice: "상시 개방",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 2, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 3, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 4, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 5, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 6, openTime: "00:00", closeTime: "23:59" },
-        { dayOfWeek: 0, openTime: "00:00", closeTime: "23:59" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      businessStatus: "OPEN",
+      statusDisplayText: "상시 개방",
+      todayDisplayText: "오늘 00:00 - 23:59",
+      weeklyHours: createMockWeeklyHours({
+        월: "00:00 ~ 23:59",
+        화: "00:00 ~ 23:59",
+        수: "00:00 ~ 23:59",
+        목: "00:00 ~ 23:59",
+        금: "00:00 ~ 23:59",
+        토: "00:00 ~ 23:59",
+        일: "00:00 ~ 23:59",
+      }),
+    }),
   },
   {
     id: "activity-2",
@@ -288,18 +358,19 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0446,
     address: "서울 동대문구 회기로 57",
     shareLinkUrl: "https://www.instagram.com/p/hufs_activity_2/",
-    businessHours: {
-      holidayNotice: "월요일 휴무",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: null, closeTime: null },
-        { dayOfWeek: 2, openTime: "09:00", closeTime: "18:00" },
-        { dayOfWeek: 3, openTime: "09:00", closeTime: "18:00" },
-        { dayOfWeek: 4, openTime: "09:00", closeTime: "18:00" },
-        { dayOfWeek: 5, openTime: "09:00", closeTime: "18:00" },
-        { dayOfWeek: 6, openTime: "09:00", closeTime: "17:00" },
-        { dayOfWeek: 0, openTime: "09:00", closeTime: "17:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 09:00 영업 시작",
+      todayDisplayText: "오늘 09:00 - 18:00",
+      weeklyHours: createMockWeeklyHours({
+        월: "휴무",
+        화: "09:00 ~ 18:00",
+        수: "09:00 ~ 18:00",
+        목: "09:00 ~ 18:00",
+        금: "09:00 ~ 18:00",
+        토: "09:00 ~ 17:00",
+        일: "09:00 ~ 17:00",
+      }),
+    }),
   },
   {
     id: "activity-3",
@@ -310,18 +381,22 @@ export const SAVED_PLACE_MOCKS: SavedPlace[] = [
     longitude: 127.0563,
     address: "서울 동대문구 회기로 190 일대",
     shareLinkUrl: "https://www.instagram.com/p/hufs_activity_3/",
-    businessHours: {
-      holidayNotice: "매장별 상이",
-      weeklySchedule: [
-        { dayOfWeek: 1, openTime: "17:00", closeTime: "24:00" },
-        { dayOfWeek: 2, openTime: "17:00", closeTime: "24:00" },
-        { dayOfWeek: 3, openTime: "17:00", closeTime: "24:00" },
-        { dayOfWeek: 4, openTime: "17:00", closeTime: "24:00" },
-        { dayOfWeek: 5, openTime: "17:00", closeTime: "01:00" },
-        { dayOfWeek: 6, openTime: "17:00", closeTime: "01:00" },
-        { dayOfWeek: 0, openTime: "17:00", closeTime: "23:00" },
-      ],
-    },
+    businessHours: createMockBusinessHours({
+      statusDisplayText: "영업 종료 · 내일 17:00 영업 시작",
+      todayDisplayText: "오늘 17:00 - 24:00",
+      weeklyHours: createMockWeeklyHours(
+        {
+          월: "17:00 ~ 24:00",
+          화: "17:00 ~ 24:00",
+          수: "17:00 ~ 24:00",
+          목: "17:00 ~ 24:00",
+          금: "17:00 ~ 01:00",
+          토: "17:00 ~ 01:00",
+          일: "17:00 ~ 23:00",
+        },
+        { 화: ["매장별 상이"] },
+      ),
+    }),
   },
 ];
 

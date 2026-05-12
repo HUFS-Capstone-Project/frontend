@@ -44,7 +44,7 @@ export default function AuthCallbackPage() {
   const signIn = useAuthStore((s) => s.signIn);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const ticket = searchParams.get("ticket")?.trim() ?? "";
+  const [initialTicket] = useState(() => searchParams.get("ticket")?.trim() ?? "");
 
   const hasStarted = useRef(false);
 
@@ -53,13 +53,13 @@ export default function AuthCallbackPage() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!ticket || hasStarted.current) return;
+    if (!initialTicket || hasStarted.current) return;
     hasStarted.current = true;
 
     const processCallback = async () => {
       await webAuthApi.ensureCsrfCookie();
 
-      const res = await webAuthApi.exchangeTicket(ticket);
+      const res = await webAuthApi.exchangeTicket(initialTicket);
       const accessToken = res.data.token.accessToken;
 
       useAuthStore.getState().setAccessToken(accessToken);
@@ -85,9 +85,9 @@ export default function AuthCallbackPage() {
       const apiError = err as Partial<ApiError>;
       setErrorMessage(apiError.message ?? FALLBACK_ERROR_MESSAGE);
     });
-  }, [ticket, signIn, navigate, queryClient]);
+  }, [initialTicket, signIn, navigate, queryClient]);
 
-  if (!ticket) {
+  if (!initialTicket) {
     return (
       <AuthCallbackFallback message={MISSING_TICKET_MESSAGE} onBackToLogin={handleBackToLogin} />
     );
