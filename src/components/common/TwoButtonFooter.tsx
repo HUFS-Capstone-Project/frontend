@@ -16,7 +16,7 @@ export function TwoButtonFooter({ left, right, className }: TwoButtonFooterProps
   return (
     <div
       className={cn(
-        "w-full min-w-0 shrink-0 bg-white px-6 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]",
+        "bg-background w-full min-w-0 shrink-0 px-6 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]",
         className,
       )}
     >

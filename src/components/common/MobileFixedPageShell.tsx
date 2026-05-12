@@ -11,7 +11,7 @@ export function MobileFixedPageShell({ children, className }: MobileFixedPageShe
   return (
     <main
       className={cn(
-        "mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-white",
+        "bg-background mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden",
         className,
       )}
     >

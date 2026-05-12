@@ -21,7 +21,7 @@ export function MyProfileHeader({ nickname, profileImageUrl, className }: MyProf
   return (
     <header
       className={cn(
-        "border-border/60 flex items-center gap-3 border-b bg-white px-5 py-5",
+        "border-border/60 bg-background flex items-center gap-3 border-b px-5 py-5",
         className,
       )}
     >

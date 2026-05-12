@@ -52,8 +52,14 @@ body {
   /* 지도 자리 표시자 등: 컴포넌트는 `bg-muted` 사용 (`--muted`와 동일 시맨틱) */
   --app-theme-color: var(--brand-coral-solid);
 
-  /* 스플래시 타이틀 (순백 #fff 대신 근사 톤) */
-  --splash-foreground: oklch(0.99 0 0);
+  /**
+   * 앱 메인 캔버스 바탕 (#fafaf8 · 순백 대신).
+   * shadcn 토큰 `--background` / `--card` / `--popover` 및 스플래시 타이틀 등이 참조.
+   */
+  --surface-canvas: #fafaf8;
+
+  /* 스플래시 타이틀 — `--surface-canvas`와 동일 */
+  --splash-foreground: var(--surface-canvas);
 
   /* 상태 배지 */
   --success-soft: oklch(0.96 0.04 160);
@@ -359,11 +365,11 @@ body {
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: var(--surface-canvas);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: var(--surface-canvas);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: var(--surface-canvas);
   --popover-foreground: oklch(0.145 0 0);
   /**
    * primary = 브랜드 코랄 (`--brand-coral-solid`와 동일 출처).
@@ -387,7 +393,7 @@ body {
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: var(--surface-canvas);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -406,7 +412,7 @@ body {
   --success-foreground: oklch(0.88 0.06 160);
   --error-soft: oklch(0.32 0.08 25);
   --error-foreground: oklch(0.9 0.05 25);
-  --splash-foreground: oklch(0.99 0 0);
+  --splash-foreground: var(--surface-canvas);
   --room-header-foreground: oklch(0.99 0 0);
   --room-header-foreground-muted: oklch(0.99 0 0 / 0.9);
 

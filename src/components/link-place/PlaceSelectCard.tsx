@@ -35,7 +35,7 @@ export function PlaceSelectCard({
     <li>
       <article
         className={cn(
-          "flex min-h-[70px] w-full items-center gap-3 border-b border-black/5 bg-white px-5 py-4 text-left transition-colors",
+          "border-border bg-background flex min-h-[70px] w-full items-center gap-3 border-b border-black/5 px-5 py-4 text-left transition-colors",
           !disabled && "cursor-pointer active:bg-gray-50",
           disabled && "cursor-default",
         )}

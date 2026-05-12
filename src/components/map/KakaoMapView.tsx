@@ -380,7 +380,7 @@ export function KakaoMapView({
           ) : null}
           <button
             type="button"
-            className="text-muted-foreground/85 shadow-floating pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border border-black/5 bg-white transition-colors hover:bg-white/95 active:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted-foreground/85 shadow-floating bg-background hover:bg-background/95 active:bg-muted pointer-events-auto inline-flex size-12 items-center justify-center rounded-full border border-black/5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="현재 위치로 이동"
             aria-busy={isLocating}
             disabled={loadState !== "ready" || isLocating}
