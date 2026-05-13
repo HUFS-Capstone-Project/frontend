@@ -17,6 +17,7 @@ export type LinkSource = "WEB" | "APP" | null;
 export type RoomSummaryResponse = {
   roomId: string;
   roomName: string;
+  avatarSeed: string;
   inviteCode: string;
   pinned: boolean;
   createdAt: string;
@@ -28,6 +29,7 @@ export type RoomSummaryResponse = {
 export type RoomDetailResponse = {
   roomId: string;
   roomName: string;
+  avatarSeed: string;
   inviteCode: string;
   pinned: boolean;
   memberCount: number;
@@ -39,6 +41,7 @@ export type RoomDetailResponse = {
 export type CreateRoomResponse = {
   roomId: string;
   roomName: string;
+  avatarSeed: string;
   inviteCode: string;
   pinned: boolean;
   createdAt: string;
@@ -47,6 +50,7 @@ export type CreateRoomResponse = {
 export type JoinRoomResponse = {
   roomId: string;
   roomName: string;
+  avatarSeed: string;
   pinned: boolean;
   createdAt: string;
 };

@@ -84,6 +84,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     return {
       ...inviteCodeRoom,
       displayName: detail.roomName,
+      avatarSeed: detail.avatarSeed,
       inviteCode: detail.inviteCode,
       memberCount: toNonNegativeRoomCount(detail.memberCount, inviteCodeRoom.memberCount),
       placeCount: toNonNegativeRoomCount(

@@ -24,6 +24,7 @@ function mapJoinRoomToSummary(joinedRoom: JoinRoomResponse): RoomSummaryResponse
   return {
     roomId: joinedRoom.roomId,
     roomName: joinedRoom.roomName,
+    avatarSeed: joinedRoom.avatarSeed,
     inviteCode: "",
     pinned: joinedRoom.pinned,
     createdAt: joinedRoom.createdAt,

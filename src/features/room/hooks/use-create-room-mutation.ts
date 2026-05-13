@@ -15,6 +15,7 @@ export function useCreateRoomMutation() {
       queryClient.setQueryData(roomQueryKeys.roomDetail(createdRoom.roomId), {
         roomId: createdRoom.roomId,
         roomName: createdRoom.roomName,
+        avatarSeed: createdRoom.avatarSeed,
         inviteCode: createdRoom.inviteCode,
         pinned: createdRoom.pinned,
         memberCount: 1,
@@ -31,6 +32,7 @@ function mapCreateRoomToSummary(createdRoom: CreateRoomResponse): RoomSummaryRes
   return {
     roomId: createdRoom.roomId,
     roomName: createdRoom.roomName,
+    avatarSeed: createdRoom.avatarSeed,
     inviteCode: createdRoom.inviteCode,
     pinned: createdRoom.pinned,
     createdAt: createdRoom.createdAt,

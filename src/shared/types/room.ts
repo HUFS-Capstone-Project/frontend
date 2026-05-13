@@ -2,6 +2,7 @@
 export type FriendRoomRow = {
   id: string;
   displayName: string;
+  avatarSeed?: string;
   /** 방 멤버 수 */
   memberCount: number;
   placeCount: number;

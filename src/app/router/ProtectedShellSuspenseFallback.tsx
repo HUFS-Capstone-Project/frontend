@@ -6,7 +6,7 @@ import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
  */
 export function ProtectedShellSuspenseFallback() {
   return (
-    <div className="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col items-center justify-center overflow-visible">
+    <div className="flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col items-center justify-center overflow-visible">
       <BrandMarkerLoader announce className="pointer-events-none" />
     </div>
   );

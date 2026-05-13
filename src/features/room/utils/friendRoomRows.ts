@@ -16,6 +16,7 @@ export function mapRoomSummaryToFriendRow(room: RoomSummaryResponse): FriendRoom
   return {
     id: room.roomId,
     displayName: room.roomName,
+    avatarSeed: room.avatarSeed,
     inviteCode: room.inviteCode,
     memberCount: toNonNegativeRoomCount(room.memberCount, 1),
     placeCount: toNonNegativeRoomCount(room.placeCount ?? room.linkCount, 0),

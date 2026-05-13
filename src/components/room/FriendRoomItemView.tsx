@@ -1,8 +1,10 @@
-import { Pin, User } from "lucide-react";
+import { Pin } from "lucide-react";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
 import type { FriendRoomRow } from "@/shared/types/room";
+
+import { RoomAvatar } from "./RoomAvatar";
 
 export type FriendRoomItemViewProps = {
   row: FriendRoomRow;
@@ -49,10 +51,10 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
       onKeyDown={onKeyDown}
     >
       <span
-        className="bg-muted text-muted-foreground col-start-1 row-span-2 row-start-1 flex size-12 shrink-0 items-center justify-center self-center rounded-full"
+        className="bg-muted col-start-1 row-span-2 row-start-1 flex size-12 shrink-0 items-center justify-center self-center overflow-hidden rounded-full"
         aria-hidden
       >
-        <User className="size-5" strokeWidth={2} />
+        {row.avatarSeed ? <RoomAvatar avatarSeed={row.avatarSeed} size={48} /> : null}
       </span>
 
       <div className="text-room-title text-foreground col-start-2 row-start-1 min-w-0">
