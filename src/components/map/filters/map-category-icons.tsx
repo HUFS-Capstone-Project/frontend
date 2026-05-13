@@ -1,9 +1,13 @@
 import { Coffee, LayoutGrid, Sparkles, Utensils } from "lucide-react";
 import type { JSX } from "react";
 
+import { cn } from "@/lib/utils";
+
 type IconProps = {
   className: string;
   strokeWidth?: number;
+  fill?: string;
+  fillOpacity?: number;
 };
 
 function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.Element {
@@ -13,11 +17,27 @@ function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.E
     case "음식점":
     case "음식":
     case "FOOD":
-      return <Utensils {...props} aria-hidden />;
+      return <Utensils {...props} fill="#f3f4f6" fillOpacity={0.65} aria-hidden />;
     case "카페":
-      return <Coffee {...props} aria-hidden />;
+      return (
+        <Coffee
+          {...props}
+          className={cn(props.className, "text-[#7a4a2a]")}
+          fill="currentColor"
+          fillOpacity={0.2}
+          aria-hidden
+        />
+      );
     case "놀거리":
-      return <Sparkles {...props} aria-hidden />;
+      return (
+        <Sparkles
+          {...props}
+          className={cn(props.className, "text-[#f2b705]")}
+          fill="currentColor"
+          fillOpacity={0.35}
+          aria-hidden
+        />
+      );
     default:
       return <Sparkles {...props} aria-hidden />;
   }
