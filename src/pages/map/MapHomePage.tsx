@@ -70,6 +70,7 @@ export function MapHomePageContent({
     geocodeKeyword: "",
     key: "initial",
   });
+  const [currentLocationCenter, setCurrentLocationCenter] = useState<MapCoordinate | null>(null);
   const searchHistoryPushedRef = useRef(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
   const roomPlacesQuery = useRoomPlaces({
@@ -118,6 +119,7 @@ export function MapHomePageContent({
     [places, searchInput],
   );
   const isSearchSuggestionsOpen = searchInput.trim().length > 0 && !isSearchSuggestionDismissed;
+  const defaultMapCenter = currentLocationCenter ?? MAP_INITIAL_CENTER;
   const effectiveMapViewport = useMemo((): MapViewport => {
     if (mapViewport.key !== "initial" || roomPlacesQuery.dataUpdatedAt === 0) {
       return mapViewport;
@@ -138,6 +140,53 @@ export function MapHomePageContent({
       key: `room-places-${roomPlacesQuery.dataUpdatedAt}-${savedPlaces.length}`,
     };
   }, [mapViewport, roomPlacesQuery.dataUpdatedAt, savedPlaces]);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      return;
+    }
+
+    let disposed = false;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (disposed) {
+          return;
+        }
+
+        const nextCenter = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+
+        setCurrentLocationCenter(nextCenter);
+        setMapViewport((previous) => {
+          if (previous.key !== "initial") {
+            return previous;
+          }
+
+          return {
+            center: nextCenter,
+            fitBoundsPlaces: [],
+            geocodeKeyword: "",
+            key: "current-location-initial",
+          };
+        });
+      },
+      () => {
+        // Keep the fallback center if the browser cannot provide the current location.
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30_000,
+        timeout: 8_000,
+      },
+    );
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
   const clearSearchKeepViewport = useCallback(() => {
     if (!appliedKeyword && !searchInput && !selectedSearchPlaceId) {
@@ -196,10 +245,10 @@ export function MapHomePageContent({
       setSearchInput("");
       setAppliedKeyword("");
       setMapViewport({
-        center: MAP_INITIAL_CENTER,
+        center: defaultMapCenter,
         fitBoundsPlaces: [],
         geocodeKeyword: "",
-        key: "initial",
+        key: currentLocationCenter ? `current-location-reset-${Date.now()}` : "initial",
       });
       return;
     }
@@ -227,6 +276,8 @@ export function MapHomePageContent({
     });
     pushSearchHistory();
   }, [
+    currentLocationCenter,
+    defaultMapCenter,
     effectiveMapViewport.center,
     mapViewport.center,
     places,
