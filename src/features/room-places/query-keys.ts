@@ -9,8 +9,7 @@ export const roomPlaceQueryKeys = {
 
 export type RoomPlaceListQueryKeyParams = {
   keyword: string;
-  category: string;
-  categoryCode: string;
+  serviceCategoryCode: string;
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;

@@ -2,12 +2,12 @@ import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 
 /**
  * 로그인 미만·API 미응답 시 사용하는 폴백.
- * `SAVED_PLACE_MOCKS`의 카테고리/태그 코드와 맞춰 둔다.
+ * API 미응답 시에도 서비스 표준 카테고리 코드와 동일한 필터 형태를 유지한다.
  */
 export const FALLBACK_PLACE_FILTER_DATA: PlaceFilterData = {
   categories: [
     {
-      code: "음식점",
+      code: "FOOD",
       name: "음식점",
       sortOrder: 1,
       tagGroups: [
@@ -25,7 +25,7 @@ export const FALLBACK_PLACE_FILTER_DATA: PlaceFilterData = {
       ],
     },
     {
-      code: "카페",
+      code: "CAFE",
       name: "카페",
       sortOrder: 2,
       tagGroups: [
@@ -43,7 +43,7 @@ export const FALLBACK_PLACE_FILTER_DATA: PlaceFilterData = {
       ],
     },
     {
-      code: "놀거리",
+      code: "ACTIVITY",
       name: "놀거리",
       sortOrder: 3,
       tagGroups: [

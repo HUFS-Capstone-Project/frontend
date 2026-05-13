@@ -4,8 +4,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
 import { useOverrideCandidatePlaceMutation } from "@/features/link-analysis";
-import type { ExternalPlaceCandidate } from "@/features/place-candidates";
-import { useExternalPlaceCandidates } from "@/features/place-candidates";
+import type { PlaceCandidate } from "@/features/place-candidates";
+import {
+  canSubmitPlaceCandidate,
+  placeCandidateToSavedPlace,
+  usePlaceCandidates,
+} from "@/features/place-candidates";
 import type { EditPlaceLocationState } from "@/features/place-flow/edit-place-navigation";
 import {
   linkCandidatesResumeState,
@@ -15,10 +19,9 @@ import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { isApiError } from "@/shared/api/axios";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import { useEditPlaceStore } from "@/store/edit-place-store";
 
-const EMPTY_EXTERNAL_CANDIDATES: ExternalPlaceCandidate[] = [];
+const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export default function EditPlacePage() {
   const navigate = useNavigate();
@@ -65,7 +68,7 @@ export default function EditPlacePage() {
   const isExternalInputSubmitted =
     !isLinkAddCorrection || submittedExternalKeyword === trimmedKeyword;
 
-  const externalPlaceCandidatesQuery = useExternalPlaceCandidates({
+  const placeCandidatesQuery = usePlaceCandidates({
     roomId: isLinkAddCorrection ? (routeState.linkAddRoomId ?? null) : null,
     params: {
       keyword: submittedExternalKeyword,
@@ -78,7 +81,7 @@ export default function EditPlacePage() {
     analysisRequestId: isLinkAddCorrection ? linkAddAnalysisRequestId : null,
   });
 
-  const externalCandidates = externalPlaceCandidatesQuery.data ?? EMPTY_EXTERNAL_CANDIDATES;
+  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
   const linkPreviewUrl =
     typeof routeState.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
       ? routeState.linkAddOriginalUrl
@@ -88,33 +91,29 @@ export default function EditPlacePage() {
       return [];
     }
 
-    if (isLinkAddCorrection) {
-      if (!isExternalInputSubmitted || externalPlaceCandidatesQuery.isFetching) {
-        return [];
-      }
-
-      return externalCandidates.map(externalCandidateToSavedPlace);
+    if (!isLinkAddCorrection || !isExternalInputSubmitted || placeCandidatesQuery.isFetching) {
+      return [];
     }
 
-    return SAVED_PLACE_MOCKS.filter(
-      (place) => place.name.includes(trimmedKeyword) || place.address.includes(trimmedKeyword),
-    );
+    return placeCandidates.map(placeCandidateToSavedPlace);
   }, [
-    externalCandidates,
-    externalPlaceCandidatesQuery.isFetching,
+    placeCandidates,
+    placeCandidatesQuery.isFetching,
     isExternalInputSubmitted,
     isLinkAddCorrection,
     trimmedKeyword,
   ]);
   const selectedExternalPlace =
     isLinkAddCorrection && selectedResultId != null
-      ? (externalCandidates.find((place) => place.kakaoPlaceId === selectedResultId) ?? null)
+      ? (placeCandidates.find(
+          (place, index) => placeCandidateToSavedPlace(place, index).id === selectedResultId,
+        ) ?? null)
       : null;
   const canConfirm =
     selectedResultId != null &&
     (!isLinkAddCorrection ||
       (linkAddCandidateId != null &&
-        selectedExternalPlace != null &&
+        canSubmitPlaceCandidate(selectedExternalPlace) &&
         !overrideCandidatePlaceMutation.isPending));
 
   const resumeLinkAdd = useCallback(() => {
@@ -162,7 +161,7 @@ export default function EditPlacePage() {
 
     if (returnTo === "link-add") {
       if (isLinkAddCorrection) {
-        if (!selectedExternalPlace || linkAddCandidateId == null) {
+        if (!canSubmitPlaceCandidate(selectedExternalPlace) || linkAddCandidateId == null) {
           return;
         }
 
@@ -223,8 +222,8 @@ export default function EditPlacePage() {
         keyword={searchKeyword}
         selectedPlaceId={selectedResultId}
         searchResults={searchResults}
-        isSearching={externalPlaceCandidatesQuery.isFetching}
-        isSearchError={externalPlaceCandidatesQuery.isError && isExternalInputSubmitted}
+        isSearching={placeCandidatesQuery.isFetching}
+        isSearchError={placeCandidatesQuery.isError && isExternalInputSubmitted}
         showEmptyResult={!isLinkAddCorrection || isExternalInputSubmitted}
         saveError={overrideError}
         canConfirm={canConfirm}
@@ -242,7 +241,7 @@ export default function EditPlacePage() {
           if (!canSearch) return;
           if (isLinkAddCorrection) {
             if (submittedExternalKeyword === trimmedKeyword) {
-              void externalPlaceCandidatesQuery.refetch();
+              void placeCandidatesQuery.refetch();
               return;
             }
             setExternalSearchKeyword(trimmedKeyword);
@@ -259,15 +258,4 @@ export default function EditPlacePage() {
       />
     </FullscreenFlowRouteMount>
   );
-}
-
-function externalCandidateToSavedPlace(place: ExternalPlaceCandidate) {
-  return {
-    id: place.kakaoPlaceId,
-    name: place.name,
-    category: place.categoryGroupName ?? place.categoryName ?? "장소",
-    address: place.roadAddress ?? place.address ?? "",
-    latitude: place.latitude,
-    longitude: place.longitude,
-  };
 }

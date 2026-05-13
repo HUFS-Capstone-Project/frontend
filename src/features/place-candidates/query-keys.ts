@@ -1,8 +1,8 @@
-import type { ExternalPlaceCandidateParams } from "./types/place-candidate.types";
+import type { PlaceCandidateParams } from "./types/place-candidate.types";
 
 export const placeCandidateQueryKeys = {
   all: ["place-candidates"] as const,
   room: (roomId: string) => [...placeCandidateQueryKeys.all, "room", roomId] as const,
-  external: (roomId: string, params: ExternalPlaceCandidateParams) =>
-    [...placeCandidateQueryKeys.room(roomId), "external", params] as const,
+  search: (roomId: string, params: PlaceCandidateParams) =>
+    [...placeCandidateQueryKeys.room(roomId), "search", params] as const,
 };

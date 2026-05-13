@@ -5,8 +5,11 @@ import type { RoomPlace } from "../types/room-place.types";
 export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
   return {
     id: String(place.roomPlaceId),
+    roomPlaceId: place.roomPlaceId,
+    kakaoPlaceId: place.kakaoPlaceId,
     name: place.name,
-    category: place.serviceCategoryCode ?? place.categoryGroupCode ?? place.categoryName ?? "",
+    category: place.serviceCategoryCode,
+    categoryName: place.serviceCategoryName,
     tagKeys: place.serviceTagCode ? [place.serviceTagCode] : undefined,
     latitude: toCoordinateNumber(place.latitude),
     longitude: toCoordinateNumber(place.longitude),

@@ -72,7 +72,7 @@ export function CandidatePlaceResultScreen({
 
   const rowEntries = useMemo(() => {
     return result.candidatePlaces.map((place, index) => {
-      const slotId = place.kakaoPlaceId ?? `candidate-${index}`;
+      const slotId = place.kakaoPlaceId ?? `candidate-${place.candidateId ?? index}`;
       const base = candidatePlaceToSavedPlace(place, index);
       return { place, index, slotId, displayPlace: base };
     });
@@ -215,14 +215,19 @@ export function CandidatePlaceResultScreen({
 }
 
 function candidatePlaceToSavedPlace(place: CandidatePlace, index: number): SavedPlace {
-  const id = place.kakaoPlaceId ?? `candidate-${index}`;
+  const id = place.kakaoPlaceId ?? `candidate-${place.candidateId ?? index}`;
   const address = place.roadAddressName ?? place.addressName ?? "";
-  const category = place.categoryGroupName ?? place.categoryName ?? "장소";
+  const category = place.serviceCategoryCode;
+  const categoryName = place.serviceCategoryName;
 
   return {
     id,
-    name: place.placeName,
+    candidateId: place.candidateId,
+    kakaoPlaceId: place.kakaoPlaceId,
+    roomPlaceId: place.roomPlaceId,
+    name: place.placeName ?? "",
     category,
+    categoryName,
     address,
     latitude: place.latitude ?? 0,
     longitude: place.longitude ?? 0,
@@ -230,7 +235,7 @@ function candidatePlaceToSavedPlace(place: CandidatePlace, index: number): Saved
 }
 
 function getCandidatePlaceKey(place: CandidatePlace, index: number): string {
-  return place.kakaoPlaceId ?? `${place.placeName}-${index}`;
+  return place.kakaoPlaceId ?? String(place.candidateId ?? index);
 }
 
 function getSaveButtonLabel(params: {

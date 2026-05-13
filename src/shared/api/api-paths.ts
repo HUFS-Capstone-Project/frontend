@@ -33,7 +33,7 @@ export const API_PATHS = {
       candidateId: number,
     ) =>
       `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/candidates/${candidateId}/override`,
-    placeCandidatesExternal: (roomId: string) => `/v1/rooms/${roomId}/place-candidates/external`,
+    placeCandidates: (roomId: string) => `/v1/rooms/${roomId}/place-candidates`,
     places: (roomId: string) => `/v1/rooms/${roomId}/places`,
     place: (roomId: string, roomPlaceId: number) => `/v1/rooms/${roomId}/places/${roomPlaceId}`,
   },

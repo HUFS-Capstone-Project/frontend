@@ -127,6 +127,44 @@ export function KakaoMapView({
     };
   }, [hasMapKey, mapKey]);
 
+  useEffect(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !mapContainerRef.current) {
+      return;
+    }
+
+    const mapContainer = mapContainerRef.current;
+    const mapInstance = mapRef.current;
+    const maps = mapsRef.current;
+    let frameId: number | null = null;
+
+    const relayoutMap = () => {
+      if (frameId != null) {
+        cancelAnimationFrame(frameId);
+      }
+
+      frameId = requestAnimationFrame(() => {
+        mapInstance.relayout();
+        mapInstance.setCenter(new maps.LatLng(center.latitude, center.longitude));
+        frameId = null;
+      });
+    };
+
+    relayoutMap();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(relayoutMap) : null;
+    resizeObserver?.observe(mapContainer);
+    window.addEventListener("resize", relayoutMap);
+
+    return () => {
+      if (frameId != null) {
+        cancelAnimationFrame(frameId);
+      }
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", relayoutMap);
+    };
+  }, [center.latitude, center.longitude, loadState]);
+
   // effect B: requested viewport changes.
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current) return;

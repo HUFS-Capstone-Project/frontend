@@ -27,8 +27,7 @@ export function normalizeRoomPlaceListParams(
 ): NormalizedRoomPlaceListParams {
   return {
     keyword: params.keyword?.trim() ?? "",
-    category: params.category?.trim() ?? "",
-    categoryCode: params.categoryCode ?? "",
+    serviceCategoryCode: params.serviceCategoryCode ?? "",
     tagCode: params.tagCode ?? "",
     sidoCode: params.sidoCode?.trim() ?? "",
     sigunguCode: params.sigunguCode?.trim() ?? "",

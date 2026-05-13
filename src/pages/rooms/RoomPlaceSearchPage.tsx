@@ -11,8 +11,12 @@ import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearch
 import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
 import { PillButton } from "@/components/ui/PillButton";
 import { useSaveManualPlaceMutation } from "@/features/link-analysis";
-import type { ExternalPlaceCandidate } from "@/features/place-candidates";
-import { useExternalPlaceCandidates } from "@/features/place-candidates";
+import type { PlaceCandidate } from "@/features/place-candidates";
+import {
+  canSubmitPlaceCandidate,
+  placeCandidateToSavedPlace,
+  usePlaceCandidates,
+} from "@/features/place-candidates";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import {
   PROMPT_FLOW_BELOW_HEADLINES_CLASS,
@@ -23,17 +27,14 @@ import {
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { isApiError } from "@/shared/api/axios";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
-import type { SavedPlace } from "@/shared/types/map-home";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
-import { useRegisterRoomStore } from "@/store/register-room-store";
 
 type RoomPlaceSearchLocationState = {
   linkAddAnalysisRequestId?: number;
   linkAddOriginalUrl?: string;
 };
 
-const EMPTY_EXTERNAL_CANDIDATES: ExternalPlaceCandidate[] = [];
+const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export default function RoomPlaceSearchPage() {
   const navigate = useNavigate();
@@ -46,8 +47,6 @@ export default function RoomPlaceSearchPage() {
   const setKeyword = useInpersonPlaceStore((state) => state.setKeyword);
   const setSelectedPlace = useInpersonPlaceStore((state) => state.setSelectedPlace);
   const reset = useInpersonPlaceStore((state) => state.reset);
-  const setSelectedPlacesForRegister = useRegisterRoomStore((state) => state.setSelectedPlaces);
-  const completeRegisterToRoom = useRegisterRoomStore((state) => state.completeRegisterToRoom);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const analysisRequestId =
@@ -61,13 +60,13 @@ export default function RoomPlaceSearchPage() {
   const trimmedKeyword = keyword.trim();
   const canSearch = trimmedKeyword.length > 0;
 
-  const externalPlaceCandidatesQuery = useExternalPlaceCandidates({
+  const placeCandidatesQuery = usePlaceCandidates({
     roomId: registerContextRoomId || null,
     params: {
       keyword,
       limit: 10,
     },
-    enabled: analysisRequestId != null && registerContextRoomId.length > 0 && canSearch,
+    enabled: registerContextRoomId.length > 0 && canSearch,
   });
   const saveManualPlaceMutation = useSaveManualPlaceMutation({
     roomId: registerContextRoomId || null,
@@ -84,31 +83,26 @@ export default function RoomPlaceSearchPage() {
     }
   }, [navigate, registerContextRoomId]);
 
-  const externalCandidates = externalPlaceCandidatesQuery.data ?? EMPTY_EXTERNAL_CANDIDATES;
+  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
       return [];
     }
 
-    if (analysisRequestId != null) {
-      return externalCandidates.map(externalCandidateToSavedPlace);
-    }
-
-    return SAVED_PLACE_MOCKS.filter(
-      (place) => place.name.includes(trimmedKeyword) || place.address.includes(trimmedKeyword),
-    );
-  }, [analysisRequestId, externalCandidates, trimmedKeyword]);
+    return placeCandidates.map(placeCandidateToSavedPlace);
+  }, [placeCandidates, trimmedKeyword]);
   const selectedExternalPlace =
-    analysisRequestId == null
+    selectedPlaceId == null
       ? null
-      : (externalCandidates.find((place) => place.kakaoPlaceId === selectedPlaceId) ?? null);
+      : (placeCandidates.find(
+          (place, index) => placeCandidateToSavedPlace(place, index).id === selectedPlaceId,
+        ) ?? null);
   const canConfirm =
     selectedPlaceId !== null &&
     registerContextRoomId.length > 0 &&
-    (analysisRequestId == null ||
-      (selectedExternalPlace != null &&
-        selectedExternalPlace.selectable &&
-        !saveManualPlaceMutation.isPending));
+    analysisRequestId != null &&
+    canSubmitPlaceCandidate(selectedExternalPlace) &&
+    !saveManualPlaceMutation.isPending;
 
   const handleCancel = () => {
     reset();
@@ -116,56 +110,44 @@ export default function RoomPlaceSearchPage() {
   };
 
   const handleConfirm = () => {
-    if (!selectedPlaceId || !registerContextRoomId) {
+    if (!selectedPlaceId || !registerContextRoomId || analysisRequestId == null) {
       return;
     }
 
-    if (analysisRequestId != null) {
-      if (!selectedExternalPlace || !selectedExternalPlace.selectable) {
-        return;
-      }
-
-      setSaveError(null);
-      saveManualPlaceMutation.mutate(
-        {
-          kakaoPlaceId: selectedExternalPlace.kakaoPlaceId,
-          name: selectedExternalPlace.name,
-          address: selectedExternalPlace.address,
-          roadAddress: selectedExternalPlace.roadAddress,
-          latitude: selectedExternalPlace.latitude,
-          longitude: selectedExternalPlace.longitude,
-          categoryName: selectedExternalPlace.categoryName,
-          categoryGroupCode: selectedExternalPlace.categoryGroupCode,
-          categoryGroupName: selectedExternalPlace.categoryGroupName,
-          phone: selectedExternalPlace.phone,
-          placeUrl: selectedExternalPlace.placeUrl,
-        },
-        {
-          onSuccess: () => {
-            reset();
-            navigate(APP_ROUTES.room, {
-              replace: true,
-              state: { showPlacesRegisteredToast: true },
-            });
-          },
-          onError: (error) => {
-            setSaveError(
-              isApiError(error) ? error.message : "장소 저장에 실패했어요. 다시 시도해 주세요.",
-            );
-          },
-        },
-      );
+    if (!canSubmitPlaceCandidate(selectedExternalPlace)) {
       return;
     }
 
-    setSelectedPlacesForRegister([selectedPlaceId]);
-    if (completeRegisterToRoom(registerContextRoomId)) {
-      reset();
-      navigate(APP_ROUTES.room, {
-        replace: true,
-        state: { showPlacesRegisteredToast: true },
-      });
-    }
+    setSaveError(null);
+    saveManualPlaceMutation.mutate(
+      {
+        kakaoPlaceId: selectedExternalPlace.kakaoPlaceId,
+        name: selectedExternalPlace.name,
+        address: selectedExternalPlace.address,
+        roadAddress: selectedExternalPlace.roadAddress,
+        latitude: selectedExternalPlace.latitude,
+        longitude: selectedExternalPlace.longitude,
+        categoryName: selectedExternalPlace.categoryName,
+        categoryGroupCode: selectedExternalPlace.categoryGroupCode,
+        categoryGroupName: selectedExternalPlace.categoryGroupName,
+        phone: selectedExternalPlace.phone,
+        placeUrl: selectedExternalPlace.placeUrl,
+      },
+      {
+        onSuccess: () => {
+          reset();
+          navigate(APP_ROUTES.room, {
+            replace: true,
+            state: { showPlacesRegisteredToast: true },
+          });
+        },
+        onError: (error) => {
+          setSaveError(
+            isApiError(error) ? error.message : "장소 저장에 실패했어요. 다시 시도해 주세요.",
+          );
+        },
+      },
+    );
   };
 
   if (registerContextRoomId.length === 0) {
@@ -208,7 +190,7 @@ export default function RoomPlaceSearchPage() {
       <div className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
         {trimmedKeyword ? (
           <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
-            {searchResults.length === 0 && !externalPlaceCandidatesQuery.isFetching ? (
+            {searchResults.length === 0 && !placeCandidatesQuery.isFetching ? (
               <PlaceFlowSearchEmptyRow />
             ) : (
               searchResults.map((place) => (
@@ -217,10 +199,9 @@ export default function RoomPlaceSearchPage() {
                   place={place}
                   selected={selectedPlaceId === place.id}
                   onSelect={() => {
-                    const externalPlace =
-                      analysisRequestId == null
-                        ? null
-                        : externalCandidates.find((item) => item.kakaoPlaceId === place.id);
+                    const externalPlace = placeCandidates.find(
+                      (item, index) => placeCandidateToSavedPlace(item, index).id === place.id,
+                    );
                     if (externalPlace && !externalPlace.selectable) {
                       return;
                     }
@@ -257,15 +238,4 @@ export default function RoomPlaceSearchPage() {
       />
     </FullscreenFlowRouteMount>
   );
-}
-
-function externalCandidateToSavedPlace(place: ExternalPlaceCandidate): SavedPlace {
-  return {
-    id: place.kakaoPlaceId,
-    name: place.name,
-    category: place.categoryGroupName ?? place.categoryName ?? "장소",
-    address: place.roadAddress ?? place.address ?? "",
-    latitude: place.latitude,
-    longitude: place.longitude,
-  };
 }

@@ -19,6 +19,7 @@ function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.E
     case "FOOD":
       return <Utensils {...props} fill="#f3f4f6" fillOpacity={0.65} aria-hidden />;
     case "카페":
+    case "CAFE":
       return (
         <Coffee
           {...props}
@@ -29,6 +30,7 @@ function renderIconByCategoryName(categoryName: string, props: IconProps): JSX.E
         />
       );
     case "놀거리":
+    case "ACTIVITY":
       return (
         <Sparkles
           {...props}

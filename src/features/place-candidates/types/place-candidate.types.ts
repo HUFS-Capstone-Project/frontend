@@ -1,27 +1,34 @@
-export type ExternalPlaceCandidateDto = {
-  kakaoPlaceId: string;
+import type { ServiceCategoryCode } from "@/shared/types/map-home";
+
+export type PlaceCandidateDisabledReason = "ALREADY_IN_ROOM" | "MISSING_KAKAO_PLACE_ID";
+
+export type PlaceCandidateDto = {
+  kakaoPlaceId: string | null;
   name: string;
   address: string | null;
   roadAddress: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   categoryGroupName: string | null;
+  serviceCategoryCode: ServiceCategoryCode;
+  serviceCategoryName: string;
   phone: string | null;
   placeUrl: string | null;
   source: string;
   alreadyInRoom: boolean;
   roomPlaceId: number | null;
   selectable: boolean;
-  disabledReason: string | null;
+  disabledReason: PlaceCandidateDisabledReason | null;
 };
 
-export type ExternalPlaceCandidate = ExternalPlaceCandidateDto;
+export type PlaceCandidate = PlaceCandidateDto;
 
-export type ExternalPlaceCandidateParams = {
+export type PlaceCandidateParams = {
   keyword: string;
   region?: string;
-  categoryGroupCode?: string;
+  /** Kakao API 검색 필터용. 백엔드 query param은 `categoryGroupCode`로 보낸다. */
+  kakaoCategoryGroupCode?: string;
   limit?: number;
 };

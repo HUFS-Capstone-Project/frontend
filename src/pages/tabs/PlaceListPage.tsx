@@ -172,6 +172,7 @@ export default function PlaceListPage() {
       name: place.name,
       address: place.address,
       category: place.category,
+      categoryName: place.categoryName,
       tagKeys: place.tagKeys,
       latitude: place.latitude,
       longitude: place.longitude,
@@ -288,9 +289,19 @@ export default function PlaceListPage() {
     setMemoDraft(place.memo ?? "");
   };
 
+  const findRoomPlaceId = (id: string): number | null => {
+    const place = displayedPlaces.find((item) => item.id === id);
+    if (typeof place?.roomPlaceId === "number") {
+      return place.roomPlaceId;
+    }
+
+    const parsed = Number(id);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const handleSavePlaceMemo = (id: string, memo: string) => {
-    const roomPlaceId = Number(id);
-    if (!Number.isFinite(roomPlaceId)) {
+    const roomPlaceId = findRoomPlaceId(id);
+    if (roomPlaceId == null) {
       return;
     }
 
@@ -311,8 +322,8 @@ export default function PlaceListPage() {
   };
 
   const handleDeletePlace = (id: string) => {
-    const roomPlaceId = Number(id);
-    if (Number.isFinite(roomPlaceId)) {
+    const roomPlaceId = findRoomPlaceId(id);
+    if (roomPlaceId != null) {
       deleteRoomPlaceMutation.mutate(roomPlaceId);
     }
     setOpenMenuId(null);

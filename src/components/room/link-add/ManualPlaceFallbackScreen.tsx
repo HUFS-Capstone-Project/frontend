@@ -2,12 +2,15 @@ import { useMemo, useState } from "react";
 
 import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
 import { useSaveManualPlaceMutation } from "@/features/link-analysis";
-import type { ExternalPlaceCandidate } from "@/features/place-candidates";
-import { useExternalPlaceCandidates } from "@/features/place-candidates";
+import type { PlaceCandidate } from "@/features/place-candidates";
+import {
+  canSubmitPlaceCandidate,
+  placeCandidateToSavedPlace,
+  usePlaceCandidates,
+} from "@/features/place-candidates";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import type { LinkAnalysisResult } from "@/features/room/link-add";
 import { isApiError } from "@/shared/api/axios";
-import type { SavedPlace } from "@/shared/types/map-home";
 
 type ManualPlaceFallbackScreenProps = {
   roomId: string;
@@ -16,7 +19,7 @@ type ManualPlaceFallbackScreenProps = {
   onSaved: () => void;
 };
 
-const EMPTY_EXTERNAL_CANDIDATES: ExternalPlaceCandidate[] = [];
+const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export function ManualPlaceFallbackScreen({
   roomId,
@@ -30,7 +33,7 @@ export function ManualPlaceFallbackScreen({
 
   const analysisRequestId = result.analysisRequestId;
   const trimmedKeyword = keyword.trim();
-  const externalPlaceCandidatesQuery = useExternalPlaceCandidates({
+  const placeCandidatesQuery = usePlaceCandidates({
     roomId,
     params: {
       keyword,
@@ -43,22 +46,22 @@ export function ManualPlaceFallbackScreen({
     analysisRequestId,
   });
 
-  const externalCandidates = externalPlaceCandidatesQuery.data ?? EMPTY_EXTERNAL_CANDIDATES;
+  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
   const searchResults = useMemo(
-    () => (trimmedKeyword ? externalCandidates.map(externalCandidateToSavedPlace) : []),
-    [externalCandidates, trimmedKeyword],
+    () => (trimmedKeyword ? placeCandidates.map(placeCandidateToSavedPlace) : []),
+    [placeCandidates, trimmedKeyword],
   );
   const selectedExternalPlace =
     selectedPlaceId == null
       ? null
-      : (externalCandidates.find((place) => place.kakaoPlaceId === selectedPlaceId) ?? null);
+      : (placeCandidates.find(
+          (place, index) => placeCandidateToSavedPlace(place, index).id === selectedPlaceId,
+        ) ?? null);
   const canConfirm =
-    selectedExternalPlace != null &&
-    selectedExternalPlace.selectable &&
-    !saveManualPlaceMutation.isPending;
+    canSubmitPlaceCandidate(selectedExternalPlace) && !saveManualPlaceMutation.isPending;
 
   const handleConfirm = () => {
-    if (!selectedExternalPlace || !selectedExternalPlace.selectable) {
+    if (!canSubmitPlaceCandidate(selectedExternalPlace)) {
       return;
     }
 
@@ -97,8 +100,8 @@ export function ManualPlaceFallbackScreen({
       keyword={keyword}
       selectedPlaceId={selectedPlaceId}
       searchResults={searchResults}
-      isSearching={externalPlaceCandidatesQuery.isFetching}
-      isSearchError={externalPlaceCandidatesQuery.isError}
+      isSearching={placeCandidatesQuery.isFetching}
+      isSearchError={placeCandidatesQuery.isError}
       saveError={saveError}
       canConfirm={canConfirm}
       collapsedResetLabel="다시 검색"
@@ -113,10 +116,12 @@ export function ManualPlaceFallbackScreen({
         if (trimmedKeyword.length === 0) {
           return;
         }
-        void externalPlaceCandidatesQuery.refetch();
+        void placeCandidatesQuery.refetch();
       }}
       onSelectPlace={(placeId) => {
-        const externalPlace = externalCandidates.find((place) => place.kakaoPlaceId === placeId);
+        const externalPlace = placeCandidates.find(
+          (place, index) => placeCandidateToSavedPlace(place, index).id === placeId,
+        );
         if (externalPlace && !externalPlace.selectable) {
           return;
         }
@@ -127,15 +132,4 @@ export function ManualPlaceFallbackScreen({
       onConfirm={handleConfirm}
     />
   );
-}
-
-function externalCandidateToSavedPlace(place: ExternalPlaceCandidate): SavedPlace {
-  return {
-    id: place.kakaoPlaceId,
-    name: place.name,
-    category: place.categoryGroupName ?? place.categoryName ?? "장소",
-    address: place.roadAddress ?? place.address ?? "",
-    latitude: place.latitude,
-    longitude: place.longitude,
-  };
 }

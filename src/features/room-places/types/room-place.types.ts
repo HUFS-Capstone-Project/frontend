@@ -1,9 +1,9 @@
 import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
+import type { ServiceCategoryCode } from "@/shared/types/map-home";
 
 export type RoomPlaceListParams = {
   keyword?: string;
-  category?: string;
-  categoryCode?: string;
+  serviceCategoryCode?: ServiceCategoryCode;
   tagCode?: string;
   sidoCode?: string;
   sigunguCode?: string;
@@ -15,8 +15,7 @@ export type RoomPlaceListParams = {
 
 export type NormalizedRoomPlaceListParams = {
   keyword: string;
-  category: string;
-  categoryCode: string;
+  serviceCategoryCode: string;
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;
@@ -41,10 +40,10 @@ export type RoomPlaceDto = {
   categoryName: string | null;
   categoryGroupCode: string | null;
   categoryGroupName: string | null;
-  serviceCategoryCode: string | null;
-  serviceCategoryName: string | null;
-  serviceTagCode: string | null;
-  serviceTagName: string | null;
+  serviceCategoryCode: ServiceCategoryCode;
+  serviceCategoryName: string;
+  serviceTagCode: string;
+  serviceTagName: string;
   sidoCode: string | null;
   sidoName: string | null;
   sigunguCode: string | null;

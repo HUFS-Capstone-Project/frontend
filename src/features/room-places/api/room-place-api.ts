@@ -64,10 +64,8 @@ function toRoomPlaceListQueryParams(params: NormalizedRoomPlaceListParams) {
   if (params.keyword.trim().length > 0) {
     queryParams.keyword = params.keyword.trim();
   }
-  if (params.category.trim().length > 0) {
-    queryParams.category = params.category.trim();
-  } else if (params.categoryCode.trim().length > 0) {
-    queryParams.categoryCode = params.categoryCode.trim();
+  if (params.serviceCategoryCode.trim().length > 0) {
+    queryParams.categoryCode = params.serviceCategoryCode.trim();
   }
   if (params.tagCode.trim().length > 0) {
     queryParams.tagCode = params.tagCode.trim();

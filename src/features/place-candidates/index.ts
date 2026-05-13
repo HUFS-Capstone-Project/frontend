@@ -1,8 +1,14 @@
 export { placeCandidateApi } from "./api/place-candidate-api";
-export { useExternalPlaceCandidates } from "./hooks/use-external-place-candidates";
+export { usePlaceCandidates } from "./hooks/use-place-candidates";
+export {
+  canSubmitPlaceCandidate,
+  getPlaceCandidateDisplayId,
+  placeCandidateToSavedPlace,
+} from "./model/place-candidate-mappers";
 export { placeCandidateQueryKeys } from "./query-keys";
 export type {
-  ExternalPlaceCandidate,
-  ExternalPlaceCandidateDto,
-  ExternalPlaceCandidateParams,
+  PlaceCandidate,
+  PlaceCandidateDisabledReason,
+  PlaceCandidateDto,
+  PlaceCandidateParams,
 } from "./types/place-candidate.types";

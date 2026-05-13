@@ -1,4 +1,5 @@
 import type { CommonResponse } from "@/shared/types/api-types";
+import type { ServiceCategoryCode } from "@/shared/types/map-home";
 
 export type LinkAnalysisStatus =
   | "REQUESTED"
@@ -24,7 +25,7 @@ export type LinkAnalysisRequestResultDto = {
 export type LinkAnalysisDto = {
   linkId: number;
   status: LinkAnalysisStatus;
-  candidatePlaces?: CandidatePlaceDto[] | null;
+  candidatePlaces: CandidatePlaceDto[];
   captionRaw?: string | null;
   errorCode: string | null;
   errorMessage: string | null;
@@ -36,26 +37,28 @@ export type CandidatePlaceDisabledReason =
   | (string & {});
 
 export type CandidatePlaceDto = {
-  candidateId?: number | null;
-  overrideId?: number | null;
-  kakaoPlaceId?: string | null;
-  placeName: string;
-  categoryName?: string | null;
-  categoryGroupCode?: string | null;
-  categoryGroupName?: string | null;
-  addressName?: string | null;
-  roadAddressName?: string | null;
-  longitude?: number | null;
-  latitude?: number | null;
-  phone?: string | null;
-  placeUrl?: string | null;
-  alreadyInRoom?: boolean | null;
-  selectable?: boolean | null;
-  originalCandidate?: boolean | null;
-  corrected?: boolean | null;
-  editable?: boolean | null;
-  roomPlaceId?: number | null;
-  disabledReason?: CandidatePlaceDisabledReason | null;
+  candidateId: number | null;
+  overrideId: number | null;
+  kakaoPlaceId: string | null;
+  placeName: string | null;
+  categoryName: string | null;
+  categoryGroupCode: string | null;
+  categoryGroupName: string | null;
+  serviceCategoryCode: ServiceCategoryCode;
+  serviceCategoryName: string;
+  addressName: string | null;
+  roadAddressName: string | null;
+  longitude: number | null;
+  latitude: number | null;
+  phone: string | null;
+  placeUrl: string | null;
+  alreadyInRoom: boolean;
+  selectable: boolean;
+  originalCandidate: boolean;
+  corrected: boolean;
+  editable: boolean;
+  roomPlaceId: number | null;
+  disabledReason: CandidatePlaceDisabledReason | null;
 };
 
 export type LinkAnalysisRequestResult = {
@@ -79,10 +82,12 @@ export type CandidatePlace = {
   candidateId: number | null;
   overrideId: number | null;
   kakaoPlaceId: string | null;
-  placeName: string;
+  placeName: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   categoryGroupName: string | null;
+  serviceCategoryCode: ServiceCategoryCode;
+  serviceCategoryName: string;
   addressName: string | null;
   roadAddressName: string | null;
   longitude: number | null;
@@ -127,13 +132,11 @@ export type SaveCandidatePlacesRequest = {
 
 export type SavedCandidatePlaceDto = {
   roomPlaceId: number;
-  placeId?: number;
+  placeId: number | null;
   kakaoPlaceId: string;
-  name?: string;
-  placeName?: string;
+  placeName: string;
   created: boolean;
-  alreadyInRoom?: boolean;
-  alreadySaved?: boolean;
+  alreadyInRoom: boolean;
 };
 
 export type SaveCandidatePlacesResponseDto = {

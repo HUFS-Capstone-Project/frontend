@@ -1,6 +1,5 @@
 import type {
   CandidatePlace,
-  CandidatePlaceDisabledReason,
   CandidatePlaceDto,
   LinkAnalysis,
   LinkAnalysisDto,
@@ -60,7 +59,7 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     analysisRequestId,
     linkId: dto.linkId,
     status: dto.status,
-    candidatePlaces: (dto.candidatePlaces ?? []).map(toCandidatePlace),
+    candidatePlaces: dto.candidatePlaces.map(toCandidatePlace),
     captionRaw: dto.captionRaw ?? null,
     errorCode: dto.errorCode ?? undefined,
     errorMessage: dto.errorMessage ?? undefined,
@@ -69,34 +68,30 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
 
 export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
   const kakaoPlaceId = normalizeOptionalString(dto.kakaoPlaceId);
-  const alreadyInRoom = dto.alreadyInRoom === true;
-  const disabledReason = resolveCandidatePlaceDisabledReason({
-    alreadyInRoom,
-    disabledReason: dto.disabledReason ?? null,
-    kakaoPlaceId,
-  });
 
   return {
-    candidateId: dto.candidateId ?? null,
-    overrideId: dto.overrideId ?? null,
+    candidateId: dto.candidateId,
+    overrideId: dto.overrideId,
     kakaoPlaceId,
     placeName: dto.placeName,
-    categoryName: dto.categoryName ?? null,
-    categoryGroupCode: dto.categoryGroupCode ?? null,
-    categoryGroupName: dto.categoryGroupName ?? null,
-    addressName: dto.addressName ?? null,
-    roadAddressName: dto.roadAddressName ?? null,
-    longitude: dto.longitude ?? null,
-    latitude: dto.latitude ?? null,
-    phone: dto.phone ?? null,
-    placeUrl: dto.placeUrl ?? null,
-    alreadyInRoom,
-    selectable: dto.selectable === true,
-    originalCandidate: dto.originalCandidate !== false,
-    corrected: dto.corrected === true,
-    editable: dto.editable === true,
-    roomPlaceId: dto.roomPlaceId ?? null,
-    disabledReason,
+    categoryName: dto.categoryName,
+    categoryGroupCode: dto.categoryGroupCode,
+    categoryGroupName: dto.categoryGroupName,
+    serviceCategoryCode: dto.serviceCategoryCode,
+    serviceCategoryName: dto.serviceCategoryName,
+    addressName: dto.addressName,
+    roadAddressName: dto.roadAddressName,
+    longitude: dto.longitude,
+    latitude: dto.latitude,
+    phone: dto.phone,
+    placeUrl: dto.placeUrl,
+    alreadyInRoom: dto.alreadyInRoom,
+    selectable: dto.selectable,
+    originalCandidate: dto.originalCandidate,
+    corrected: dto.corrected,
+    editable: dto.editable,
+    roomPlaceId: dto.roomPlaceId,
+    disabledReason: dto.disabledReason,
   };
 }
 
@@ -137,11 +132,11 @@ export function toSaveCandidatePlacesResult(
     linkId: dto.linkId,
     places: dto.places.map((place) => ({
       roomPlaceId: place.roomPlaceId,
-      placeId: place.placeId ?? null,
+      placeId: place.placeId,
       kakaoPlaceId: place.kakaoPlaceId,
-      placeName: place.placeName ?? place.name ?? "",
+      placeName: place.placeName,
       created: place.created,
-      alreadyInRoom: place.alreadyInRoom ?? place.alreadySaved ?? !place.created,
+      alreadyInRoom: place.alreadyInRoom,
     })),
   };
 }
@@ -153,24 +148,4 @@ function normalizeOptionalString(value: string | null | undefined): string | nul
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-}
-
-function resolveCandidatePlaceDisabledReason(params: {
-  alreadyInRoom: boolean;
-  disabledReason: CandidatePlaceDisabledReason | null;
-  kakaoPlaceId: string | null;
-}): CandidatePlaceDisabledReason | null {
-  if (params.disabledReason) {
-    return params.disabledReason;
-  }
-
-  if (params.alreadyInRoom) {
-    return "ALREADY_IN_ROOM";
-  }
-
-  if (!params.kakaoPlaceId) {
-    return "MISSING_KAKAO_PLACE_ID";
-  }
-
-  return null;
 }

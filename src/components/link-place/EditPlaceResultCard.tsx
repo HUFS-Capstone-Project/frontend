@@ -1,6 +1,8 @@
 import { RoundSelectionCheck } from "@/components/ui/RoundSelectionCheck";
 import type { SavedPlace } from "@/shared/types/map-home";
 
+import { PlaceCategoryIconChip } from "./PlaceCategoryIconChip";
+
 type EditPlaceResultCardProps = {
   place: SavedPlace;
   selected: boolean;
@@ -21,8 +23,11 @@ export function EditPlaceResultCard({ place, selected, onSelect }: EditPlaceResu
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="text-foreground block truncate text-base font-semibold">
-            {place.name}
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-foreground min-w-0 truncate text-base font-semibold">
+              {place.name}
+            </span>
+            <PlaceCategoryIconChip place={place} />
           </span>
           <span className="mt-1 block truncate text-[11px] text-black/70">{place.address}</span>
         </span>

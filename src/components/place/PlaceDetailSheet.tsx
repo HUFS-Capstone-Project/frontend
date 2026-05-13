@@ -26,7 +26,7 @@ const BUSINESS_HOURS_POLLING_INTERVAL_MS = 5_000;
 const BUSINESS_HOURS_MAX_POLLING_MS = 20_000;
 
 type DetailSavedPlace = MySavedPlace &
-  Partial<Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours">>;
+  Partial<Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours" | "categoryName">>;
 
 type PlaceDetailSheetProps = {
   roomId?: string | null;
@@ -98,6 +98,7 @@ export function PlaceDetailSheet({
             id: place.id,
             name: place.name,
             category: place.category,
+            categoryName: place.categoryName,
             tagKeys: place.tagKeys ?? mock?.tagKeys,
             latitude: place.latitude ?? mock?.latitude ?? 0,
             longitude: place.longitude ?? mock?.longitude ?? 0,
@@ -268,7 +269,7 @@ export function PlaceDetailSheet({
   }
 
   const trimmedShareUrl = place.shareLinkUrl?.trim() ?? "";
-  const categoryLabel = place.category.trim();
+  const categoryLabel = place.categoryName?.trim() || place.category.trim();
 
   const detailBusinessHoursStatus = roomPlaceDetailQuery.data?.businessHoursStatus;
   const showBusinessHoursSkeleton =
