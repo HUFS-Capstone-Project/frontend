@@ -39,6 +39,7 @@ export type RenameRoomSubmitResult = {
 
 type UseRoomMainModalsOptions = {
   showToast?: (message: string) => void;
+  roomKeyword?: string;
 };
 
 /**
@@ -53,7 +54,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const [leaveRoom, setLeaveRoom] = useState<RoomListRow | null>(null);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
 
-  const roomsQuery = useRoomsQuery();
+  const roomsQuery = useRoomsQuery({ keyword: options?.roomKeyword });
   const updateRoomNameMutation = useUpdateRoomNameMutation();
   const updateRoomPinMutation = useUpdateRoomPinMutation();
   const leaveRoomMutation = useLeaveRoomMutation();

@@ -60,6 +60,8 @@ export default function RoomMainPage() {
       : "데이트 지도";
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
+  const [roomSearchKeyword, setRoomSearchKeyword] = useState("");
+  const [debouncedRoomSearchKeyword, setDebouncedRoomSearchKeyword] = useState("");
   const { actionRoom, openRoomActions, closeRoomActions } = useRoomActionModalHistory();
   const {
     sortedRows,
@@ -77,12 +79,20 @@ export default function RoomMainPage() {
     closeLeaveRoomModal,
     openAddRoom,
     closeAddRoom,
-  } = useRoomMainModals({ showToast });
+  } = useRoomMainModals({ showToast, roomKeyword: debouncedRoomSearchKeyword });
   const [isRoomActionModalLoaded, setIsRoomActionModalLoaded] = useState(actionRoom != null);
   const [isEditRoomModalLoaded, setIsEditRoomModalLoaded] = useState(editRoom != null);
   const [isInviteCodeModalLoaded, setIsInviteCodeModalLoaded] = useState(inviteCodeRoom != null);
   const [isLeaveRoomModalLoaded, setIsLeaveRoomModalLoaded] = useState(leaveRoom != null);
   const [isRoomAddModalLoaded, setIsRoomAddModalLoaded] = useState(isAddRoomOpen);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedRoomSearchKeyword(roomSearchKeyword);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [roomSearchKeyword]);
 
   useEffect(() => {
     const raw = (location.state ?? null) as RoomMainLocationState | null;
@@ -164,7 +174,14 @@ export default function RoomMainPage() {
   return (
     <>
       <RoomMainShell
-        header={<RoomMainHeader title={roomMainHeaderTitle} />}
+        header={
+          <RoomMainHeader
+            title={roomMainHeaderTitle}
+            searchValue={roomSearchKeyword}
+            onSearchValueChange={setRoomSearchKeyword}
+            onSubmitSearch={() => setDebouncedRoomSearchKeyword(roomSearchKeyword)}
+          />
+        }
         fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
         bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
       >

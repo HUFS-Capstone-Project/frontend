@@ -7,12 +7,18 @@ export type RoomMainHeaderProps = {
   title: string;
   /** 검색창 placeholder (기본: 친구 이름 또는 장소 검색) */
   searchPlaceholder?: string;
+  searchValue?: string;
+  onSearchValueChange?: (value: string) => void;
+  onSubmitSearch?: () => void;
   className?: string;
 };
 
 export function RoomMainHeader({
   title,
   searchPlaceholder = ROOM_SEARCH_DEFAULT_PLACEHOLDER,
+  searchValue,
+  onSearchValueChange,
+  onSubmitSearch,
   className,
 }: RoomMainHeaderProps) {
   return (
@@ -38,7 +44,13 @@ export function RoomMainHeader({
         </h1>
       </div>
 
-      <SearchField placeholder={searchPlaceholder} name="room-search" />
+      <SearchField
+        placeholder={searchPlaceholder}
+        name="room-search"
+        value={searchValue}
+        onChange={(event) => onSearchValueChange?.(event.target.value)}
+        onSubmitSearch={onSubmitSearch}
+      />
     </header>
   );
 }

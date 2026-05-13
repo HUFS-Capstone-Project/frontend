@@ -24,8 +24,14 @@ export const roomService = {
     await ensureCsrfCookie({ forceRefresh: options?.forceRefresh });
   },
 
-  getRooms: async (): Promise<RoomSummaryResponse[]> => {
-    const res = await api.get<CommonResponse<RoomSummaryResponse[]>>(API_PATHS.rooms.root);
+  getRooms: async (keyword?: string): Promise<RoomSummaryResponse[]> => {
+    const trimmedKeyword = keyword?.trim();
+    const path =
+      trimmedKeyword && trimmedKeyword.length > 0
+        ? `${API_PATHS.rooms.root}?keyword=${encodeURIComponent(trimmedKeyword)}`
+        : API_PATHS.rooms.root;
+
+    const res = await api.get<CommonResponse<RoomSummaryResponse[]>>(path);
     return res.data.data;
   },
 

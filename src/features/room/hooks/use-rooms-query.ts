@@ -8,6 +8,7 @@ import { roomQueryKeys } from "../query-keys";
 
 type UseRoomsQueryOptions = {
   enabled?: boolean;
+  keyword?: string;
   queryOptions?: Omit<
     UseQueryOptions<
       RoomSummaryResponse[],
@@ -22,10 +23,11 @@ type UseRoomsQueryOptions = {
 export function useRoomsQuery(options?: UseRoomsQueryOptions) {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const keyword = options?.keyword;
 
   return useQuery({
-    queryKey: roomQueryKeys.rooms(),
-    queryFn: roomService.getRooms,
+    queryKey: roomQueryKeys.rooms(keyword),
+    queryFn: () => roomService.getRooms(keyword),
     enabled: (options?.enabled ?? true) && isLoggedIn && Boolean(accessToken),
     ...(options?.queryOptions ?? {}),
   });
