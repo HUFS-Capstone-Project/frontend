@@ -32,6 +32,7 @@ export function normalizeRoomPlaceListParams(
     tagCode: params.tagCode ?? "",
     sidoCode: params.sidoCode?.trim() ?? "",
     sigunguCode: params.sigunguCode?.trim() ?? "",
+    createdBy: params.createdBy == null ? "" : String(params.createdBy).trim(),
     page: params.page ?? 0,
     size: params.size ?? params.limit ?? DEFAULT_ROOM_PLACE_LIMIT,
   };

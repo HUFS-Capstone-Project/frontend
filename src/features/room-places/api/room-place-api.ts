@@ -72,6 +72,9 @@ function toRoomPlaceListQueryParams(params: NormalizedRoomPlaceListParams) {
   if (params.tagCode.trim().length > 0) {
     queryParams.tagCode = params.tagCode.trim();
   }
+  if (params.createdBy.trim().length > 0) {
+    queryParams.createdBy = params.createdBy.trim();
+  }
   const sidoCode = params.sidoCode.trim();
   const sigunguCode = params.sigunguCode.trim();
   if (sidoCode.length > 0 && sidoCode !== "ALL") {

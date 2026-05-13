@@ -17,6 +17,7 @@ export const API_PATHS = {
     root: "/v1/rooms",
     join: "/v1/rooms/join",
     detail: (roomId: string) => `/v1/rooms/${roomId}`,
+    members: (roomId: string) => `/v1/rooms/${roomId}/members`,
     pin: (roomId: string) => `/v1/rooms/${roomId}/pin`,
     leave: (roomId: string) => `/v1/rooms/${roomId}/leave`,
     linkAnalysisRequests: (roomId: string) => `/v1/rooms/${roomId}/link-analysis-requests`,

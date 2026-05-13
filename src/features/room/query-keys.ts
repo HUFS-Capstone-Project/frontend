@@ -7,4 +7,5 @@
       : ([...roomQueryKeys.all, "rooms"] as const);
   },
   roomDetail: (roomId: string) => [...roomQueryKeys.all, "detail", roomId] as const,
+  roomMembers: (roomId: string) => [...roomQueryKeys.all, "members", roomId] as const,
 };

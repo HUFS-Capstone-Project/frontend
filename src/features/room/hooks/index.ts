@@ -15,6 +15,7 @@ export {
   type UseRoomListRowInteractionsOptions,
 } from "./use-room-list-row-interactions";
 export { useRoomMainModals } from "./use-room-main-modals";
+export { useRoomMembersQuery } from "./use-room-members-query";
 export { useRoomsQuery } from "./use-rooms-query";
 export { useUpdateRoomNameMutation } from "./use-update-room-name-mutation";
 export { useUpdateRoomPinMutation } from "./use-update-room-pin-mutation";

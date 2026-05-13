@@ -38,6 +38,14 @@ export type RoomDetailResponse = {
   createdAt: string;
 };
 
+export type RoomMemberResponse = {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  joinedAt: string;
+  me: boolean;
+};
+
 export type CreateRoomResponse = {
   roomId: string;
   roomName: string;

@@ -13,6 +13,7 @@ import type {
   RegisterLinkResponse,
   RoomActionResult,
   RoomDetailResponse,
+  RoomMemberResponse,
   RoomSummaryResponse,
   UpdateRoomNameRequest,
   UpdateRoomPinRequest,
@@ -37,6 +38,13 @@ export const roomService = {
 
   getRoomDetail: async (roomId: string): Promise<RoomDetailResponse> => {
     const res = await api.get<CommonResponse<RoomDetailResponse>>(API_PATHS.rooms.detail(roomId));
+    return res.data.data;
+  },
+
+  getRoomMembers: async (roomId: string): Promise<RoomMemberResponse[]> => {
+    const res = await api.get<CommonResponse<RoomMemberResponse[]>>(
+      API_PATHS.rooms.members(roomId),
+    );
     return res.data.data;
   },
 

@@ -21,11 +21,15 @@ export type SavedPlace = {
   shareLinkUrl?: string | null;
   memo?: string;
   businessHours?: BusinessHoursDisplay | null;
+  createdAt?: string | null;
 };
 
 export type RoomFriend = {
   id: string;
+  userId: number;
   name: string;
+  profileImageUrl?: string | null;
+  me?: boolean;
 };
 
 export type MapCoordinate = {

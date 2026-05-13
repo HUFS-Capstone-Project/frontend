@@ -7,6 +7,7 @@ export type RoomPlaceListParams = {
   tagCode?: string;
   sidoCode?: string;
   sigunguCode?: string;
+  createdBy?: number | string | null;
   page?: number;
   size?: number;
   limit?: number;
@@ -19,6 +20,7 @@ export type NormalizedRoomPlaceListParams = {
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;
+  createdBy: string;
   page: number;
   size: number;
 };

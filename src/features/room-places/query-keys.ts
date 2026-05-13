@@ -14,6 +14,7 @@ export type RoomPlaceListQueryKeyParams = {
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;
+  createdBy: string;
   page: number;
   size: number;
 };
