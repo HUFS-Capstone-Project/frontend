@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { FloatingActionButton } from "@/components/common/FloatingActionButton";
-import { FriendRoomList } from "@/components/room/FriendRoomList";
+import { RoomList } from "@/components/room/RoomList";
 import { RoomMainHeader } from "@/components/room/RoomMainHeader";
 import { RoomMainShell } from "@/components/room/RoomMainShell";
 import { roomPlaceFromLinkResumeState } from "@/features/place-flow/edit-place-navigation";
@@ -13,7 +13,7 @@ import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import { REGISTER_SELECT_ROOM_TEXT } from "@/shared/config/text";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
@@ -122,7 +122,7 @@ export default function RoomMainPage() {
   }));
 
   const handleRoomNavigate = useCallback(
-    (row: FriendRoomRow) => {
+    (row: RoomListRow) => {
       selectRoom({ id: row.id, name: row.displayName, memberCount: row.memberCount });
       navigate(APP_ROUTES.map);
     },
@@ -130,7 +130,7 @@ export default function RoomMainPage() {
   );
 
   const handleOpenRoomActions = useCallback(
-    (row: FriendRoomRow) => {
+    (row: RoomListRow) => {
       setIsRoomActionModalLoaded(true);
       openRoomActions(row);
     },
@@ -138,7 +138,7 @@ export default function RoomMainPage() {
   );
 
   const handleRoomActionWithLoad = useCallback(
-    (action: RoomActionType, row: FriendRoomRow) => {
+    (action: RoomActionType, row: RoomListRow) => {
       if (action === "add-direct-link") {
         navigate(ROOM_APP_PATHS.placeFromLink(row.id));
         return;
@@ -168,7 +168,7 @@ export default function RoomMainPage() {
         fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
         bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
       >
-        <FriendRoomList
+        <RoomList
           rows={displayRows}
           onRoomNavigate={handleRoomNavigate}
           onOpenRoomActions={handleOpenRoomActions}

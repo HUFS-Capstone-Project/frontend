@@ -1,5 +1,5 @@
 /** 롱프레스로 방 액션 메뉴를 열 때 최소 유지 시간 */
-export const FRIEND_ROOM_LONG_PRESS_MS = 500;
+export const ROOM_LIST_ROW_LONG_PRESS_MS = 500;
 
 /** RoomModalShell 크롬 + `useOverlayFlowController` 기본 언마운트 지연(ms) 단일 소스 */
 export const ROOM_ACTION_MODAL_TRANSITION_MS = 180;

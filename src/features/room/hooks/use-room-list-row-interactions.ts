@@ -1,8 +1,8 @@
 import { useCallback, useRef } from "react";
 
-import { FRIEND_ROOM_LONG_PRESS_MS } from "@/features/room/constants";
+import { ROOM_LIST_ROW_LONG_PRESS_MS } from "@/features/room/constants";
 
-export type UseFriendRoomRowInteractionsOptions = {
+export type UseRoomListRowInteractionsOptions = {
   roomId: string;
   onNavigate: (roomId: string) => void;
   onOpenActionMenu: (roomId: string) => void;
@@ -11,11 +11,11 @@ export type UseFriendRoomRowInteractionsOptions = {
 /**
  * 방 목록 행: 우클릭·롱프레스 메뉴, 짧은 탭 네비게이션, 롱프레스 후 click 억제.
  */
-export function useFriendRoomRowInteractions({
+export function useRoomListRowInteractions({
   roomId,
   onNavigate,
   onOpenActionMenu,
-}: UseFriendRoomRowInteractionsOptions) {
+}: UseRoomListRowInteractionsOptions) {
   const longPressTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
 
@@ -41,7 +41,7 @@ export function useFriendRoomRowInteractions({
       longPressTimerRef.current = null;
       suppressClickRef.current = true;
       onOpenActionMenu(roomId);
-    }, FRIEND_ROOM_LONG_PRESS_MS) as unknown as number;
+    }, ROOM_LIST_ROW_LONG_PRESS_MS) as unknown as number;
   }, [clearLongPressTimer, onOpenActionMenu, roomId]);
 
   const handleTouchMove = useCallback(() => {

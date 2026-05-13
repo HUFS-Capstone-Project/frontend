@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
-import { mapRoomSummaryToFriendRow } from "../utils/friendRoomRows";
+import { mapRoomSummaryToRoomListRow } from "../utils/roomListRows";
 import { useRoomsQuery } from "./use-rooms-query";
 
-export function useFriendRoomRowById(roomId: string | undefined): FriendRoomRow | null {
+export function useRoomListRowById(roomId: string | undefined): RoomListRow | null {
   const roomsQuery = useRoomsQuery();
 
   return useMemo(() => {
@@ -16,7 +16,7 @@ export function useFriendRoomRowById(roomId: string | undefined): FriendRoomRow 
     const rooms = roomsQuery.data ?? [];
     const summary = rooms.find((r) => r.roomId === roomId);
     if (summary) {
-      return mapRoomSummaryToFriendRow(summary);
+      return mapRoomSummaryToRoomListRow(summary);
     }
 
     return {

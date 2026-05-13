@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { LinkAddFlowView } from "@/components/room/link-add";
 import type { RoomPlaceFromLinkLocationState } from "@/features/place-flow/edit-place-navigation";
-import { useFriendRoomRowById } from "@/features/room/hooks";
+import { useRoomListRowById } from "@/features/room/hooks";
 import { APP_ROUTES } from "@/shared/config/routes";
 
 export default function RoomPlaceFromLinkPage() {
@@ -15,7 +15,7 @@ export default function RoomPlaceFromLinkPage() {
   const draftSession =
     (location.state as RoomPlaceFromLinkLocationState | null)?.linkAddDraftSession ?? null;
 
-  const room = useFriendRoomRowById(trimmedRoomId.length > 0 ? trimmedRoomId : undefined);
+  const room = useRoomListRowById(trimmedRoomId.length > 0 ? trimmedRoomId : undefined);
 
   const handleExit = useCallback(() => {
     navigate(APP_ROUTES.room);

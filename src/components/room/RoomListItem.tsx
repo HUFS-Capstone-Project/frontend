@@ -1,12 +1,12 @@
 import { memo } from "react";
 
-import { useFriendRoomRowInteractions } from "@/features/room/hooks";
-import type { FriendRoomRow } from "@/shared/types/room";
+import { useRoomListRowInteractions } from "@/features/room/hooks";
+import type { RoomListRow } from "@/shared/types/room";
 
-import { FriendRoomItemView } from "./FriendRoomItemView";
+import { RoomListItemView } from "./RoomListItemView";
 
-export type FriendRoomItemProps = {
-  row: FriendRoomRow;
+export type RoomListItemProps = {
+  row: RoomListRow;
   onNavigate: (roomId: string) => void;
   onOpenActionMenu: (roomId: string) => void;
 };
@@ -14,19 +14,19 @@ export type FriendRoomItemProps = {
 /**
  * 방 목록 행: 제스처·키보드 로직을 훅에 두고, UI는 View에 위임.
  */
-export const FriendRoomItem = memo(function FriendRoomItem({
+export const RoomListItem = memo(function RoomListItem({
   row,
   onNavigate,
   onOpenActionMenu,
-}: FriendRoomItemProps) {
-  const interactions = useFriendRoomRowInteractions({
+}: RoomListItemProps) {
+  const interactions = useRoomListRowInteractions({
     roomId: row.id,
     onNavigate,
     onOpenActionMenu,
   });
 
   return (
-    <FriendRoomItemView
+    <RoomListItemView
       row={row}
       onOuterClick={interactions.handleOuterClick}
       onContextMenu={interactions.handleContextMenu}

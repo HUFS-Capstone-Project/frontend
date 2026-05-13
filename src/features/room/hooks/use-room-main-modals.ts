@@ -3,16 +3,16 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { ApiError } from "@/shared/api/axios";
 import { isApiError } from "@/shared/api/axios";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { roomQueryKeys } from "../query-keys";
 import type { RoomActionType } from "../roomActionTypes";
-import {
-  mapRoomSummaryToFriendRow,
-  sortFriendRoomRows,
-  toNonNegativeRoomCount,
-} from "../utils/friendRoomRows";
 import { removeRoomFromCache } from "../utils/room-query-cache";
+import {
+  mapRoomSummaryToRoomListRow,
+  sortRoomListRows,
+  toNonNegativeRoomCount,
+} from "../utils/roomListRows";
 import { useLeaveRoomMutation } from "./use-leave-room-mutation";
 import { useRoomDetailQuery } from "./use-room-detail-query";
 import { useRoomsQuery } from "./use-rooms-query";
@@ -48,9 +48,9 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const queryClient = useQueryClient();
   const showToast = options?.showToast;
 
-  const [editRoom, setEditRoom] = useState<FriendRoomRow | null>(null);
-  const [inviteCodeRoom, setInviteCodeRoom] = useState<FriendRoomRow | null>(null);
-  const [leaveRoom, setLeaveRoom] = useState<FriendRoomRow | null>(null);
+  const [editRoom, setEditRoom] = useState<RoomListRow | null>(null);
+  const [inviteCodeRoom, setInviteCodeRoom] = useState<RoomListRow | null>(null);
+  const [leaveRoom, setLeaveRoom] = useState<RoomListRow | null>(null);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
 
   const roomsQuery = useRoomsQuery();
@@ -61,10 +61,10 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const roomRows = useMemo(() => {
     const rooms = roomsQuery.data ?? [];
 
-    return rooms.map(mapRoomSummaryToFriendRow);
+    return rooms.map(mapRoomSummaryToRoomListRow);
   }, [roomsQuery.data]);
 
-  const sortedRows = useMemo(() => sortFriendRoomRows(roomRows), [roomRows]);
+  const sortedRows = useMemo(() => sortRoomListRows(roomRows), [roomRows]);
 
   const inviteCodeRoomId = inviteCodeRoom?.id ?? null;
   const inviteCodeRoomDetailQuery = useRoomDetailQuery(inviteCodeRoomId, {
@@ -102,7 +102,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   }, []);
 
   const handleTogglePin = useCallback(
-    async (room: FriendRoomRow) => {
+    async (room: RoomListRow) => {
       const nextPinned = !room.isPinned;
 
       try {
@@ -134,7 +134,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   );
 
   const handleRoomAction = useCallback(
-    (action: RoomActionType, room: FriendRoomRow) => {
+    (action: RoomActionType, room: RoomListRow) => {
       if (action === "toggle-pin") {
         void handleTogglePin(room);
         return;
@@ -162,7 +162,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   );
 
   const handleSubmitEditRoomName = useCallback(
-    async (room: FriendRoomRow, nextRoomName: string): Promise<RenameRoomSubmitResult> => {
+    async (room: RoomListRow, nextRoomName: string): Promise<RenameRoomSubmitResult> => {
       const trimmedName = nextRoomName.trim();
       const validationMessage = validateRoomName(trimmedName);
       if (validationMessage) {
@@ -209,7 +209,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   );
 
   const handleConfirmLeaveRoom = useCallback(
-    async (room: FriendRoomRow) => {
+    async (room: RoomListRow) => {
       try {
         const result = await leaveRoomMutation.mutateAsync({ roomId: room.id });
         closeRoomRelatedModals(room.id);
@@ -243,7 +243,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
     setInviteCodeRoom(null);
   }, []);
 
-  const openInviteCodeModal = useCallback((room: FriendRoomRow) => {
+  const openInviteCodeModal = useCallback((room: RoomListRow) => {
     setInviteCodeRoom(room);
   }, []);
 

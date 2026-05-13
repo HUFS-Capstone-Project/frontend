@@ -8,7 +8,7 @@ import {
   copyTextToClipboard,
 } from "@/features/room/utils/clipboard";
 import { formatInviteCodeForDisplay, getInviteCodeValue } from "@/features/room/utils/inviteCode";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
 const FEEDBACK_RESET_MS = 1800;
@@ -16,7 +16,7 @@ const FEEDBACK_RESET_MS = 1800;
 type CopyFeedback = "idle" | "success" | "error";
 
 export type InviteCodeModalProps = {
-  room: FriendRoomRow | null;
+  room: RoomListRow | null;
   onClose: () => void;
   /** 복사 성공 시 하단 `BottomNavToast`와 동일 UI로 표시 */
   showToast?: (message: string) => void;
@@ -28,7 +28,7 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
   onClose,
   showToast,
 }: {
-  displayRoom: FriendRoomRow;
+  displayRoom: RoomListRow;
   visible: boolean;
   onClose: () => void;
   showToast?: (message: string) => void;

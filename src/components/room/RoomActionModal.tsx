@@ -3,22 +3,22 @@ import { memo, useCallback } from "react";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { cn } from "@/lib/utils";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
 
 export type { RoomActionType };
 
 export type RoomActionModalProps = {
-  room: FriendRoomRow | null;
+  room: RoomListRow | null;
   onClose: () => void;
   /** 모달에서 선택된 액션과 대상 방. 이후 API 연동 시 동일 시그니처로 교체하기 좋습니다. */
-  onAction: (action: RoomActionType, room: FriendRoomRow) => void;
+  onAction: (action: RoomActionType, room: RoomListRow) => void;
 };
 
 type ActionItem = { type: RoomActionType; label: string; danger?: boolean };
 
-function getRoomActions(room: FriendRoomRow): ActionItem[] {
+function getRoomActions(room: RoomListRow): ActionItem[] {
   return [
     { type: "edit-info", label: "방 이름 변경" },
     { type: "toggle-pin", label: room.isPinned ? "상단 고정 해제" : "상단에 고정하기" },
@@ -29,10 +29,10 @@ function getRoomActions(room: FriendRoomRow): ActionItem[] {
 }
 
 type RoomActionModalPanelProps = {
-  displayRoom: FriendRoomRow;
+  displayRoom: RoomListRow;
   visible: boolean;
   onClose: () => void;
-  onSelectAction: (type: RoomActionType, room: FriendRoomRow) => void;
+  onSelectAction: (type: RoomActionType, room: RoomListRow) => void;
 };
 
 const RoomActionModalPanel = memo(function RoomActionModalPanel({
@@ -81,7 +81,7 @@ export function RoomActionModal({ room, onClose, onAction }: RoomActionModalProp
   });
 
   const handleSelectAction = useCallback(
-    (type: RoomActionType, targetRoom: FriendRoomRow) => {
+    (type: RoomActionType, targetRoom: RoomListRow) => {
       requestClose();
 
       if (

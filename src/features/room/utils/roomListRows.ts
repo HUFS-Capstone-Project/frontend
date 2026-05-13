@@ -1,4 +1,4 @@
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import type { RoomSummaryResponse } from "../api/types";
 
@@ -12,7 +12,7 @@ export function toNonNegativeRoomCount(value: number | null | undefined, fallbac
   return value;
 }
 
-export function mapRoomSummaryToFriendRow(room: RoomSummaryResponse): FriendRoomRow {
+export function mapRoomSummaryToRoomListRow(room: RoomSummaryResponse): RoomListRow {
   return {
     id: room.roomId,
     displayName: room.roomName,
@@ -28,9 +28,9 @@ export function mapRoomSummaryToFriendRow(room: RoomSummaryResponse): FriendRoom
  * 서버/목 데이터 행에 로컬 고정 오버레이를 합칩니다. 추후 API 응답 + optimistic 업데이트에도 동일 패턴을 쓸 수 있습니다.
  */
 export function applyPinOverrides(
-  rows: FriendRoomRow[],
+  rows: RoomListRow[],
   overrides: Record<string, PinOverride>,
-): FriendRoomRow[] {
+): RoomListRow[] {
   return rows.map((row) => {
     const o = overrides[row.id];
     if (!o) return row;
@@ -42,7 +42,7 @@ export function applyPinOverrides(
  * 1) 고정된 방 먼저 (pinnedAt 내림차순, 동률이면 원래 순서)
  * 2) 고정되지 않은 방은 입력 배열의 상대 순서 유지
  */
-export function sortFriendRoomRows(rows: FriendRoomRow[]): FriendRoomRow[] {
+export function sortRoomListRows(rows: RoomListRow[]): RoomListRow[] {
   const indexed = rows.map((row, originalIndex) => ({ row, originalIndex }));
   const pinned = indexed.filter(({ row }) => row.isPinned);
   const unpinned = indexed.filter(({ row }) => !row.isPinned);

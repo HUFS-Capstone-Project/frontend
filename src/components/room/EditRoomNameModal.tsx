@@ -3,7 +3,7 @@ import { memo, useCallback, useState } from "react";
 import { useControlledMaxLengthWarning } from "@/features/onboarding";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import { cn } from "@/lib/utils";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
 
@@ -18,10 +18,10 @@ export type EditRoomNameModalSubmitResult = {
 };
 
 export type EditRoomNameModalProps = {
-  room: FriendRoomRow | null;
+  room: RoomListRow | null;
   onClose: () => void;
   onSubmitRoomName: (
-    room: FriendRoomRow,
+    room: RoomListRow,
     nextRoomName: string,
   ) => Promise<EditRoomNameModalSubmitResult>;
   isSubmitting?: boolean;
@@ -34,11 +34,11 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
   onSubmitRoomName,
   isSubmitting = false,
 }: {
-  displayRoom: FriendRoomRow;
+  displayRoom: RoomListRow;
   visible: boolean;
   onClose: () => void;
   onSubmitRoomName: (
-    room: FriendRoomRow,
+    room: RoomListRow,
     nextRoomName: string,
   ) => Promise<EditRoomNameModalSubmitResult>;
   isSubmitting?: boolean;

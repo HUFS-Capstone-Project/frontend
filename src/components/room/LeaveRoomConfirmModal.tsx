@@ -2,17 +2,17 @@ import { memo, useCallback } from "react";
 
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import { cn } from "@/lib/utils";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
 
 const LEAVE_WARNING = "방을 나가면 저장한 장소를 볼 수 없게 돼요. \n 그래도 나가시겠어요?";
 
 export type LeaveRoomConfirmModalProps = {
-  room: FriendRoomRow | null;
+  room: RoomListRow | null;
   onClose: () => void;
   /** 확인 시 호출. 이후 API 연동 시 여기서 `leaveRoom(room.id)` 등 처리 */
-  onConfirmLeave: (room: FriendRoomRow) => void;
+  onConfirmLeave: (room: RoomListRow) => void;
   isSubmitting?: boolean;
 };
 
@@ -23,10 +23,10 @@ const LeaveRoomConfirmModalInner = memo(function LeaveRoomConfirmModalInner({
   onConfirmLeave,
   isSubmitting = false,
 }: {
-  displayRoom: FriendRoomRow;
+  displayRoom: RoomListRow;
   visible: boolean;
   onClose: () => void;
-  onConfirmLeave: (room: FriendRoomRow) => void;
+  onConfirmLeave: (room: RoomListRow) => void;
   isSubmitting?: boolean;
 }) {
   const handleConfirm = useCallback(() => {

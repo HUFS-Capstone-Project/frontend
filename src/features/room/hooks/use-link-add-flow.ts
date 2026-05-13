@@ -10,7 +10,7 @@ import {
   useSaveCandidatePlacesMutation,
 } from "@/features/link-analysis";
 import { isApiError } from "@/shared/api/axios";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 import type { LinkAddDraft } from "@/store/link-add-draft-store";
 import { useLinkAddDraftStore } from "@/store/link-add-draft-store";
 
@@ -28,7 +28,7 @@ export type LinkAddCandidatesBootstrap = {
 };
 
 type UseLinkAddFlowOptions = {
-  room: FriendRoomRow | null;
+  room: RoomListRow | null;
   activeRoomId?: string | null;
   /** Set when reopening the modal after 장소 수정 (room location state). */
   draftSessionId?: string | null;

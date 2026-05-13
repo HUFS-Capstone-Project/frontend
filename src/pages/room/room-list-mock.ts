@@ -1,8 +1,8 @@
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
-export type { FriendRoomRow } from "@/shared/types/room";
+export type { RoomListRow } from "@/shared/types/room";
 
-export const FRIEND_ROOM_MOCK_ROWS: FriendRoomRow[] = [
+export const ROOM_LIST_MOCK_ROWS: RoomListRow[] = [
   {
     id: "1",
     avatarSeed: "mock-room-1",

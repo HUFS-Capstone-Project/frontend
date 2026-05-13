@@ -1,4 +1,4 @@
-﻿import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const INVITE_CODE_LENGTH = 12;
@@ -7,7 +7,7 @@ const INVITE_CODE_LENGTH = 12;
  * 초대코드 표시/복사용 문자열.
  * 서버에서 base62 코드를 내려주므로 숫자 필터링 없이 그대로 사용한다.
  */
-export function getInviteCodeValue(room: FriendRoomRow): string {
+export function getInviteCodeValue(room: RoomListRow): string {
   const raw = normalizeInviteCode(room.inviteCode);
   if (raw) {
     return raw;
@@ -17,7 +17,7 @@ export function getInviteCodeValue(room: FriendRoomRow): string {
 }
 
 /** @deprecated `getInviteCodeValue`를 사용하세요. */
-export function getInviteCodeDigits(room: FriendRoomRow): string {
+export function getInviteCodeDigits(room: RoomListRow): string {
   return getInviteCodeValue(room);
 }
 

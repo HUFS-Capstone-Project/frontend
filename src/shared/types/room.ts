@@ -1,5 +1,5 @@
 /** 방 메인 친구(방) 목록 한 행 — UI·API 경계에서 공통 사용 */
-export type FriendRoomRow = {
+export type RoomListRow = {
   id: string;
   displayName: string;
   avatarSeed?: string;

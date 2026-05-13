@@ -1,25 +1,25 @@
 import { memo, useCallback, useMemo } from "react";
 
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
-import { FriendRoomItem } from "./FriendRoomItem";
+import { RoomListItem } from "./RoomListItem";
 
-export type FriendRoomListProps = {
-  rows: FriendRoomRow[];
-  onRoomNavigate: (row: FriendRoomRow) => void;
-  onOpenRoomActions: (row: FriendRoomRow) => void;
+export type RoomListProps = {
+  rows: RoomListRow[];
+  onRoomNavigate: (row: RoomListRow) => void;
+  onOpenRoomActions: (row: RoomListRow) => void;
 };
 
 /**
  * 방 목록 컨테이너. 정렬·고정 상태는 상위에서 합쳐진 `rows`를 그대로 표시합니다.
  */
-export const FriendRoomList = memo(function FriendRoomList({
+export const RoomList = memo(function RoomList({
   rows,
   onRoomNavigate,
   onOpenRoomActions,
-}: FriendRoomListProps) {
+}: RoomListProps) {
   const rowById = useMemo(() => {
-    const m = new Map<string, FriendRoomRow>();
+    const m = new Map<string, RoomListRow>();
     for (const r of rows) m.set(r.id, r);
     return m;
   }, [rows]);
@@ -44,7 +44,7 @@ export const FriendRoomList = memo(function FriendRoomList({
     <ul className="divide-border/35 divide-y" role="list">
       {rows.map((row) => (
         <li key={row.id}>
-          <FriendRoomItem row={row} onNavigate={navigateById} onOpenActionMenu={openMenuById} />
+          <RoomListItem row={row} onNavigate={navigateById} onOpenActionMenu={openMenuById} />
         </li>
       ))}
     </ul>

@@ -2,12 +2,12 @@ import { Pin } from "lucide-react";
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";
-import type { FriendRoomRow } from "@/shared/types/room";
+import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomAvatar } from "./RoomAvatar";
 
-export type FriendRoomItemViewProps = {
-  row: FriendRoomRow;
+export type RoomListItemViewProps = {
+  row: RoomListRow;
   onOuterClick: (e: React.MouseEvent) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onTouchStart: () => void;
@@ -20,7 +20,7 @@ export type FriendRoomItemViewProps = {
 /**
  * 방 목록 행 UI 전용 (상태·제스처 로직 없음).
  */
-export const FriendRoomItemView = memo(function FriendRoomItemView({
+export const RoomListItemView = memo(function RoomListItemView({
   row,
   onOuterClick,
   onContextMenu,
@@ -29,7 +29,7 @@ export const FriendRoomItemView = memo(function FriendRoomItemView({
   onTouchEnd,
   onTouchCancel,
   onKeyDown,
-}: FriendRoomItemViewProps) {
+}: RoomListItemViewProps) {
   const pinned = Boolean(row.isPinned);
   const placeCountText = row.placeCount >= 1000 ? "1k+개 장소" : `${row.placeCount}개 장소`;
 
