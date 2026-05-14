@@ -225,9 +225,16 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   };
 
   const displayedCountLabel =
-    myPlacesQuery.data != null
-      ? `${formatCount(myPlacesQuery.data.totalElements)}개`
-      : `${formatCount(listPlaces.length)}개`;
+    myPlacesQuery.isLoading && myPlacesQuery.data == null ? (
+      <span
+        className="bg-muted/70 inline-block h-3.5 w-8 animate-pulse rounded-md align-middle"
+        aria-label="나의 장소 개수 불러오는 중"
+      />
+    ) : myPlacesQuery.data != null ? (
+      `${formatCount(myPlacesQuery.data.totalElements)}개`
+    ) : (
+      `${formatCount(listPlaces.length)}개`
+    );
 
   return (
     <div

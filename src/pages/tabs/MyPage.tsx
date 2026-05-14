@@ -74,6 +74,8 @@ export default function MyPage() {
     () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
     [myPlacesQuery.data?.items],
   );
+  const summaryPlaces = myPlacesQuery.data ? apiPlaces : places;
+  const summaryPlaceCount = myPlacesQuery.data?.totalElements ?? places.length;
 
   const openPlaceDetail = usePlaceDetailStore((s) => s.openDetail);
   const closePlaceDetail = usePlaceDetailStore((s) => s.closeDetail);
@@ -261,10 +263,11 @@ export default function MyPage() {
 
                 <div className="pt-3">
                   <MyPlaceSummaryCard
-                    totalCount={places.length}
-                    recentPlaces={places
+                    totalCount={summaryPlaceCount}
+                    recentPlaces={summaryPlaces
                       .slice(0, 2)
                       .map((place) => ({ id: place.id, name: place.name }))}
+                    isLoading={myPlacesQuery.isLoading && myPlacesQuery.data == null}
                     onOpenPlaces={() => {
                       closePlaceDetail();
                       setView("places");

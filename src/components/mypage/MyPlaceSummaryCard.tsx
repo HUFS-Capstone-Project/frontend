@@ -6,6 +6,7 @@ import type { RecentPlace } from "@/shared/types/my-page";
 type MyPlaceSummaryCardProps = {
   totalCount: number;
   recentPlaces: RecentPlace[];
+  isLoading?: boolean;
   onOpenPlaces?: () => void;
   className?: string;
 };
@@ -17,10 +18,11 @@ function formatCount(count: number) {
 export function MyPlaceSummaryCard({
   totalCount,
   recentPlaces,
+  isLoading = false,
   onOpenPlaces,
   className,
 }: MyPlaceSummaryCardProps) {
-  const hasPlaces = totalCount > 0;
+  const hasPlaces = !isLoading && totalCount > 0;
 
   return (
     <section
@@ -41,14 +43,20 @@ export function MyPlaceSummaryCard({
         </span>
       </button>
 
-      <p className="text-foreground mt-2 text-center text-2xl font-semibold">
-        {formatCount(totalCount)}개
-      </p>
+      <div className="mt-2 flex h-8 items-center justify-center" aria-busy={isLoading}>
+        {isLoading ? (
+          <span className="bg-muted/70 h-7 w-16 animate-pulse rounded-md" aria-hidden />
+        ) : (
+          <p className="text-foreground text-2xl font-semibold">{formatCount(totalCount)}개</p>
+        )}
+      </div>
 
       <div className="mt-5">
         <p className="text-foreground text-xs font-medium">최근 저장 장소</p>
         <div className="divide-border mt-2 divide-y">
-          {hasPlaces ? (
+          {isLoading ? (
+            <MyPlaceSummarySkeletonRows />
+          ) : hasPlaces ? (
             recentPlaces.slice(0, 2).map((place) => (
               <p key={place.id} className="text-foreground truncate py-2 text-xs font-medium">
                 {place.name}
@@ -62,5 +70,18 @@ export function MyPlaceSummaryCard({
         </div>
       </div>
     </section>
+  );
+}
+
+function MyPlaceSummarySkeletonRows() {
+  return (
+    <>
+      <div className="py-2">
+        <div className="bg-muted/60 h-3.5 w-32 animate-pulse rounded-md" />
+      </div>
+      <div className="py-2">
+        <div className="bg-muted/50 h-3.5 w-24 animate-pulse rounded-md" />
+      </div>
+    </>
   );
 }

@@ -53,7 +53,7 @@ export function MyProfileHeader({
       <span className="min-w-0 flex-1">
         <span className="text-foreground block truncate text-[1.05rem] font-bold">{nickname}</span>
         <span className="text-muted-foreground mt-0.5 block truncate text-[0.78rem] font-medium">
-          내 정보 • 계정 설정
+          내 정보 · 계정 설정
         </span>
       </span>
 
