@@ -1,4 +1,5 @@
 import type { BusinessHoursDisplay } from "@/shared/types/business-hours";
+import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type MapPlaceCategory = string;
 export type MapPrimaryCategory = string;
@@ -28,6 +29,7 @@ export type SavedPlace = {
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
   memo?: string;
+  memos?: RoomPlaceMemo[];
   businessHours?: BusinessHoursDisplay | null;
   createdAt?: string | null;
 };

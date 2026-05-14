@@ -22,6 +22,7 @@ export function mapPlacesMatchingMySaved(places: MySavedPlace[]): MapSavedPlace[
       address: place.address,
       shareLinkUrl: place.shareLinkUrl ?? null,
       memo: place.memo,
+      memos: place.memos,
       businessHours: place.businessHours ?? null,
     }));
 }

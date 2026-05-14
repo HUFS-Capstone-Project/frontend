@@ -1,6 +1,7 @@
 import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
 import type { ServiceCategoryCode } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
+import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type UserPlaceListParams = {
   keyword?: string;
@@ -45,6 +46,7 @@ export type UserPlaceResponse = {
   serviceTagCode: string | null;
   serviceTagName: string | null;
   memo: string | null;
+  memos: RoomPlaceMemo[];
   businessHoursStatus: BusinessHoursStatus;
   businessHours: BusinessHoursDisplay | null;
   room: UserPlaceRoomResponse | null;
@@ -76,6 +78,7 @@ export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {
     tagNames: item.serviceTagName ? [item.serviceTagName] : undefined,
     shareLinkUrl: item.sourceUrl ?? null,
     memo: item.memo ?? undefined,
+    memos: item.memos,
     latitude: toCoordinateNumber(item.latitude),
     longitude: toCoordinateNumber(item.longitude),
     businessHours: item.businessHoursStatus === "SUCCEEDED" ? item.businessHours : null,

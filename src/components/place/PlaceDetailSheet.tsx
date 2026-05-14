@@ -20,7 +20,10 @@ import { sharePlace } from "@/shared/lib/share-place";
 import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
+import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
+
+import { PlaceMemoList } from "./PlaceMemoList";
 
 const BUSINESS_HOURS_POLLING_INTERVAL_MS = 5_000;
 const BUSINESS_HOURS_MAX_POLLING_MS = 20_000;
@@ -97,13 +100,13 @@ export function PlaceDetailSheet({
     let sourcePlaces: MapSavedPlace[];
 
     if (roomPlaceDetailQuery.data) {
+      const detailPlace = roomPlaceToSavedPlace(roomPlaceDetailQuery.data);
+      const localMemo = localMemos[String(roomPlaceDetailQuery.data.roomPlaceId)];
       sourcePlaces = [
         {
-          ...roomPlaceToSavedPlace(roomPlaceDetailQuery.data),
-          memo:
-            localMemos[String(roomPlaceDetailQuery.data.roomPlaceId)] ??
-            roomPlaceDetailQuery.data.memo ??
-            undefined,
+          ...detailPlace,
+          memo: localMemo ?? detailPlace.memo,
+          memos: localMemo ? createLocalMemoList(localMemo) : detailPlace.memos,
         },
       ].filter((place) => !localRemoved.has(place.id));
     } else if (savedPlaces) {
@@ -121,7 +124,8 @@ export function PlaceDetailSheet({
             longitude: place.longitude ?? 0,
             address: place.address,
             shareLinkUrl: place.shareLinkUrl ?? null,
-            memo: place.memo ?? localMemos[place.id],
+            memo: localMemos[place.id] ?? place.memo,
+            memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : place.memos,
             businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
           };
         });
@@ -132,6 +136,7 @@ export function PlaceDetailSheet({
         (place) => ({
           ...place,
           memo: localMemos[place.id],
+          memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : undefined,
         }),
       );
     }
@@ -384,11 +389,7 @@ export function PlaceDetailSheet({
             </div>
           </div>
 
-          {place.memo && !isMemoEditing ? (
-            <p className="text-foreground border-border/50 bg-muted/20 mt-4 rounded-lg border px-3 py-2 text-xs leading-relaxed font-medium">
-              {place.memo}
-            </p>
-          ) : null}
+          {!isMemoEditing ? <PlaceMemoList memos={place.memos} className="mt-4" /> : null}
 
           {isMemoEditing ? (
             <div className="mt-4">
@@ -431,6 +432,18 @@ export function PlaceDetailSheet({
 
 function isBusinessHoursPendingOrFetching(status: string | null | undefined): boolean {
   return status === "PENDING" || status === "FETCHING";
+}
+
+function createLocalMemoList(memo: string): RoomPlaceMemo[] {
+  return [
+    {
+      userId: 0,
+      nickname: "나",
+      profileImageUrl: null,
+      memo,
+      updatedAt: "local",
+    },
+  ];
 }
 
 function getPrimaryTagLabel(place: Pick<MapSavedPlace, "tagKeys" | "tagNames">): string {

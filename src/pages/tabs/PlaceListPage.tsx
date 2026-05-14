@@ -179,6 +179,7 @@ export default function PlaceListPage() {
       longitude: place.longitude,
       shareLinkUrl: place.shareLinkUrl,
       memo: place.memo,
+      memos: place.memos,
       businessHours: place.businessHours,
     }));
   }, [categoryFilteredPlaces]);

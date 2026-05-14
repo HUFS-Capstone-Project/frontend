@@ -2,6 +2,7 @@
 import { useCallback, useRef } from "react";
 
 import { renderMapPrimaryCategoryIcon } from "@/components/map/filters/map-category-icons";
+import { PlaceMemoList } from "@/components/place/PlaceMemoList";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { sharePlace } from "@/shared/lib/share-place";
@@ -136,11 +137,7 @@ export function SavedPlaceItem({
         ) : null}
       </div>
 
-      {place.memo && !isEditing ? (
-        <p className="text-foreground border-border/50 bg-muted/20 mt-2 rounded-lg border px-3 py-2 text-xs leading-relaxed font-medium">
-          {place.memo}
-        </p>
-      ) : null}
+      {!isEditing ? <PlaceMemoList memos={place.memos} className="mt-2" /> : null}
 
       {!readOnly && isEditing ? (
         <SavedPlaceMemoEditor

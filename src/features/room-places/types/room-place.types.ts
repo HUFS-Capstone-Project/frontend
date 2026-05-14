@@ -1,5 +1,6 @@
 import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
 import type { ServiceCategoryCode } from "@/shared/types/map-home";
+import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type RoomPlaceListParams = {
   keyword?: string;
@@ -49,6 +50,7 @@ export type RoomPlaceDto = {
   sigunguCode: string | null;
   sigunguName: string | null;
   memo: string | null;
+  memos: RoomPlaceMemo[];
   sourceType: string | null;
   sourceRoomLinkId: number | null;
   createdBy: number | null;
