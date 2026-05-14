@@ -1,19 +1,10 @@
 ﻿import "@/components/map/filter-bar.css";
 
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/common/EmptyState";
-import {
-  LIST_TOP_BAR_AFTER_TITLE_CLASS,
-  LIST_TOP_BAR_BACK_BUTTON_CLASS,
-  LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
-  LIST_TOP_BAR_ROOT_BASE_CLASS,
-  LIST_TOP_BAR_ROW_CLASS,
-  LIST_TOP_BAR_STICKY_CLASS,
-  LIST_TOP_BAR_TITLE_CLASS,
-  LIST_TOP_BAR_TRAILING_CLASS,
-} from "@/components/common/ListTopBar";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { FilterBar } from "@/components/map/FilterBar";
 import {
@@ -214,27 +205,13 @@ export function MySavedPlacesPage({
         </MapBackdropLayer>
       ) : null}
 
-      <header
-        className={cn(
-          LIST_TOP_BAR_ROOT_BASE_CLASS,
-          detailOpen ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS : LIST_TOP_BAR_STICKY_CLASS,
-        )}
+      <ListTopBar
+        title="나의 장소"
+        trailing={displayedCountLabel}
+        variant={detailOpen ? "overlay" : "sticky"}
+        backLabel={detailOpen ? "장소 상세 닫기" : "마이페이지로 돌아가기"}
+        onBack={handleHeaderBack}
       >
-        <div className={LIST_TOP_BAR_ROW_CLASS}>
-          <button
-            type="button"
-            onClick={handleHeaderBack}
-            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
-          >
-            <ArrowLeft className="text-foreground size-5" aria-hidden />
-            <span className="sr-only">
-              {detailOpen ? "장소 상세 닫기" : "마이페이지로 돌아가기"}
-            </span>
-          </button>
-          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>나의 장소</h1>
-          <span className={LIST_TOP_BAR_TRAILING_CLASS}>{displayedCountLabel}</span>
-        </div>
-
         {!detailOpen ? (
           <div ref={filterChromeRef} className={LIST_TOP_BAR_AFTER_TITLE_CLASS}>
             <FilterBar
@@ -259,7 +236,7 @@ export function MySavedPlacesPage({
             />
           </div>
         ) : null}
-      </header>
+      </ListTopBar>
 
       {!detailOpen ? (
         <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">

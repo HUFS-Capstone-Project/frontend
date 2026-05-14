@@ -1,22 +1,13 @@
 import "@/components/map/filter-bar.css";
 
-import { AlertCircle, ArrowLeft, MapPin } from "lucide-react";
+import { AlertCircle, MapPin } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
-import {
-  LIST_TOP_BAR_AFTER_TITLE_CLASS,
-  LIST_TOP_BAR_BACK_BUTTON_CLASS,
-  LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
-  LIST_TOP_BAR_ROOT_BASE_CLASS,
-  LIST_TOP_BAR_ROW_CLASS,
-  LIST_TOP_BAR_STICKY_CLASS,
-  LIST_TOP_BAR_TITLE_CLASS,
-  LIST_TOP_BAR_TRAILING_CLASS,
-} from "@/components/common/ListTopBar";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
@@ -374,27 +365,13 @@ export default function PlaceListPage() {
         </MapBackdropLayer>
       ) : null}
 
-      <header
-        className={cn(
-          LIST_TOP_BAR_ROOT_BASE_CLASS,
-          detailOpen ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS : LIST_TOP_BAR_STICKY_CLASS,
-        )}
+      <ListTopBar
+        title={pageTitle}
+        trailing={displayedCountLabel}
+        variant={detailOpen ? "overlay" : "sticky"}
+        backLabel={detailOpen ? "장소 상세 닫기" : "지도 화면으로 돌아가기"}
+        onBack={handleHeaderBack}
       >
-        <div className={LIST_TOP_BAR_ROW_CLASS}>
-          <button
-            type="button"
-            onClick={handleHeaderBack}
-            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
-          >
-            <ArrowLeft className="text-foreground size-5" aria-hidden />
-            <span className="sr-only">
-              {detailOpen ? "장소 상세 닫기" : "지도 화면으로 돌아가기"}
-            </span>
-          </button>
-          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>{pageTitle}</h1>
-          <span className={LIST_TOP_BAR_TRAILING_CLASS}>{displayedCountLabel}</span>
-        </div>
-
         {!detailOpen ? (
           <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-2")}>
             <button
@@ -432,7 +409,7 @@ export default function PlaceListPage() {
             </div>
           </div>
         ) : null}
-      </header>
+      </ListTopBar>
 
       <CoursePlannerBottomSheet
         open={isRegionPanelOpen && !detailOpen}

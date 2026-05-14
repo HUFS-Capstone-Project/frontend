@@ -11,7 +11,7 @@ export function MyAccountActions({ onLogout, onWithdraw }: MyAccountActionsProps
       <button
         type="button"
         onClick={onLogout}
-        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-sm font-medium transition-colors"
+        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-xs font-medium transition-colors"
       >
         <span className="text-secondary-foreground">로그아웃</span>
         <ChevronRight className="text-muted-foreground/45 size-4" aria-hidden />
@@ -19,7 +19,7 @@ export function MyAccountActions({ onLogout, onWithdraw }: MyAccountActionsProps
       <button
         type="button"
         onClick={onWithdraw}
-        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-sm font-medium transition-colors"
+        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-xs font-medium transition-colors"
       >
         <span className="text-secondary-foreground">회원탈퇴</span>
         <ChevronRight className="text-muted-foreground/45 size-4" aria-hidden />

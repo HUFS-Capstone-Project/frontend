@@ -1,13 +1,7 @@
-import { ArrowLeft, ChevronRight, User } from "lucide-react";
+import { ChevronRight, User } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import {
-  LIST_TOP_BAR_BACK_BUTTON_CLASS,
-  LIST_TOP_BAR_ROOT_BASE_CLASS,
-  LIST_TOP_BAR_ROW_CLASS,
-  LIST_TOP_BAR_STICKY_CLASS,
-  LIST_TOP_BAR_TITLE_CLASS,
-} from "@/components/common/ListTopBar";
+import { ListTopBar } from "@/components/common/ListTopBar";
 import {
   NICKNAME_MAX_LENGTH,
   NicknameInputSection,
@@ -98,22 +92,15 @@ export function MyProfileInfoPage({
   if (view === "edit-name") {
     return (
       <OnboardingLayout className={`relative ${PROFILE_PAGE_CONTENT_PADDING_CLASS}`}>
-        <header
-          className={`${LIST_TOP_BAR_ROOT_BASE_CLASS} pointer-events-none absolute inset-x-0 top-0 z-10`}
-        >
-          <div className={LIST_TOP_BAR_ROW_CLASS}>
-            <button
-              type="button"
-              onClick={handleBackToInfo}
-              className={`${LIST_TOP_BAR_BACK_BUTTON_CLASS} pointer-events-auto`}
-              aria-label="내 정보로 돌아가기"
-            >
-              <ArrowLeft className="text-foreground size-5" aria-hidden />
-            </button>
-            <span aria-hidden />
-            <span aria-hidden />
-          </div>
-        </header>
+        <ListTopBar
+          variant="plain"
+          title={null}
+          trailing={null}
+          backLabel="내 정보로 돌아가기"
+          onBack={handleBackToInfo}
+          className="pointer-events-none absolute inset-x-0 top-0 z-10"
+          backButtonClassName="pointer-events-auto"
+        />
 
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -159,20 +146,13 @@ export function MyProfileInfoPage({
 
   return (
     <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto">
-      <header className={`${LIST_TOP_BAR_ROOT_BASE_CLASS} ${LIST_TOP_BAR_STICKY_CLASS}`}>
-        <div className={LIST_TOP_BAR_ROW_CLASS}>
-          <button
-            type="button"
-            onClick={onBack}
-            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
-            aria-label="마이페이지로 돌아가기"
-          >
-            <ArrowLeft className="text-foreground size-5" aria-hidden />
-          </button>
-          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>{nickname}님의 정보</h1>
-          <span className="w-14" aria-hidden />
-        </div>
-      </header>
+      <ListTopBar
+        title={`${nickname}님의 정보`}
+        trailing={null}
+        variant="sticky"
+        backLabel="마이페이지로 돌아가기"
+        onBack={onBack}
+      />
 
       <div className="flex justify-center px-4 pt-10 pb-7">
         {showImage ? (

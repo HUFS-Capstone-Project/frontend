@@ -40,7 +40,7 @@ export function SavedCourseSection({
       </div>
 
       {hasCourses ? (
-        <div className="mt-3 space-y-2">
+        <div className="divide-border/35 mt-3 divide-y">
           {previewCourses.map((course) => (
             <SavedCourseCard key={course.id} course={course} onSelect={onSelectCourse} />
           ))}

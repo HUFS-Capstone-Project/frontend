@@ -3,15 +3,19 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type ListTopBarVariant = "sticky" | "overlay";
+type ListTopBarVariant = "sticky" | "overlay" | "plain";
 
 type ListTopBarProps = {
-  title: ReactNode;
-  trailing: ReactNode;
-  variant: ListTopBarVariant;
+  title?: ReactNode;
+  trailing?: ReactNode;
+  variant?: ListTopBarVariant;
   showBack?: boolean;
   backLabel?: string;
   onBack?: () => void;
+  className?: string;
+  rowClassName?: string;
+  titleClassName?: string;
+  backButtonClassName?: string;
   trailingClassName?: string;
   children?: ReactNode;
 };
@@ -33,33 +37,44 @@ export const LIST_TOP_BAR_TRAILING_CLASS =
   "text-muted-foreground w-14 justify-self-end truncate text-right text-xs font-semibold";
 export const LIST_TOP_BAR_AFTER_TITLE_CLASS = "px-5 pt-2 pb-2";
 
+const LIST_TOP_BAR_VARIANT_CLASS: Record<ListTopBarVariant, string> = {
+  sticky: LIST_TOP_BAR_STICKY_CLASS,
+  overlay: LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
+  plain: "",
+};
+
 export function ListTopBar({
   title,
   trailing,
-  variant,
+  variant = "sticky",
   showBack = true,
   backLabel = "Back",
   onBack,
+  className,
+  rowClassName,
+  titleClassName,
+  backButtonClassName,
   trailingClassName,
   children,
 }: ListTopBarProps) {
   return (
     <header
-      className={cn(
-        LIST_TOP_BAR_ROOT_BASE_CLASS,
-        variant === "overlay" ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS : LIST_TOP_BAR_STICKY_CLASS,
-      )}
+      className={cn(LIST_TOP_BAR_ROOT_BASE_CLASS, LIST_TOP_BAR_VARIANT_CLASS[variant], className)}
     >
-      <div className={LIST_TOP_BAR_ROW_CLASS}>
+      <div className={cn(LIST_TOP_BAR_ROW_CLASS, rowClassName)}>
         {showBack ? (
-          <button type="button" onClick={onBack} className={LIST_TOP_BAR_BACK_BUTTON_CLASS}>
+          <button
+            type="button"
+            onClick={onBack}
+            className={cn(LIST_TOP_BAR_BACK_BUTTON_CLASS, backButtonClassName)}
+          >
             <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">{backLabel}</span>
           </button>
         ) : (
           <span className="w-14 shrink-0" aria-hidden />
         )}
-        <h1 className={LIST_TOP_BAR_TITLE_CLASS}>{title}</h1>
+        <h1 className={cn(LIST_TOP_BAR_TITLE_CLASS, titleClassName)}>{title}</h1>
         <span className={cn(LIST_TOP_BAR_TRAILING_CLASS, trailingClassName)}>{trailing}</span>
       </div>
       {children}

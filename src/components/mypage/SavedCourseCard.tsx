@@ -18,29 +18,29 @@ export function SavedCourseCard({ course, onSelect, className }: SavedCourseCard
       type="button"
       onClick={() => onSelect?.(course)}
       className={cn(
-        "border-border bg-card flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left",
-        "active:bg-brand-coral-soft transition-colors",
+        "flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left",
+        "active:bg-muted/45 transition-colors",
         className,
       )}
     >
-      <span className="bg-brand-coral-soft text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
+      <span className="bg-brand-coral-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-full">
         {isFriendCourse ? (
           <span className="text-[0.65rem] font-semibold">친구</span>
         ) : (
-          <Icon className="size-4 fill-current" aria-hidden />
+          <Icon className="size-3.5 fill-current" aria-hidden />
         )}
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="text-foreground block truncate text-[0.82rem] font-semibold">
+        <span className="text-foreground block truncate text-[0.8rem] font-semibold">
           {course.title}
         </span>
-        <span className="text-muted-foreground mt-1 block truncate text-[0.68rem] font-medium">
+        <span className="text-muted-foreground mt-0.5 block truncate text-[0.66rem] font-medium">
           {course.executedAtLabel}
         </span>
       </span>
 
-      <ChevronRight className="text-foreground size-4 shrink-0" aria-hidden />
+      <ChevronRight className="text-muted-foreground/55 size-4 shrink-0" aria-hidden />
     </button>
   );
 }

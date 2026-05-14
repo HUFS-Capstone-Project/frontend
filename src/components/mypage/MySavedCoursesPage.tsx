@@ -1,16 +1,7 @@
-import { AlertCircle, ArrowLeft, Check, ChevronDown, Pin, User } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, Pin, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
-import {
-  LIST_TOP_BAR_AFTER_TITLE_CLASS,
-  LIST_TOP_BAR_BACK_BUTTON_CLASS,
-  LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
-  LIST_TOP_BAR_ROOT_BASE_CLASS,
-  LIST_TOP_BAR_ROW_CLASS,
-  LIST_TOP_BAR_STICKY_CLASS,
-  LIST_TOP_BAR_TITLE_CLASS,
-  LIST_TOP_BAR_TRAILING_CLASS,
-} from "@/components/common/ListTopBar";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
@@ -195,10 +186,6 @@ export function MySavedCoursesPage({
     onBack();
   };
 
-  const headerBackdrop = overlayMapOpen
-    ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS
-    : LIST_TOP_BAR_STICKY_CLASS;
-
   return (
     <div
       className={cn(
@@ -219,28 +206,19 @@ export function MySavedCoursesPage({
         </MapBackdropLayer>
       ) : null}
 
-      <header className={cn(LIST_TOP_BAR_ROOT_BASE_CLASS, headerBackdrop)}>
-        <div className={LIST_TOP_BAR_ROW_CLASS}>
-          <button
-            type="button"
-            onClick={handleHeaderBack}
-            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
-          >
-            <ArrowLeft className="text-foreground size-5" aria-hidden />
-            <span className="sr-only">
-              {detailOpen
-                ? "장소 상세 닫기"
-                : selectedCourse
-                  ? "코스 상세 닫기"
-                  : "마이페이지로 돌아가기"}
-            </span>
-          </button>
-          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>저장된 데이트 코스</h1>
-          <span className={LIST_TOP_BAR_TRAILING_CLASS}>
-            총 {formatCount(visibleCourses.length)}개
-          </span>
-        </div>
-
+      <ListTopBar
+        title="저장된 데이트 코스"
+        trailing={`${formatCount(visibleCourses.length)}개`}
+        variant={overlayMapOpen ? "overlay" : "sticky"}
+        backLabel={
+          detailOpen
+            ? "장소 상세 닫기"
+            : selectedCourse
+              ? "코스 상세 닫기"
+              : "마이페이지로 돌아가기"
+        }
+        onBack={handleHeaderBack}
+      >
         {!overlayMapOpen ? (
           <div
             ref={filterChromeRef}
@@ -439,7 +417,7 @@ export function MySavedCoursesPage({
             </div>
           </div>
         ) : null}
-      </header>
+      </ListTopBar>
 
       {!overlayMapOpen ? (
         <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
