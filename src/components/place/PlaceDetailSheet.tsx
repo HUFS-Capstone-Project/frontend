@@ -26,7 +26,9 @@ const BUSINESS_HOURS_POLLING_INTERVAL_MS = 5_000;
 const BUSINESS_HOURS_MAX_POLLING_MS = 20_000;
 
 type DetailSavedPlace = MySavedPlace &
-  Partial<Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours" | "categoryName">>;
+  Partial<
+    Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours" | "categoryName" | "tagNames">
+  >;
 
 type PlaceDetailSheetProps = {
   roomId?: string | null;
@@ -114,6 +116,7 @@ export function PlaceDetailSheet({
             category: place.category,
             categoryName: place.categoryName,
             tagKeys: place.tagKeys,
+            tagNames: place.tagNames,
             latitude: place.latitude ?? 0,
             longitude: place.longitude ?? 0,
             address: place.address,
@@ -271,6 +274,7 @@ export function PlaceDetailSheet({
 
   const trimmedShareUrl = place.shareLinkUrl?.trim() ?? "";
   const categoryLabel = place.categoryName?.trim() || place.category.trim();
+  const tagLabel = getPrimaryTagLabel(place);
 
   const detailBusinessHoursStatus = roomPlaceDetailQuery.data?.businessHoursStatus;
   const showBusinessHoursSkeleton =
@@ -300,14 +304,21 @@ export function PlaceDetailSheet({
                   {place.name}
                 </h2>
                 {categoryLabel ? (
-                  <span
-                    className={cn(
-                      "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
-                    )}
-                    title={categoryLabel}
-                    aria-label={`카테고리 ${categoryLabel}`}
-                  >
-                    {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
+                  <span className="inline-flex shrink-0 items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
+                      )}
+                      title={categoryLabel}
+                      aria-label={`카테고리 ${categoryLabel}`}
+                    >
+                      {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
+                    </span>
+                    {tagLabel ? (
+                      <span className="text-muted-foreground text-xs leading-none font-medium">
+                        {tagLabel}
+                      </span>
+                    ) : null}
                   </span>
                 ) : null}
               </div>
@@ -420,6 +431,21 @@ export function PlaceDetailSheet({
 
 function isBusinessHoursPendingOrFetching(status: string | null | undefined): boolean {
   return status === "PENDING" || status === "FETCHING";
+}
+
+function getPrimaryTagLabel(place: Pick<MapSavedPlace, "tagKeys" | "tagNames">): string {
+  const tagName = place.tagNames?.find((name) => name.trim().length > 0)?.trim();
+  if (tagName) {
+    return tagName;
+  }
+
+  const tagKey = place.tagKeys?.find((key) => key.trim().length > 0)?.trim();
+  if (!tagKey) {
+    return "";
+  }
+
+  const segments = tagKey.split(/[-_/]/).map((segment) => segment.trim());
+  return segments.at(-1) || tagKey;
 }
 
 function BusinessHoursSkeleton(): JSX.Element {

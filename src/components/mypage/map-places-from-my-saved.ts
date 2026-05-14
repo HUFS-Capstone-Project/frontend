@@ -16,6 +16,7 @@ export function mapPlacesMatchingMySaved(places: MySavedPlace[]): MapSavedPlace[
       category: place.category,
       categoryName: place.categoryName,
       tagKeys: place.tagKeys,
+      tagNames: place.tagNames,
       latitude: place.latitude ?? 0,
       longitude: place.longitude ?? 0,
       address: place.address,

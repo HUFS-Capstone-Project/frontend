@@ -11,6 +11,7 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     category: place.serviceCategoryCode,
     categoryName: place.serviceCategoryName,
     tagKeys: place.serviceTagCode ? [place.serviceTagCode] : undefined,
+    tagNames: place.serviceTagName ? [place.serviceTagName] : undefined,
     latitude: toCoordinateNumber(place.latitude),
     longitude: toCoordinateNumber(place.longitude),
     address: place.roadAddress ?? place.address ?? "",

@@ -37,6 +37,13 @@ const FIT_BOUNDS_PADDING = {
   left: 36,
 } as const;
 
+const FIT_COORDINATE_BOUNDS_PADDING = {
+  top: 56,
+  right: 16,
+  bottom: 24,
+  left: 16,
+} as const;
+
 /**
  * Kakao JS SDK 로딩과 지도/마커 렌더링을 담당.
  * 현재는 단일 마커 스타일만 사용하고, 상세 오버레이는 연결하지 않는다.
@@ -180,8 +187,11 @@ export function KakaoMapView({
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
 
-    const fitBoundsTargets =
-      fitBoundsCoordinates.length > 0 ? fitBoundsCoordinates : fitBoundsPlaces;
+    const shouldFitCoordinateBounds = fitBoundsCoordinates.length > 0;
+    const fitBoundsTargets = shouldFitCoordinateBounds ? fitBoundsCoordinates : fitBoundsPlaces;
+    const fitBoundsPadding = shouldFitCoordinateBounds
+      ? FIT_COORDINATE_BOUNDS_PADDING
+      : FIT_BOUNDS_PADDING;
 
     if (fitBoundsTargets.length > 1) {
       const bounds = new maps.LatLngBounds();
@@ -190,10 +200,10 @@ export function KakaoMapView({
       });
       mapInstance.setBounds(
         bounds,
-        FIT_BOUNDS_PADDING.top,
-        FIT_BOUNDS_PADDING.right,
-        FIT_BOUNDS_PADDING.bottom,
-        FIT_BOUNDS_PADDING.left,
+        fitBoundsPadding.top,
+        fitBoundsPadding.right,
+        fitBoundsPadding.bottom,
+        fitBoundsPadding.left,
       );
       return;
     }

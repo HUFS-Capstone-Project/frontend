@@ -73,6 +73,7 @@ export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {
     category: item.serviceCategoryCode?.trim() || item.serviceTagCode?.trim() || "",
     categoryName: item.serviceCategoryName?.trim() || item.serviceTagName?.trim() || null,
     tagKeys: item.serviceTagCode ? [item.serviceTagCode] : undefined,
+    tagNames: item.serviceTagName ? [item.serviceTagName] : undefined,
     shareLinkUrl: item.sourceUrl ?? null,
     memo: item.memo ?? undefined,
     latitude: toCoordinateNumber(item.latitude),

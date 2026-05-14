@@ -20,6 +20,7 @@ export type SavedPlace = {
   categoryName?: string | null;
   /** 장소 taxonomy 태그 코드 */
   tagKeys?: string[];
+  tagNames?: string[];
   latitude?: number;
   longitude?: number;
   /** SNS·웹 등 원본 공유 링크 */

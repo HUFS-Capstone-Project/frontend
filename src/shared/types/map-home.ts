@@ -21,6 +21,7 @@ export type SavedPlace = {
   /** 화면 표시용 카테고리 이름. 없으면 `category`를 그대로 표시한다. */
   categoryName?: string | null;
   tagKeys?: string[];
+  tagNames?: string[];
   latitude: number;
   longitude: number;
   address: string;

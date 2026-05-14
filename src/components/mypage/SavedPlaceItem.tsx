@@ -56,6 +56,7 @@ export function SavedPlaceItem({
   const categoryRaw = place.categoryName?.trim() || place.category.trim();
   const categoryLabel =
     categoryRaw.length === 0 ? "" : (categoryNameByCode?.[categoryRaw]?.trim() ?? categoryRaw);
+  const tagLabel = getPrimaryTagLabel(place);
 
   return (
     <article className="bg-card rounded-[1.15rem] px-3.5 py-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.045)]">
@@ -70,14 +71,21 @@ export function SavedPlaceItem({
               {place.name}
             </h3>
             {categoryLabel ? (
-              <span
-                className={cn(
-                  "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
-                )}
-                title={categoryLabel}
-                aria-label={`카테고리 ${categoryLabel}`}
-              >
-                {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
+              <span className="inline-flex shrink-0 items-center gap-2">
+                <span
+                  className={cn(
+                    "text-muted-foreground border-border/55 bg-muted/45 inline-flex size-6 shrink-0 items-center justify-center rounded-full",
+                  )}
+                  title={categoryLabel}
+                  aria-label={`카테고리 ${categoryLabel}`}
+                >
+                  {renderMapPrimaryCategoryIcon(categoryLabel, "size-3 shrink-0 opacity-100")}
+                </span>
+                {tagLabel ? (
+                  <span className="text-muted-foreground text-[0.7rem] leading-none font-medium">
+                    {tagLabel}
+                  </span>
+                ) : null}
               </span>
             ) : null}
           </div>
@@ -144,4 +152,19 @@ export function SavedPlaceItem({
       ) : null}
     </article>
   );
+}
+
+function getPrimaryTagLabel(place: Pick<SavedPlace, "tagKeys" | "tagNames">): string {
+  const tagName = place.tagNames?.find((name) => name.trim().length > 0)?.trim();
+  if (tagName) {
+    return tagName;
+  }
+
+  const tagKey = place.tagKeys?.find((key) => key.trim().length > 0)?.trim();
+  if (!tagKey) {
+    return "";
+  }
+
+  const segments = tagKey.split(/[-_/]/).map((segment) => segment.trim());
+  return segments.at(-1) || tagKey;
 }

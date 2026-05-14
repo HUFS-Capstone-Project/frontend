@@ -174,6 +174,7 @@ export default function PlaceListPage() {
       category: place.category,
       categoryName: place.categoryName,
       tagKeys: place.tagKeys,
+      tagNames: place.tagNames,
       latitude: place.latitude,
       longitude: place.longitude,
       shareLinkUrl: place.shareLinkUrl,

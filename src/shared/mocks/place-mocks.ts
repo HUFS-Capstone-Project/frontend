@@ -5,13 +5,13 @@ export const MAP_HOME_TITLE = "친구 1님과의 데이트 지도";
 export const MAP_SEARCH_PLACEHOLDER = "저장해놓은 장소를 검색해보세요";
 
 export const MAP_INITIAL_CENTER: MapCoordinate = {
-  latitude: 36.3,
-  longitude: 127.8,
+  latitude: 35.85,
+  longitude: 127.65,
 };
 
 export const MAP_KOREA_BOUNDS: MapCoordinate[] = [
-  { latitude: 33.0, longitude: 124.5 },
-  { latitude: 38.9, longitude: 132.0 },
+  { latitude: 33.1, longitude: 125.65 },
+  { latitude: 38.1, longitude: 129.7 },
 ];
 
 const MOCK_TODAY_DAY = "화";

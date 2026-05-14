@@ -12,5 +12,6 @@ export const savedPlaces: SavedPlace[] = SAVED_PLACE_MOCKS.map((place) => ({
   address: place.address,
   category: place.category,
   tagKeys: place.tagKeys,
+  tagNames: place.tagNames,
   memo: MEMO_BY_PLACE_ID[place.id],
 }));
