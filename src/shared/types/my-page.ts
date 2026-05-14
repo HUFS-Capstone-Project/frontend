@@ -8,12 +8,20 @@ export type RecentPlace = {
 
 export type SavedPlace = {
   id: string;
+  roomPlaceId?: number | null;
+  roomId?: string | null;
+  roomName?: string | null;
+  kakaoPlaceId?: string | null;
   name: string;
   address: string;
   /** 지도·필터와 동일한 1차 카테고리 코드 */
   category: MapPrimaryCategory;
-  /** `SAVED_PLACE_MOCKS`와 같은 태그 코드 */
+  /** 화면 표시용 카테고리 이름 */
+  categoryName?: string | null;
+  /** 장소 taxonomy 태그 코드 */
   tagKeys?: string[];
+  latitude?: number;
+  longitude?: number;
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
   memo?: string;

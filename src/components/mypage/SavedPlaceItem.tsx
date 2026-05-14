@@ -53,12 +53,12 @@ export function SavedPlaceItem({
     sharePlace(place);
   }, [onToggleMenu, place]);
 
-  const categoryRaw = place.category.trim();
+  const categoryRaw = place.categoryName?.trim() || place.category.trim();
   const categoryLabel =
     categoryRaw.length === 0 ? "" : (categoryNameByCode?.[categoryRaw]?.trim() ?? categoryRaw);
 
   return (
-    <article className="border-border bg-card rounded-lg border px-3 py-3">
+    <article className="bg-card rounded-[1.15rem] px-3.5 py-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.045)]">
       <div className="flex items-start gap-2">
         <button
           type="button"

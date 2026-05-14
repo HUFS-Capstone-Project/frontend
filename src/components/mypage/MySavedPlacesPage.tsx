@@ -1,5 +1,6 @@
 ﻿import "@/components/map/filter-bar.css";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
@@ -14,10 +15,11 @@ import {
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
+import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
+import { useMyPlacesQuery, userPlaceToSavedPlace } from "@/features/users";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { SAVED_PLACE_BY_ID } from "@/shared/mocks/place-mocks";
-import { type SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
+import type { ServiceCategoryCode } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
@@ -29,9 +31,7 @@ const KakaoMapView = lazy(() =>
 );
 
 type MySavedPlacesPageProps = {
-  places: SavedPlace[];
   onBack: () => void;
-  onChangePlaces: (places: SavedPlace[]) => void;
   onSelectPlace: (place: SavedPlace) => void;
 };
 
@@ -39,12 +39,13 @@ function formatCount(count: number) {
   return count > 999 ? "999+" : String(count);
 }
 
-export function MySavedPlacesPage({
-  places,
-  onBack,
-  onChangePlaces,
-  onSelectPlace,
-}: MySavedPlacesPageProps) {
+function toApiCategory(category: string | undefined): ServiceCategoryCode | undefined {
+  if (category === "FOOD" || category === "CAFE" || category === "ACTIVITY") return category;
+  return undefined;
+}
+
+export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPageProps) {
+  const queryClient = useQueryClient();
   const {
     filterCategories,
     categories,
@@ -53,26 +54,6 @@ export function MySavedPlacesPage({
     isCategoryError,
     retryLoad,
   } = usePlaceFilterViewModel();
-
-  const mergedForFilter = useMemo(
-    (): MapSavedPlace[] =>
-      places.map((place) => {
-        const mock = SAVED_PLACE_BY_ID.get(place.id);
-        return {
-          id: place.id,
-          name: place.name,
-          address: place.address,
-          category: place.category,
-          tagKeys: place.tagKeys ?? mock?.tagKeys,
-          latitude: mock?.latitude ?? 0,
-          longitude: mock?.longitude ?? 0,
-          shareLinkUrl: mock?.shareLinkUrl,
-          businessHours:
-            "businessHours" in place ? (place.businessHours ?? null) : mock?.businessHours,
-        };
-      }),
-    [places],
-  );
 
   const {
     activeCategories,
@@ -84,22 +65,29 @@ export function MySavedPlacesPage({
     selectedTagCountByCategory,
     toggleTagInCategory,
     resetFocusedCategoryTags,
-    filteredPlaces,
   } = useMapSearchFilters({
-    places: mergedForFilter,
+    places: [],
     filterCategories,
     categoriesOnly: true,
   });
 
+  const selectedApiCategory = toApiCategory(activeCategories[0]);
+  const myPlacesQuery = useMyPlacesQuery({
+    params: {
+      category: selectedApiCategory,
+      page: 0,
+      size: 100,
+    },
+  });
+
+  const apiPlaces = useMemo(
+    () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
+    [myPlacesQuery.data?.items],
+  );
+
   const listPlaces = useMemo(() => {
-    const allow = new Set(filteredPlaces.map((place) => place.id));
-    return places
-      .filter((place) => allow.has(place.id))
-      .map((place) => ({
-        ...place,
-        shareLinkUrl: place.shareLinkUrl ?? SAVED_PLACE_BY_ID.get(place.id)?.shareLinkUrl,
-      }));
-  }, [filteredPlaces, places]);
+    return apiPlaces;
+  }, [apiPlaces]);
 
   const mapPins = useMemo(() => mapPlacesMatchingMySaved(listPlaces), [listPlaces]);
 
@@ -107,6 +95,38 @@ export function MySavedPlacesPage({
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
   const [pendingDeletePlaceId, setPendingDeletePlaceId] = useState<string | null>(null);
+
+  const invalidatePlaces = async (roomId?: string | null) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["user", "me", "places"] }),
+      roomId
+        ? queryClient.invalidateQueries({ queryKey: roomPlaceQueryKeys.room(roomId) })
+        : Promise.resolve(),
+    ]);
+  };
+
+  const updateMemoMutation = useMutation({
+    mutationFn: ({
+      roomId,
+      roomPlaceId,
+      memo,
+    }: {
+      roomId: string;
+      roomPlaceId: number;
+      memo: string;
+    }) => roomPlaceApi.updateMemo(roomId, roomPlaceId, { memo }),
+    onSuccess: async (_, variables) => {
+      await invalidatePlaces(variables.roomId);
+    },
+  });
+
+  const deletePlaceMutation = useMutation({
+    mutationFn: ({ roomId, roomPlaceId }: { roomId: string; roomPlaceId: number }) =>
+      roomPlaceApi.deleteRoomPlace(roomId, roomPlaceId),
+    onSuccess: async (_, variables) => {
+      await invalidatePlaces(variables.roomId);
+    },
+  });
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
@@ -126,7 +146,12 @@ export function MySavedPlacesPage({
   }, [mapPins, selectedPlaceId]);
 
   const emptyMessage =
-    places.length === 0 ? "나의 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
+    activeCategories.length === 0 ? "나의 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
+  const statusMessage = myPlacesQuery.isError
+    ? "나의 장소를 불러오지 못했습니다."
+    : myPlacesQuery.isLoading
+      ? "나의 장소를 불러오는 중입니다."
+      : emptyMessage;
 
   const handleStartMemo = (place: SavedPlace) => {
     setOpenMenuId(null);
@@ -139,23 +164,42 @@ export function MySavedPlacesPage({
       return;
     }
 
+    const target = listPlaces.find((place) => place.id === editingPlaceId);
+    if (!target?.roomId || target.roomPlaceId == null) {
+      return;
+    }
+
     const nextMemo = memoDraft.trim();
-    onChangePlaces(
-      places.map((place) =>
-        place.id === editingPlaceId ? { ...place, memo: nextMemo || undefined } : place,
-      ),
+    updateMemoMutation.mutate(
+      { roomId: target.roomId, roomPlaceId: target.roomPlaceId, memo: nextMemo },
+      {
+        onSuccess: () => {
+          setEditingPlaceId(null);
+          setMemoDraft("");
+        },
+      },
     );
-    setEditingPlaceId(null);
-    setMemoDraft("");
   };
 
   const handleDeletePlace = (id: string) => {
-    onChangePlaces(places.filter((place) => place.id !== id));
+    const target = listPlaces.find((place) => place.id === id);
     setOpenMenuId(null);
-    if (editingPlaceId === id) {
-      setEditingPlaceId(null);
-      setMemoDraft("");
+
+    if (!target?.roomId || target.roomPlaceId == null) {
+      return;
     }
+
+    deletePlaceMutation.mutate(
+      { roomId: target.roomId, roomPlaceId: target.roomPlaceId },
+      {
+        onSuccess: () => {
+          if (editingPlaceId === id) {
+            setEditingPlaceId(null);
+            setMemoDraft("");
+          }
+        },
+      },
+    );
   };
 
   const handleRequestDeletePlace = (id: string) => {
@@ -181,9 +225,9 @@ export function MySavedPlacesPage({
   };
 
   const displayedCountLabel =
-    listPlaces.length === places.length
-      ? `${formatCount(places.length)}개`
-      : `${formatCount(listPlaces.length)}개 · 전체 ${formatCount(places.length)}`;
+    myPlacesQuery.data != null
+      ? `${formatCount(myPlacesQuery.data.totalElements)}개`
+      : `${formatCount(listPlaces.length)}개`;
 
   return (
     <div
@@ -240,11 +284,11 @@ export function MySavedPlacesPage({
 
       {!detailOpen ? (
         <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
-          {listPlaces.length > 0 ? (
-            <div className="space-y-2 pb-2">
+          {!myPlacesQuery.isLoading && !myPlacesQuery.isError && listPlaces.length > 0 ? (
+            <div className="space-y-3 pb-2">
               {listPlaces.map((place) => (
                 <SavedPlaceItem
-                  key={place.id}
+                  key={place.roomPlaceId ?? place.id}
                   place={place}
                   categoryNameByCode={categoryNameByCode}
                   isMenuOpen={openMenuId === place.id}
@@ -263,7 +307,7 @@ export function MySavedPlacesPage({
           ) : (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
-              message={emptyMessage}
+              message={statusMessage}
             />
           )}
         </div>

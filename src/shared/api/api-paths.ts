@@ -12,6 +12,7 @@ export const API_PATHS = {
   users: {
     me: "/v1/users/me",
     nickname: "/v1/users/me/nickname",
+    places: "/v1/users/me/places",
     onboarding: "/v1/users/me/onboarding",
   },
   rooms: {

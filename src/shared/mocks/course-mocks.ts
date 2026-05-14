@@ -104,7 +104,7 @@ export const savedCourses: SavedCourse[] = [
   {
     id: "course-1",
     title: "외대앞 점심 코스",
-    executedAtLabel: "2일 전 실행한 코스",
+    executedAtLabel: "2일 전 생성한 코스",
     badgeLabel: "친구",
     stops: [
       {
@@ -133,7 +133,7 @@ export const savedCourses: SavedCourse[] = [
   {
     id: "course-2",
     title: "회기역 저녁 코스",
-    executedAtLabel: "7일 전 실행한 코스",
+    executedAtLabel: "7일 전 생성한 코스",
     badgeLabel: "하트",
     stops: [
       {
@@ -162,7 +162,7 @@ export const savedCourses: SavedCourse[] = [
   {
     id: "course-3",
     title: "이문동 가벼운 데이트",
-    executedAtLabel: "03.08 실행한 코스",
+    executedAtLabel: "03.08 생성한 코스",
     badgeLabel: "하트",
     stops: [
       {

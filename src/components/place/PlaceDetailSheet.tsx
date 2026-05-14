@@ -17,7 +17,7 @@ import { roomPlaceToSavedPlace, useRoomPlace } from "@/features/room-places";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { sharePlace } from "@/shared/lib/share-place";
-import { SAVED_PLACE_BY_ID, SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -31,8 +31,8 @@ type DetailSavedPlace = MySavedPlace &
 type PlaceDetailSheetProps = {
   roomId?: string | null;
   savedPlaces?: DetailSavedPlace[];
-  onSaveMemo?: (placeId: string, memo: string) => void;
-  onDeletePlace?: (placeId: string) => void;
+  onSaveMemo?: (placeId: string, memo: string) => void | Promise<void>;
+  onDeletePlace?: (placeId: string) => void | Promise<void>;
 };
 
 export function PlaceDetailSheet({
@@ -60,9 +60,14 @@ export function PlaceDetailSheet({
     const parsed = Number(selectedPlaceId);
     return Number.isInteger(parsed) ? parsed : null;
   }, [selectedPlaceId]);
-  const shouldFetchRoomPlaceDetail = savedPlaces == null && roomId != null;
+  const selectedSavedPlace = useMemo(
+    () => savedPlaces?.find((item) => item.id === selectedPlaceId) ?? null,
+    [savedPlaces, selectedPlaceId],
+  );
+  const effectiveRoomId = roomId ?? selectedSavedPlace?.roomId ?? null;
+  const shouldFetchRoomPlaceDetail = effectiveRoomId != null && selectedRoomPlaceId != null;
   const roomPlaceDetailQuery = useRoomPlace({
-    roomId,
+    roomId: effectiveRoomId,
     roomPlaceId: selectedRoomPlaceId,
     enabled: isOpen && shouldFetchRoomPlaceDetail,
     queryOptions: {
@@ -89,40 +94,36 @@ export function PlaceDetailSheet({
     const localRemoved = new Set(localRemovedPlaceIds);
     let sourcePlaces: MapSavedPlace[];
 
-    if (savedPlaces) {
+    if (roomPlaceDetailQuery.data) {
+      sourcePlaces = [
+        {
+          ...roomPlaceToSavedPlace(roomPlaceDetailQuery.data),
+          memo:
+            localMemos[String(roomPlaceDetailQuery.data.roomPlaceId)] ??
+            roomPlaceDetailQuery.data.memo ??
+            undefined,
+        },
+      ].filter((place) => !localRemoved.has(place.id));
+    } else if (savedPlaces) {
       sourcePlaces = savedPlaces
         .filter((place) => !localRemoved.has(place.id))
         .map((place) => {
-          const mock = SAVED_PLACE_BY_ID.get(place.id);
           return {
             id: place.id,
             name: place.name,
             category: place.category,
             categoryName: place.categoryName,
-            tagKeys: place.tagKeys ?? mock?.tagKeys,
-            latitude: place.latitude ?? mock?.latitude ?? 0,
-            longitude: place.longitude ?? mock?.longitude ?? 0,
+            tagKeys: place.tagKeys,
+            latitude: place.latitude ?? 0,
+            longitude: place.longitude ?? 0,
             address: place.address,
-            shareLinkUrl: place.shareLinkUrl ?? mock?.shareLinkUrl ?? null,
+            shareLinkUrl: place.shareLinkUrl ?? null,
             memo: place.memo ?? localMemos[place.id],
-            businessHours:
-              "businessHours" in place
-                ? (place.businessHours ?? null)
-                : (mock?.businessHours ?? null),
+            businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
           };
         });
     } else if (shouldFetchRoomPlaceDetail) {
-      sourcePlaces = roomPlaceDetailQuery.data
-        ? [
-            {
-              ...roomPlaceToSavedPlace(roomPlaceDetailQuery.data),
-              memo:
-                localMemos[String(roomPlaceDetailQuery.data.roomPlaceId)] ??
-                roomPlaceDetailQuery.data.memo ??
-                undefined,
-            },
-          ].filter((place) => !localRemoved.has(place.id))
-        : [];
+      sourcePlaces = [];
     } else {
       sourcePlaces = SAVED_PLACE_MOCKS.filter((place) => !localRemoved.has(place.id)).map(
         (place) => ({

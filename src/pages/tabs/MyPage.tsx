@@ -1,5 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
@@ -12,12 +13,17 @@ import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
-import { useUpdateNicknameMutation, useUserMeQuery } from "@/features/users";
+import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
+import {
+  useMyPlacesQuery,
+  userPlaceToSavedPlace,
+  useUpdateNicknameMutation,
+  useUserMeQuery,
+} from "@/features/users";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
-import { savedPlaces as initialSavedPlaces } from "@/shared/mocks/my-page-mocks";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { useAuthStore } from "@/store/auth-store";
@@ -38,7 +44,13 @@ const MY_PAGE_FADE_TRANSITION = {
   ease: "easeOut" as const,
 };
 
+const MY_PAGE_PLACES_QUERY_PARAMS = {
+  page: 0,
+  size: 100,
+} as const;
+
 export default function MyPage() {
+  const queryClient = useQueryClient();
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
   const { handleLogout } = useLogout();
@@ -56,15 +68,47 @@ export default function MyPage() {
     kind: "closed",
   });
   const [coursesList, setCoursesList] = useState<SavedCourse[]>(() => [...seedSavedCourses]);
-  const [places, setPlaces] = useState<SavedPlace[]>(initialSavedPlaces);
+  const [places, setPlaces] = useState<SavedPlace[]>([]);
+  const myPlacesQuery = useMyPlacesQuery({ params: MY_PAGE_PLACES_QUERY_PARAMS });
+  const apiPlaces = useMemo(
+    () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
+    [myPlacesQuery.data?.items],
+  );
 
   const openPlaceDetail = usePlaceDetailStore((s) => s.openDetail);
   const closePlaceDetail = usePlaceDetailStore((s) => s.closeDetail);
 
   usePlaceDetailOpenEvent(view === "places" || view === "courses");
 
-  const handleSavePlaceMemo = (placeId: string, memo: string) => {
+  useEffect(() => {
+    if (myPlacesQuery.data) {
+      queueMicrotask(() => setPlaces(apiPlaces));
+    }
+  }, [apiPlaces, myPlacesQuery.data]);
+
+  const invalidateMyPlaces = async (roomId?: string | null) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["user", "me", "places"] }),
+      roomId
+        ? queryClient.invalidateQueries({ queryKey: roomPlaceQueryKeys.room(roomId) })
+        : Promise.resolve(),
+    ]);
+  };
+
+  const handleSavePlaceMemo = async (placeId: string, memo: string) => {
     const nextMemo = memo.trim();
+    const target = places.find((place) => place.id === placeId);
+
+    if (target?.roomId && target.roomPlaceId != null) {
+      try {
+        await roomPlaceApi.updateMemo(target.roomId, target.roomPlaceId, { memo: nextMemo });
+        await invalidateMyPlaces(target.roomId);
+      } catch (error) {
+        console.error("Failed to update saved place memo", error);
+        return;
+      }
+    }
+
     setPlaces((currentPlaces) =>
       currentPlaces.map((place) =>
         place.id === placeId ? { ...place, memo: nextMemo || undefined } : place,
@@ -72,7 +116,19 @@ export default function MyPage() {
     );
   };
 
-  const handleDeletePlace = (placeId: string) => {
+  const handleDeletePlace = async (placeId: string) => {
+    const target = places.find((place) => place.id === placeId);
+
+    if (target?.roomId && target.roomPlaceId != null) {
+      try {
+        await roomPlaceApi.deleteRoomPlace(target.roomId, target.roomPlaceId);
+        await invalidateMyPlaces(target.roomId);
+      } catch (error) {
+        console.error("Failed to delete saved place", error);
+        return;
+      }
+    }
+
     setPlaces((currentPlaces) => currentPlaces.filter((place) => place.id !== placeId));
     closePlaceDetail();
   };
@@ -115,13 +171,18 @@ export default function MyPage() {
             transition={MY_PAGE_FADE_TRANSITION}
           >
             <MySavedPlacesPage
-              places={places}
               onBack={() => {
                 closePlaceDetail();
                 setView("main");
               }}
-              onChangePlaces={setPlaces}
-              onSelectPlace={(place) => openPlaceDetail(place.id)}
+              onSelectPlace={(place) => {
+                setPlaces((currentPlaces) =>
+                  currentPlaces.some((item) => item.id === place.id)
+                    ? currentPlaces
+                    : [place, ...currentPlaces],
+                );
+                openPlaceDetail(place.id);
+              }}
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
               <BottomNavToast message={toastMessage} placement={toastPlacement} />
@@ -165,11 +226,7 @@ export default function MyPage() {
                 className="border-border/40 bg-card"
               />
             </div>
-            <PlaceDetailSheet
-              savedPlaces={places}
-              onSaveMemo={handleSavePlaceMemo}
-              onDeletePlace={handleDeletePlace}
-            />
+            <PlaceDetailSheet />
           </motion.div>
         ) : view === "profile" ? (
           <motion.div
