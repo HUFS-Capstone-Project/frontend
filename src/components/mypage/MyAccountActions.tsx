@@ -1,25 +1,29 @@
-﻿type MyAccountActionsProps = {
+import { ChevronRight } from "lucide-react";
+
+type MyAccountActionsProps = {
   onLogout?: () => void;
   onWithdraw?: () => void;
 };
 
 export function MyAccountActions({ onLogout, onWithdraw }: MyAccountActionsProps) {
   return (
-    <div className="mt-6 flex justify-center gap-2 pb-4">
+    <section className="bg-card border-border/40 mt-4 overflow-hidden rounded-[1.4rem] border shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
       <button
         type="button"
         onClick={onLogout}
-        className="border-border bg-card text-secondary-foreground active:bg-muted/50 h-8 rounded-md border px-4 text-xs font-medium transition-colors"
+        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-sm font-medium transition-colors"
       >
-        로그아웃
+        <span className="text-secondary-foreground">로그아웃</span>
+        <ChevronRight className="text-muted-foreground/45 size-4" aria-hidden />
       </button>
       <button
         type="button"
         onClick={onWithdraw}
-        className="border-border bg-card text-secondary-foreground active:bg-muted/50 h-8 rounded-md border px-4 text-xs font-medium transition-colors"
+        className="active:bg-muted/50 flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-sm font-medium transition-colors"
       >
-        회원탈퇴
+        <span className="text-secondary-foreground">회원탈퇴</span>
+        <ChevronRight className="text-muted-foreground/45 size-4" aria-hidden />
       </button>
-    </div>
+    </section>
   );
 }

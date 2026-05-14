@@ -1,7 +1,16 @@
 import { AlertCircle, ArrowLeft, Check, ChevronDown, Pin, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
-import { LIST_TOP_BAR_AFTER_TITLE_CLASS } from "@/components/common/ListTopBar";
+import {
+  LIST_TOP_BAR_AFTER_TITLE_CLASS,
+  LIST_TOP_BAR_BACK_BUTTON_CLASS,
+  LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
+  LIST_TOP_BAR_ROOT_BASE_CLASS,
+  LIST_TOP_BAR_ROW_CLASS,
+  LIST_TOP_BAR_STICKY_CLASS,
+  LIST_TOP_BAR_TITLE_CLASS,
+  LIST_TOP_BAR_TRAILING_CLASS,
+} from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
@@ -187,8 +196,8 @@ export function MySavedCoursesPage({
   };
 
   const headerBackdrop = overlayMapOpen
-    ? "border-border/55 bg-background/93 supports-backdrop-filter:bg-background/82 border-b shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
-    : "bg-background sticky top-0";
+    ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS
+    : LIST_TOP_BAR_STICKY_CLASS;
 
   return (
     <div
@@ -210,17 +219,12 @@ export function MySavedCoursesPage({
         </MapBackdropLayer>
       ) : null}
 
-      <header
-        className={cn(
-          "relative z-20 shrink-0 pt-[max(1rem,env(safe-area-inset-top))]",
-          headerBackdrop,
-        )}
-      >
-        <div className="grid h-12 grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center px-5">
+      <header className={cn(LIST_TOP_BAR_ROOT_BASE_CLASS, headerBackdrop)}>
+        <div className={LIST_TOP_BAR_ROW_CLASS}>
           <button
             type="button"
             onClick={handleHeaderBack}
-            className="touch-target-min -ml-3 flex items-center justify-center justify-self-start rounded-full"
+            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
           >
             <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">
@@ -231,10 +235,8 @@ export function MySavedCoursesPage({
                   : "마이페이지로 돌아가기"}
             </span>
           </button>
-          <h1 className="text-foreground min-w-0 truncate text-center text-base leading-tight font-semibold tracking-tight">
-            저장된 데이트 코스
-          </h1>
-          <span className="text-muted-foreground w-14 justify-self-end truncate text-right text-xs font-semibold">
+          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>저장된 데이트 코스</h1>
+          <span className={LIST_TOP_BAR_TRAILING_CLASS}>
             총 {formatCount(visibleCourses.length)}개
           </span>
         </div>

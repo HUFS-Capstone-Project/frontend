@@ -7,7 +7,16 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
-import { LIST_TOP_BAR_AFTER_TITLE_CLASS } from "@/components/common/ListTopBar";
+import {
+  LIST_TOP_BAR_AFTER_TITLE_CLASS,
+  LIST_TOP_BAR_BACK_BUTTON_CLASS,
+  LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS,
+  LIST_TOP_BAR_ROOT_BASE_CLASS,
+  LIST_TOP_BAR_ROW_CLASS,
+  LIST_TOP_BAR_STICKY_CLASS,
+  LIST_TOP_BAR_TITLE_CLASS,
+  LIST_TOP_BAR_TRAILING_CLASS,
+} from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
@@ -367,29 +376,23 @@ export default function PlaceListPage() {
 
       <header
         className={cn(
-          "relative z-20 shrink-0 pt-[max(1rem,env(safe-area-inset-top))]",
-          detailOpen
-            ? "border-border/55 bg-background/93 supports-backdrop-filter:bg-background/82 border-b shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150"
-            : "bg-background sticky top-0",
+          LIST_TOP_BAR_ROOT_BASE_CLASS,
+          detailOpen ? LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS : LIST_TOP_BAR_STICKY_CLASS,
         )}
       >
-        <div className="flex h-12 items-center px-5">
+        <div className={LIST_TOP_BAR_ROW_CLASS}>
           <button
             type="button"
             onClick={handleHeaderBack}
-            className="touch-target-min -ml-3 flex items-center justify-center rounded-full"
+            className={LIST_TOP_BAR_BACK_BUTTON_CLASS}
           >
             <ArrowLeft className="text-foreground size-5" aria-hidden />
             <span className="sr-only">
               {detailOpen ? "장소 상세 닫기" : "지도 화면으로 돌아가기"}
             </span>
           </button>
-          <h1 className="text-foreground min-w-0 flex-1 truncate text-center text-base leading-tight font-semibold tracking-tight">
-            {pageTitle}
-          </h1>
-          <span className="text-muted-foreground max-w-[48%] shrink-0 truncate text-right text-xs font-semibold">
-            {displayedCountLabel}
-          </span>
+          <h1 className={LIST_TOP_BAR_TITLE_CLASS}>{pageTitle}</h1>
+          <span className={LIST_TOP_BAR_TRAILING_CLASS}>{displayedCountLabel}</span>
         </div>
 
         {!detailOpen ? (

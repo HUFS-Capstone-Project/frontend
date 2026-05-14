@@ -9,4 +9,9 @@ export const usersApi = {
     const res = await api.get<CommonResponse<UserMeResponse>>(API_PATHS.users.me);
     return normalizeUserMe(res.data.data);
   },
+
+  updateNickname: async (payload: { nickname: string }): Promise<UserMe> => {
+    const res = await api.patch<CommonResponse<UserMeResponse>>(API_PATHS.users.nickname, payload);
+    return normalizeUserMe(res.data.data);
+  },
 };

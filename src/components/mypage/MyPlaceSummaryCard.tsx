@@ -23,7 +23,12 @@ export function MyPlaceSummaryCard({
   const hasPlaces = totalCount > 0;
 
   return (
-    <section className={cn("border-border bg-card rounded-xl border px-4 py-4", className)}>
+    <section
+      className={cn(
+        "bg-card border-border/40 rounded-[1.4rem] border px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]",
+        className,
+      )}
+    >
       <button
         type="button"
         onClick={onOpenPlaces}

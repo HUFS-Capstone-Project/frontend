@@ -22,7 +22,7 @@ export function SavedCourseSection({
   const hasCourses = courses.length > 0;
 
   return (
-    <section className="mt-6">
+    <section className="bg-card border-border/40 mt-4 rounded-[1.4rem] border px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
       <div className={cn("flex items-center gap-3", hasCourses && "justify-between")}>
         <h2 className="text-foreground min-w-0 shrink text-base font-semibold tracking-tight">
           저장된 데이트 코스

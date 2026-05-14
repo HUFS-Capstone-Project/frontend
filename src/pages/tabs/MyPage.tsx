@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
@@ -5,14 +6,16 @@ import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { MyAccountActions } from "@/components/mypage/MyAccountActions";
 import { MyPlaceSummaryCard } from "@/components/mypage/MyPlaceSummaryCard";
 import { MyProfileHeader } from "@/components/mypage/MyProfileHeader";
+import { MyProfileInfoPage } from "@/components/mypage/MyProfileInfoPage";
 import { MySavedCoursesPage } from "@/components/mypage/MySavedCoursesPage";
 import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
-import { useUserMeQuery } from "@/features/users";
+import { useUpdateNicknameMutation, useUserMeQuery } from "@/features/users";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
+import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
 import { savedPlaces as initialSavedPlaces } from "@/shared/mocks/my-page-mocks";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
@@ -20,20 +23,33 @@ import type { SavedPlace } from "@/shared/types/my-page";
 import { useAuthStore } from "@/store/auth-store";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
-type MyPageView = "main" | "places" | "courses";
+type MyPageView = "main" | "profile" | "places" | "courses";
 
 type SavedCourseSheetState = { kind: "closed" } | { kind: "detail"; course: SavedCourse };
+
+const MY_PAGE_FADE_VARIANT = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+} as const;
+
+const MY_PAGE_FADE_TRANSITION = {
+  duration: SHELL_CONTENT_FADE_SECONDS,
+  ease: "easeOut" as const,
+};
 
 export default function MyPage() {
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
   const { handleLogout } = useLogout();
+  const updateNicknameMutation = useUpdateNicknameMutation();
   const nicknameFromAuth = useAuthStore((s) => s.nickname);
   const { data: me } = useUserMeQuery();
   const profileNickname =
     me?.nickname?.trim() ?? (nicknameFromAuth?.trim().length ? nicknameFromAuth.trim() : "");
   const displayNickname = profileNickname.length > 0 ? profileNickname : "회원";
   const profileImageUrl = me?.profileImageUrl ?? null;
+  const email = me?.email ?? null;
 
   const [view, setView] = useState<MyPageView>("main");
   const [savedCourseSheet, setSavedCourseSheet] = useState<SavedCourseSheetState>({
@@ -59,6 +75,10 @@ export default function MyPage() {
   const handleDeletePlace = (placeId: string) => {
     setPlaces((currentPlaces) => currentPlaces.filter((place) => place.id !== placeId));
     closePlaceDetail();
+  };
+
+  const handleUpdateNickname = async (nickname: string) => {
+    await updateNicknameMutation.mutateAsync({ nickname });
   };
 
   const handleSavedCoursePersist = (prevCourseId: string, payload: CourseSavePayload) => {
@@ -98,7 +118,11 @@ export default function MyPage() {
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
-          <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
+          <BottomNavigationBar
+            activeId="mypage"
+            onSelect={handleSelectBottomNav}
+            className="border-border/40 bg-card"
+          />
         </div>
         <PlaceDetailSheet
           savedPlaces={places}
@@ -127,7 +151,11 @@ export default function MyPage() {
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
-          <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
+          <BottomNavigationBar
+            activeId="mypage"
+            onSelect={handleSelectBottomNav}
+            className="border-border/40 bg-card"
+          />
         </div>
         <PlaceDetailSheet
           savedPlaces={places}
@@ -140,45 +168,84 @@ export default function MyPage() {
 
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
-        <MyProfileHeader nickname={displayNickname} profileImageUrl={profileImageUrl} />
+      <AnimatePresence mode="wait" initial={false}>
+        {view === "profile" ? (
+          <motion.div
+            key="profile"
+            className="flex min-h-0 flex-1 flex-col"
+            {...MY_PAGE_FADE_VARIANT}
+            transition={MY_PAGE_FADE_TRANSITION}
+          >
+            <MyProfileInfoPage
+              nickname={displayNickname}
+              email={email}
+              profileImageUrl={profileImageUrl}
+              isUpdatingNickname={updateNicknameMutation.isPending}
+              onBack={() => setView("main")}
+              onUpdateNickname={handleUpdateNickname}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="main"
+            className="relative flex min-h-0 flex-1 flex-col"
+            {...MY_PAGE_FADE_VARIANT}
+            transition={MY_PAGE_FADE_TRANSITION}
+          >
+            <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto px-4 pt-[max(1rem,calc(env(safe-area-inset-top)+0.75rem))] pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+              <div className="mx-auto max-w-md">
+                <MyProfileHeader
+                  nickname={displayNickname}
+                  profileImageUrl={profileImageUrl}
+                  onOpenProfile={() => setView("profile")}
+                />
 
-        <div className="px-5 pt-5">
-          <MyPlaceSummaryCard
-            totalCount={places.length}
-            recentPlaces={places.slice(0, 2).map((place) => ({ id: place.id, name: place.name }))}
-            onOpenPlaces={() => {
-              closePlaceDetail();
-              setView("places");
-            }}
-          />
+                <div className="pt-3">
+                  <MyPlaceSummaryCard
+                    totalCount={places.length}
+                    recentPlaces={places
+                      .slice(0, 2)
+                      .map((place) => ({ id: place.id, name: place.name }))}
+                    onOpenPlaces={() => {
+                      closePlaceDetail();
+                      setView("places");
+                    }}
+                  />
 
-          <SavedCourseSection
-            courses={coursesList}
-            onOpenFullList={() => {
-              setSavedCourseSheet({ kind: "closed" });
-              setView("courses");
-            }}
-            onSelectCourse={(course) => {
-              setSavedCourseSheet({ kind: "detail", course });
-              setView("courses");
-            }}
-          />
+                  <SavedCourseSection
+                    courses={coursesList}
+                    onOpenFullList={() => {
+                      setSavedCourseSheet({ kind: "closed" });
+                      setView("courses");
+                    }}
+                    onSelectCourse={(course) => {
+                      setSavedCourseSheet({ kind: "detail", course });
+                      setView("courses");
+                    }}
+                  />
 
-          <MyAccountActions onLogout={() => void handleLogout()} />
-        </div>
-      </main>
+                  <MyAccountActions onLogout={() => void handleLogout()} />
+                </div>
+              </div>
+            </main>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
-        <BottomNavToast message={toastMessage} placement={toastPlacement} />
-        <BottomNavigationBar activeId="mypage" onSelect={handleSelectBottomNav} />
-      </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+              <BottomNavToast message={toastMessage} placement={toastPlacement} />
+              <BottomNavigationBar
+                activeId="mypage"
+                onSelect={handleSelectBottomNav}
+                className="border-border/40 bg-card"
+              />
+            </div>
 
-      <PlaceDetailSheet
-        savedPlaces={places}
-        onSaveMemo={handleSavePlaceMemo}
-        onDeletePlace={handleDeletePlace}
-      />
+            <PlaceDetailSheet
+              savedPlaces={places}
+              onSaveMemo={handleSavePlaceMemo}
+              onDeletePlace={handleDeletePlace}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
