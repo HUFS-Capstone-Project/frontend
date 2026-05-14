@@ -17,6 +17,7 @@ export type KakaoMapViewProps = {
   places: SavedPlace[];
   center: MapCoordinate;
   fitBoundsPlaces?: SavedPlace[];
+  fitBoundsCoordinates?: MapCoordinate[];
   geocodeKeyword?: string;
   viewportKey?: string;
   level?: number;
@@ -45,6 +46,7 @@ export function KakaoMapView({
   places,
   center,
   fitBoundsPlaces = [],
+  fitBoundsCoordinates = [],
   geocodeKeyword = "",
   viewportKey = "initial",
   level = 4,
@@ -178,10 +180,13 @@ export function KakaoMapView({
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
 
-    if (fitBoundsPlaces.length > 1) {
+    const fitBoundsTargets =
+      fitBoundsCoordinates.length > 0 ? fitBoundsCoordinates : fitBoundsPlaces;
+
+    if (fitBoundsTargets.length > 1) {
       const bounds = new maps.LatLngBounds();
-      fitBoundsPlaces.forEach((place) => {
-        bounds.extend(new maps.LatLng(place.latitude, place.longitude));
+      fitBoundsTargets.forEach((coordinate) => {
+        bounds.extend(new maps.LatLng(coordinate.latitude, coordinate.longitude));
       });
       mapInstance.setBounds(
         bounds,
@@ -193,10 +198,10 @@ export function KakaoMapView({
       return;
     }
 
-    if (fitBoundsPlaces.length === 1) {
-      const [place] = fitBoundsPlaces;
+    if (fitBoundsTargets.length === 1) {
+      const [coordinate] = fitBoundsTargets;
       mapInstance.setLevel(level);
-      const position = new maps.LatLng(place.latitude, place.longitude);
+      const position = new maps.LatLng(coordinate.latitude, coordinate.longitude);
       if (viewportKey.startsWith("pan-")) {
         mapInstance.panTo(position);
       } else {
@@ -284,6 +289,7 @@ export function KakaoMapView({
   }, [
     center.latitude,
     center.longitude,
+    fitBoundsCoordinates,
     fitBoundsPlaces,
     geocodeKeyword,
     level,
