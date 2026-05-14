@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, User } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -14,6 +15,7 @@ import {
   OnboardingTitle,
 } from "@/features/onboarding";
 import { isApiError } from "@/shared/api/axios";
+import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 
 type MyProfileInfoPageProps = {
   nickname: string;
@@ -25,6 +27,15 @@ type MyProfileInfoPageProps = {
 };
 
 const PROFILE_PAGE_CONTENT_PADDING_CLASS = "px-4 pb-[max(1rem,env(safe-area-inset-bottom))]";
+const PROFILE_PAGE_FADE_VARIANT = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+} as const;
+const PROFILE_PAGE_FADE_TRANSITION = {
+  duration: SHELL_CONTENT_FADE_SECONDS,
+  ease: "easeOut" as const,
+};
 
 export function MyProfileInfoPage({
   nickname,
@@ -89,62 +100,60 @@ export function MyProfileInfoPage({
     }
   };
 
-  if (view === "edit-name") {
-    return (
-      <OnboardingLayout className={`relative ${PROFILE_PAGE_CONTENT_PADDING_CLASS}`}>
-        <ListTopBar
-          variant="plain"
-          title={null}
-          trailing={null}
-          backLabel="내 정보로 돌아가기"
-          onBack={handleBackToInfo}
-          className="pointer-events-none absolute inset-x-0 top-0 z-10"
-          backButtonClassName="pointer-events-auto"
-        />
+  const editNameView = (
+    <OnboardingLayout className={`relative ${PROFILE_PAGE_CONTENT_PADDING_CLASS}`}>
+      <ListTopBar
+        variant="plain"
+        title={null}
+        trailing={null}
+        backLabel="내 정보로 돌아가기"
+        onBack={handleBackToInfo}
+        className="pointer-events-none absolute inset-x-0 top-0 z-10"
+        backButtonClassName="pointer-events-auto"
+      />
 
-        <form
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!canSubmitNickname || isUpdatingNickname) return;
-            void handleSubmitNickname();
-          }}
-        >
-          <OnboardingContent className={onboardingContentClassName.nickname}>
-            <OnboardingTitle firstLineRest="에서 사용할" secondLine="닉네임을 변경해 주세요" />
-            <NicknameInputSection
-              label="닉네임"
-              value={draftNickname}
-              onChange={(nextValue) => {
-                setDraftNickname(nextValue);
-                if (nicknameError) setNicknameError(null);
-              }}
-              onClear={() => {
-                setDraftNickname("");
-                if (nicknameError) setNicknameError(null);
-              }}
-              maxLength={NICKNAME_MAX_LENGTH}
-              autoFocus
+      <form
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!canSubmitNickname || isUpdatingNickname) return;
+          void handleSubmitNickname();
+        }}
+      >
+        <OnboardingContent className={onboardingContentClassName.nickname}>
+          <OnboardingTitle firstLineRest="에서 사용할" secondLine="닉네임을 변경해 주세요" />
+          <NicknameInputSection
+            label="닉네임"
+            value={draftNickname}
+            onChange={(nextValue) => {
+              setDraftNickname(nextValue);
+              if (nicknameError) setNicknameError(null);
+            }}
+            onClear={() => {
+              setDraftNickname("");
+              if (nicknameError) setNicknameError(null);
+            }}
+            maxLength={NICKNAME_MAX_LENGTH}
+            autoFocus
+          />
+
+          <div className="min-h-5">
+            {nicknameError ? <p className="text-destructive text-sm">{nicknameError}</p> : null}
+          </div>
+
+          <OnboardingFooter>
+            <OnboardingButton
+              type="submit"
+              active={canSubmitNickname && !isUpdatingNickname}
+              disabled={!canSubmitNickname || isUpdatingNickname}
             />
+          </OnboardingFooter>
+        </OnboardingContent>
+      </form>
+    </OnboardingLayout>
+  );
 
-            <div className="min-h-5">
-              {nicknameError ? <p className="text-destructive text-sm">{nicknameError}</p> : null}
-            </div>
-
-            <OnboardingFooter>
-              <OnboardingButton
-                type="submit"
-                active={canSubmitNickname && !isUpdatingNickname}
-                disabled={!canSubmitNickname || isUpdatingNickname}
-              />
-            </OnboardingFooter>
-          </OnboardingContent>
-        </form>
-      </OnboardingLayout>
-    );
-  }
-
-  return (
+  const infoView = (
     <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto">
       <ListTopBar
         title={`${nickname}님의 정보`}
@@ -194,5 +203,18 @@ export function MyProfileInfoPage({
         </div>
       </div>
     </main>
+  );
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={view}
+        className="flex min-h-0 flex-1 flex-col"
+        {...PROFILE_PAGE_FADE_VARIANT}
+        transition={PROFILE_PAGE_FADE_TRANSITION}
+      >
+        {view === "edit-name" ? editNameView : infoView}
+      </motion.div>
+    </AnimatePresence>
   );
 }

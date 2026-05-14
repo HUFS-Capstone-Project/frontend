@@ -104,72 +104,74 @@ export default function MyPage() {
     }
   };
 
-  if (view === "places") {
-    return (
-      <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <MySavedPlacesPage
-          places={places}
-          onBack={() => {
-            closePlaceDetail();
-            setView("main");
-          }}
-          onChangePlaces={setPlaces}
-          onSelectPlace={(place) => openPlaceDetail(place.id)}
-        />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
-          <BottomNavToast message={toastMessage} placement={toastPlacement} />
-          <BottomNavigationBar
-            activeId="mypage"
-            onSelect={handleSelectBottomNav}
-            className="border-border/40 bg-card"
-          />
-        </div>
-        <PlaceDetailSheet
-          savedPlaces={places}
-          onSaveMemo={handleSavePlaceMemo}
-          onDeletePlace={handleDeletePlace}
-        />
-      </div>
-    );
-  }
-
-  if (view === "courses") {
-    return (
-      <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <MySavedCoursesPage
-          courses={coursesList}
-          savedPlaces={places}
-          selectedCourse={savedCourseSheet.kind === "detail" ? savedCourseSheet.course : null}
-          onSelectCourse={(course) => setSavedCourseSheet({ kind: "detail", course })}
-          onCloseCourseSheet={() => setSavedCourseSheet({ kind: "closed" })}
-          onBack={() => {
-            closePlaceDetail();
-            setSavedCourseSheet({ kind: "closed" });
-            setView("main");
-          }}
-          onPersistCourse={handleSavedCoursePersist}
-        />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
-          <BottomNavToast message={toastMessage} placement={toastPlacement} />
-          <BottomNavigationBar
-            activeId="mypage"
-            onSelect={handleSelectBottomNav}
-            className="border-border/40 bg-card"
-          />
-        </div>
-        <PlaceDetailSheet
-          savedPlaces={places}
-          onSaveMemo={handleSavePlaceMemo}
-          onDeletePlace={handleDeletePlace}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
-        {view === "profile" ? (
+        {view === "places" ? (
+          <motion.div
+            key="places"
+            className="relative flex min-h-0 flex-1 flex-col"
+            {...MY_PAGE_FADE_VARIANT}
+            transition={MY_PAGE_FADE_TRANSITION}
+          >
+            <MySavedPlacesPage
+              places={places}
+              onBack={() => {
+                closePlaceDetail();
+                setView("main");
+              }}
+              onChangePlaces={setPlaces}
+              onSelectPlace={(place) => openPlaceDetail(place.id)}
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+              <BottomNavToast message={toastMessage} placement={toastPlacement} />
+              <BottomNavigationBar
+                activeId="mypage"
+                onSelect={handleSelectBottomNav}
+                className="border-border/40 bg-card"
+              />
+            </div>
+            <PlaceDetailSheet
+              savedPlaces={places}
+              onSaveMemo={handleSavePlaceMemo}
+              onDeletePlace={handleDeletePlace}
+            />
+          </motion.div>
+        ) : view === "courses" ? (
+          <motion.div
+            key="courses"
+            className="relative flex min-h-0 flex-1 flex-col"
+            {...MY_PAGE_FADE_VARIANT}
+            transition={MY_PAGE_FADE_TRANSITION}
+          >
+            <MySavedCoursesPage
+              courses={coursesList}
+              savedPlaces={places}
+              selectedCourse={savedCourseSheet.kind === "detail" ? savedCourseSheet.course : null}
+              onSelectCourse={(course) => setSavedCourseSheet({ kind: "detail", course })}
+              onCloseCourseSheet={() => setSavedCourseSheet({ kind: "closed" })}
+              onBack={() => {
+                closePlaceDetail();
+                setSavedCourseSheet({ kind: "closed" });
+                setView("main");
+              }}
+              onPersistCourse={handleSavedCoursePersist}
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+              <BottomNavToast message={toastMessage} placement={toastPlacement} />
+              <BottomNavigationBar
+                activeId="mypage"
+                onSelect={handleSelectBottomNav}
+                className="border-border/40 bg-card"
+              />
+            </div>
+            <PlaceDetailSheet
+              savedPlaces={places}
+              onSaveMemo={handleSavePlaceMemo}
+              onDeletePlace={handleDeletePlace}
+            />
+          </motion.div>
+        ) : view === "profile" ? (
           <motion.div
             key="profile"
             className="flex min-h-0 flex-1 flex-col"
