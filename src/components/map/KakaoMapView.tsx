@@ -29,6 +29,13 @@ export type KakaoMapViewProps = {
 
 type MapLoadState = "loading" | "ready" | "error";
 
+const FIT_BOUNDS_PADDING = {
+  top: 120,
+  right: 36,
+  bottom: 140,
+  left: 36,
+} as const;
+
 /**
  * Kakao JS SDK 로딩과 지도/마커 렌더링을 담당.
  * 현재는 단일 마커 스타일만 사용하고, 상세 오버레이는 연결하지 않는다.
@@ -176,7 +183,13 @@ export function KakaoMapView({
       fitBoundsPlaces.forEach((place) => {
         bounds.extend(new maps.LatLng(place.latitude, place.longitude));
       });
-      mapInstance.setBounds(bounds);
+      mapInstance.setBounds(
+        bounds,
+        FIT_BOUNDS_PADDING.top,
+        FIT_BOUNDS_PADDING.right,
+        FIT_BOUNDS_PADDING.bottom,
+        FIT_BOUNDS_PADDING.left,
+      );
       return;
     }
 

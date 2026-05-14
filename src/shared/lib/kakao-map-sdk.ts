@@ -21,7 +21,13 @@ export type KakaoMarkerImage = {
 export type KakaoMapInstance = {
   setCenter: (position: KakaoLatLng) => void;
   panTo: (position: KakaoLatLng) => void;
-  setBounds: (bounds: KakaoLatLngBounds) => void;
+  setBounds: (
+    bounds: KakaoLatLngBounds,
+    paddingTop?: number,
+    paddingRight?: number,
+    paddingBottom?: number,
+    paddingLeft?: number,
+  ) => void;
   setLevel: (level: number) => void;
   setDraggable: (draggable: boolean) => void;
   relayout: () => void;

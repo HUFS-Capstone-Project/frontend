@@ -45,6 +45,12 @@ type SelectedMemberFilter = {
   userId: number;
 };
 
+type MemberViewportRequest = {
+  roomId: string;
+  userId: number | null;
+  key: string;
+};
+
 type LastViewedPlace = {
   placeId: string;
   center: MapCoordinate;
@@ -65,6 +71,9 @@ export function MapHomePageContent({
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState<SelectedMemberFilter | null>(
+    null,
+  );
+  const [memberViewportRequest, setMemberViewportRequest] = useState<MemberViewportRequest | null>(
     null,
   );
   const [selectedSearchPlaceId, setSelectedSearchPlaceId] = useState<string | null>(null);
@@ -146,7 +155,39 @@ export function MapHomePageContent({
         : null,
     [lastViewedPlacesByRoom, selectedRoom],
   );
+  const memberRequestedViewport = useMemo((): MapViewport | null => {
+    if (
+      !selectedRoom ||
+      !memberViewportRequest ||
+      memberViewportRequest.roomId !== selectedRoom.id ||
+      memberViewportRequest.userId !== selectedMemberId ||
+      !roomPlacesQuery.isFetched ||
+      roomPlacesQuery.isFetching ||
+      filteredPlaces.length === 0
+    ) {
+      return null;
+    }
+
+    return {
+      center: averageMapCenter(filteredPlaces),
+      fitBoundsPlaces: filteredPlaces,
+      geocodeKeyword: "",
+      key: `${memberViewportRequest.key}-${roomPlacesQuery.dataUpdatedAt}-${filteredPlaces.length}`,
+    };
+  }, [
+    filteredPlaces,
+    memberViewportRequest,
+    roomPlacesQuery.dataUpdatedAt,
+    roomPlacesQuery.isFetched,
+    roomPlacesQuery.isFetching,
+    selectedMemberId,
+    selectedRoom,
+  ]);
   const effectiveMapViewport = useMemo((): MapViewport => {
+    if (memberRequestedViewport) {
+      return memberRequestedViewport;
+    }
+
     if (mapViewport.key !== "initial" || roomPlacesQuery.dataUpdatedAt === 0) {
       return mapViewport;
     }
@@ -182,6 +223,7 @@ export function MapHomePageContent({
     currentLocationCenter,
     lastViewedPlace,
     mapViewport,
+    memberRequestedViewport,
     roomPlacesQuery.dataUpdatedAt,
     savedPlaces,
     selectedMemberId,
@@ -284,6 +326,7 @@ export function MapHomePageContent({
 
   const handleSubmitSearch = useCallback(() => {
     const nextKeyword = searchInput.trim();
+    setMemberViewportRequest(null);
     setSelectedSearchPlaceId(null);
     setIsSearchSuggestionDismissed(true);
 
@@ -378,6 +421,7 @@ export function MapHomePageContent({
         return;
       }
 
+      setMemberViewportRequest(null);
       setSelectedSearchPlaceId(place.id);
       setIsSearchSuggestionDismissed(true);
       setSearchInput(place.name);
@@ -424,12 +468,21 @@ export function MapHomePageContent({
 
   const handleSelectMember = useCallback(
     (friendId: number | null) => {
-      if (!selectedRoom || friendId == null) {
-        setSelectedMemberFilter(null);
+      if (!selectedRoom) {
         return;
       }
 
-      setSelectedMemberFilter({ roomId: selectedRoom.id, userId: friendId });
+      if (friendId == null) {
+        setSelectedMemberFilter(null);
+      } else {
+        setSelectedMemberFilter({ roomId: selectedRoom.id, userId: friendId });
+      }
+
+      setMemberViewportRequest({
+        roomId: selectedRoom.id,
+        userId: friendId,
+        key: `member-${friendId ?? "all"}-${Date.now()}`,
+      });
     },
     [selectedRoom],
   );
@@ -519,6 +572,25 @@ function toTimeValue(value: string | null | undefined): number {
 
   const time = Date.parse(value);
   return Number.isFinite(time) ? time : 0;
+}
+
+function averageMapCenter(places: Pick<SavedPlace, "latitude" | "longitude">[]): MapCoordinate {
+  if (places.length === 0) {
+    return MAP_INITIAL_CENTER;
+  }
+
+  const total = places.reduce(
+    (acc, place) => ({
+      latitude: acc.latitude + place.latitude,
+      longitude: acc.longitude + place.longitude,
+    }),
+    { latitude: 0, longitude: 0 },
+  );
+
+  return {
+    latitude: total.latitude / places.length,
+    longitude: total.longitude / places.length,
+  };
 }
 
 function toLastViewedPlace(place: SavedPlace): LastViewedPlace {
