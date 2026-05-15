@@ -40,7 +40,6 @@ export type RoomPlaceDto = {
   sourceUrl?: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
-  categoryGroupName: string | null;
   serviceCategoryCode: ServiceCategoryCode;
   serviceCategoryName: string;
   serviceTagCode: string;

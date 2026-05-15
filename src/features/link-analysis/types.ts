@@ -43,7 +43,6 @@ export type CandidatePlaceDto = {
   placeName: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
-  categoryGroupName: string | null;
   serviceCategoryCode: ServiceCategoryCode;
   serviceCategoryName: string;
   addressName: string | null;
@@ -85,7 +84,6 @@ export type CandidatePlace = {
   placeName: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
-  categoryGroupName: string | null;
   serviceCategoryCode: ServiceCategoryCode;
   serviceCategoryName: string;
   addressName: string | null;
@@ -112,7 +110,6 @@ export type OverrideCandidatePlaceRequest = {
   longitude: number;
   categoryName?: string | null;
   categoryGroupCode?: string | null;
-  categoryGroupName?: string | null;
   phone?: string | null;
   placeUrl?: string | null;
 };
@@ -169,7 +166,6 @@ export type SaveManualPlaceRequest = {
   longitude: number;
   categoryName?: string | null;
   categoryGroupCode?: string | null;
-  categoryGroupName?: string | null;
   phone?: string | null;
   placeUrl?: string | null;
 };

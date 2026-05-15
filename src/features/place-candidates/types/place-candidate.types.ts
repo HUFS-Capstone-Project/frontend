@@ -11,7 +11,6 @@ export type PlaceCandidateDto = {
   longitude: number | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
-  categoryGroupName: string | null;
   serviceCategoryCode: ServiceCategoryCode;
   serviceCategoryName: string;
   phone: string | null;

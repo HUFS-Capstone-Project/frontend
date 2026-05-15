@@ -76,7 +76,6 @@ export function toCandidatePlace(dto: CandidatePlaceDto): CandidatePlace {
     placeName: dto.placeName,
     categoryName: dto.categoryName,
     categoryGroupCode: dto.categoryGroupCode,
-    categoryGroupName: dto.categoryGroupName,
     serviceCategoryCode: dto.serviceCategoryCode,
     serviceCategoryName: dto.serviceCategoryName,
     addressName: dto.addressName,

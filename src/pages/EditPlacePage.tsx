@@ -178,7 +178,6 @@ export default function EditPlacePage() {
               longitude: selectedExternalPlace.longitude,
               categoryName: selectedExternalPlace.categoryName,
               categoryGroupCode: selectedExternalPlace.categoryGroupCode,
-              categoryGroupName: selectedExternalPlace.categoryGroupName,
               phone: selectedExternalPlace.phone,
               placeUrl: selectedExternalPlace.placeUrl,
             },
