@@ -15,6 +15,7 @@ export const APP_ROUTES = {
 
 /** 방 컨텍스트 장소·링크 추가 플로우 (리소스 중심 URL) */
 export const ROOM_APP_PATHS = {
+  places: (roomId: string) => `/rooms/${encodeURIComponent(roomId)}/places`,
   placeSearch: (roomId: string) => `/rooms/${encodeURIComponent(roomId)}/places/search`,
   placeFromLink: (roomId: string) => `/rooms/${encodeURIComponent(roomId)}/places/from-link`,
   linkCandidates: (roomId: string, analysisRequestId: string | number) =>

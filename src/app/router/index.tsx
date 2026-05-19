@@ -74,6 +74,7 @@ export const router = createBrowserRouter([
             path: "rooms/:roomId/link-analysis/:analysisRequestId",
             element: <RoomLinkCandidatesPage />,
           },
+          { path: "rooms/:roomId/places", element: <PlaceListPage /> },
           { path: "places/map", element: <MapHomePage />, loader: mapHomeLoader },
           { path: "places", element: <PlaceListPage /> },
           { path: "courses", element: <CoursePlannerPage /> },

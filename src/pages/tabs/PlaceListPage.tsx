@@ -1,8 +1,8 @@
 import "@/components/map/filter-bar.css";
 
 import { AlertCircle, MapPin } from "lucide-react";
-import { lazy, Suspense, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
@@ -26,6 +26,7 @@ import {
   useSigungusQueries,
   useSigungusQuery,
 } from "@/features/regions";
+import { useRoomDetailQuery } from "@/features/room";
 import {
   roomPlaceToSavedPlace,
   useDeleteRoomPlace,
@@ -54,8 +55,14 @@ function formatCount(count: number) {
 
 export default function PlaceListPage() {
   const navigate = useNavigate();
+  const { roomId: routeRoomId } = useParams<{ roomId?: string }>();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
+  const selectRoom = useRoomSelectionStore((state) => state.selectRoom);
+  const effectiveRoomId = routeRoomId ?? selectedRoom?.id ?? null;
+  const roomDetailQuery = useRoomDetailQuery(effectiveRoomId, {
+    enabled: Boolean(routeRoomId) && selectedRoom?.id !== routeRoomId,
+  });
   const [selectedSido, setSelectedSido] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
   const [selectedSigungu, setSelectedSigungu] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
   const [draftSido, setDraftSido] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
@@ -74,7 +81,7 @@ export default function PlaceListPage() {
     };
   }, [selectedSido.code, selectedSigungu.code]);
   const roomPlacesQuery = useRoomPlaces({
-    roomId: selectedRoom?.id ?? null,
+    roomId: effectiveRoomId,
     params: roomPlaceListParams,
   });
   const sidosQuery = useSidosQuery();
@@ -92,11 +99,24 @@ export default function PlaceListPage() {
     enabled: isRegionPanelOpen && isRegionSearching,
   });
   const updateRoomPlaceMemoMutation = useUpdateRoomPlaceMemo({
-    roomId: selectedRoom?.id ?? null,
+    roomId: effectiveRoomId,
   });
   const deleteRoomPlaceMutation = useDeleteRoomPlace({
-    roomId: selectedRoom?.id ?? null,
+    roomId: effectiveRoomId,
   });
+
+  useEffect(() => {
+    const roomDetail = roomDetailQuery.data;
+    if (!roomDetail || selectedRoom?.id === roomDetail.roomId) {
+      return;
+    }
+
+    selectRoom({
+      id: roomDetail.roomId,
+      name: roomDetail.roomName,
+      memberCount: roomDetail.memberCount,
+    });
+  }, [roomDetailQuery.data, selectRoom, selectedRoom?.id]);
 
   const resolvedPlaces = useMemo(
     () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
@@ -265,7 +285,9 @@ export default function PlaceListPage() {
       : shownCount === regionTotal
         ? `${formatCount(shownCount)}개 · 전체 ${formatCount(categoryTotal)}`
         : `${formatCount(shownCount)}개 · 전체 ${formatCount(regionTotal)}`;
-  const pageTitle = selectedRoom ? `${selectedRoom.name} 목록` : "목록";
+  const roomName =
+    selectedRoom?.id === effectiveRoomId ? selectedRoom.name : roomDetailQuery.data?.roomName;
+  const pageTitle = roomName ? `${roomName} 목록` : "목록";
 
   const hasRegionFilter = selectedSido.code !== REGION_ALL_CODE;
   const emptyMessage = roomPlacesQuery.isError
@@ -484,7 +506,7 @@ export default function PlaceListPage() {
       </div>
 
       <PlaceDetailSheet
-        roomId={selectedRoom?.id ?? null}
+        roomId={effectiveRoomId}
         onSaveMemo={handleSavePlaceMemo}
         onDeletePlace={handleDeletePlace}
       />

@@ -19,7 +19,7 @@ import {
 import { useRoomMembersQuery } from "@/features/room";
 import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
-import { APP_ROUTES } from "@/shared/config/routes";
+import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import {
   MAP_INITIAL_CENTER,
   MAP_KOREA_BOUNDS,
@@ -325,8 +325,12 @@ export function MapHomePageContent({
   }, [clearSearchKeepViewport, handleCloseTagPanel]);
 
   const handleOpenPlaceList = useCallback(() => {
-    navigate(APP_ROUTES.list);
-  }, [navigate]);
+    if (!selectedRoom) {
+      return;
+    }
+
+    navigate(ROOM_APP_PATHS.places(selectedRoom.id));
+  }, [navigate, selectedRoom]);
 
   const handleSelectMember = useCallback(
     (friendId: number | null) => {
