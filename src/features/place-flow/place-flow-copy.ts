@@ -31,7 +31,7 @@ export const PLACE_FLOW_COPY = {
   linkFromUrl: {
     titleLine1: "링크를 분석해",
     titleLine2: "저장할 장소를 찾아드릴게요",
-    inputPlaceholder: "예: https://example.com/place",
+    inputPlaceholder: "장소가 담긴 링크를 넣어 주세요",
     /** 링크 분석 대기 중 안내 문구 */
     processingCarousel: [
       "링크 속 장소를 찾고 있어요",
