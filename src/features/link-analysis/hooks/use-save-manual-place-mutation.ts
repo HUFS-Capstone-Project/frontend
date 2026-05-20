@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { incrementRoomPlaceCountInCache } from "@/features/room/utils/room-query-cache";
 import { roomPlaceQueryKeys } from "@/features/room-places";
 
 import { linkAnalysisService } from "../api/link-analysis-service";
@@ -26,9 +27,14 @@ export function useSaveManualPlaceMutation({
 
       return linkAnalysisService.saveManualPlace(roomId, analysisRequestId, payload);
     },
-    onSuccess: async () => {
+    onSuccess: async (saved) => {
       if (!roomId || analysisRequestId == null) {
         return;
+      }
+
+      const createdCount = saved.places.filter((place) => place.created).length;
+      if (createdCount > 0) {
+        incrementRoomPlaceCountInCache(queryClient, roomId, createdCount);
       }
 
       await Promise.all([

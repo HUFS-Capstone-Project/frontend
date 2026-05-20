@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { decrementRoomPlaceCountInCache } from "@/features/room/utils/room-query-cache";
+
 import { roomPlaceApi } from "../api/room-place-api";
 import { roomPlaceQueryKeys } from "../query-keys";
 
@@ -23,6 +25,8 @@ export function useDeleteRoomPlace({ roomId }: UseDeleteRoomPlaceOptions) {
       if (!roomId) {
         return;
       }
+
+      decrementRoomPlaceCountInCache(queryClient, roomId);
 
       await queryClient.invalidateQueries({
         queryKey: roomPlaceQueryKeys.room(roomId),

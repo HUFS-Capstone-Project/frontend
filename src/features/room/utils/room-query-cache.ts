@@ -19,19 +19,22 @@ export function patchRoomSummary(
   roomId: string,
   updater: (room: RoomSummaryResponse) => RoomSummaryResponse,
 ): void {
-  queryClient.setQueryData(roomQueryKeys.rooms(), (previous: RoomSummaryResponse[] | undefined) => {
-    if (!previous) {
-      return previous;
-    }
-
-    return previous.map((room) => {
-      if (room.roomId !== roomId) {
-        return room;
+  queryClient.setQueriesData<RoomSummaryResponse[]>(
+    { queryKey: roomQueryKeys.rooms() },
+    (previous) => {
+      if (!previous) {
+        return previous;
       }
 
-      return updater(room);
-    });
-  });
+      return previous.map((room) => {
+        if (room.roomId !== roomId) {
+          return room;
+        }
+
+        return updater(room);
+      });
+    },
+  );
 }
 
 export function patchRoomDetail(
@@ -70,13 +73,29 @@ export function incrementRoomPlaceCountInCache(
   roomId: string,
   amount = 1,
 ): void {
+  adjustRoomPlaceCountInCache(queryClient, roomId, normalizePositiveAmount(amount));
+}
+
+export function decrementRoomPlaceCountInCache(
+  queryClient: QueryClient,
+  roomId: string,
+  amount = 1,
+): void {
+  adjustRoomPlaceCountInCache(queryClient, roomId, -normalizePositiveAmount(amount));
+}
+
+function adjustRoomPlaceCountInCache(
+  queryClient: QueryClient,
+  roomId: string,
+  amount: number,
+): void {
   patchRoomSummary(queryClient, roomId, (room) => ({
     ...room,
-    placeCount: incrementCount(room.placeCount, amount),
+    placeCount: adjustCount(room.placeCount, amount),
   }));
   patchRoomDetail(queryClient, roomId, (room) => ({
     ...room,
-    placeCount: incrementCount(room.placeCount, amount),
+    placeCount: adjustCount(room.placeCount, amount),
   }));
 }
 
@@ -92,12 +111,14 @@ export function removeRoomFromCache(queryClient: QueryClient, roomId: string): v
   queryClient.removeQueries({ queryKey: roomQueryKeys.roomDetail(roomId) });
 }
 
-function incrementCount(value: number | null | undefined, amount: number): number {
-  const normalizedAmount = Number.isFinite(amount) && amount > 0 ? amount : 1;
+function normalizePositiveAmount(amount: number): number {
+  return Number.isFinite(amount) && amount > 0 ? amount : 1;
+}
 
+function adjustCount(value: number | null | undefined, amount: number): number {
   if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return normalizedAmount;
+    return Math.max(0, amount);
   }
 
-  return value + normalizedAmount;
+  return Math.max(0, value + amount);
 }
