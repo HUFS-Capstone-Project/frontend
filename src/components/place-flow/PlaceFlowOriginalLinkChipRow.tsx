@@ -1,7 +1,13 @@
+import { Globe } from "lucide-react";
+import { SiNaver } from "react-icons/si";
+
 import { cn } from "@/lib/utils";
+import { type LinkSourceType, resolveLinkSourceType } from "@/shared/lib/link-source-type";
 
 export type PlaceFlowOriginalLinkChipRowProps = {
   linkUrl: string;
+  /** RoomPlace 등 API sourceType. 없으면 linkUrl 호스트로 추론 */
+  sourceType?: string | null;
   className?: string;
 };
 
@@ -16,11 +22,35 @@ function InstagramGlyph({ className }: { className?: string }) {
   );
 }
 
+function LinkSourceIcon({
+  sourceType,
+  className,
+}: {
+  sourceType: LinkSourceType;
+  className?: string;
+}) {
+  const iconClass = cn("size-3 shrink-0", className);
+
+  switch (sourceType) {
+    case "INSTAGRAM":
+      return <InstagramGlyph className={iconClass} />;
+    case "NAVER_BLOG":
+      return <SiNaver className={iconClass} aria-hidden />;
+    case "GENERIC_WEB":
+      return <Globe className={iconClass} aria-hidden />;
+    default:
+      return <Globe className={iconClass} aria-hidden />;
+  }
+}
+
 /** 공유 링크 원본 열기 — 장소 수동 검색 시트·후보 선택 성공 화면 등에서 동일 칩 UI로 사용 */
 export function PlaceFlowOriginalLinkChipRow({
   linkUrl,
+  sourceType,
   className,
 }: PlaceFlowOriginalLinkChipRowProps) {
+  const resolvedSourceType = resolveLinkSourceType(sourceType, linkUrl);
+
   const handleOpenLink = () => {
     window.open(linkUrl, "_blank", "noopener,noreferrer");
   };
@@ -30,11 +60,11 @@ export function PlaceFlowOriginalLinkChipRow({
       <button
         type="button"
         className={PLACE_FLOW_LINK_CHIP_CLASS}
-        aria-label="Instagram 원본 보기"
-        title="Instagram 원본 보기"
+        aria-label="원본 링크 보기"
+        title="원본 링크 보기"
         onClick={handleOpenLink}
       >
-        <InstagramGlyph className="size-3 shrink-0" />
+        <LinkSourceIcon sourceType={resolvedSourceType} />
         <span>원본 보기</span>
       </button>
     </div>

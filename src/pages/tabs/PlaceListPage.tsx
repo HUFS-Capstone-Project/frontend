@@ -198,6 +198,7 @@ export default function PlaceListPage() {
       latitude: place.latitude,
       longitude: place.longitude,
       shareLinkUrl: place.shareLinkUrl,
+      sourceType: place.sourceType,
       memo: place.memo,
       memos: place.memos,
       businessHours: place.businessHours,

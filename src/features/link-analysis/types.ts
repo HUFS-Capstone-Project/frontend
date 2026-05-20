@@ -25,10 +25,18 @@ export type LinkAnalysisRequestResultDto = {
 export type LinkAnalysisDto = {
   linkId: number;
   status: LinkAnalysisStatus;
+  sourceUrl?: string | null;
+  contentText?: string | null;
+  linkStats: LinkStatsDto | null;
   candidatePlaces: CandidatePlaceDto[];
-  captionRaw?: string | null;
   errorCode: string | null;
   errorMessage: string | null;
+};
+
+export type LinkStatsDto = {
+  likeCount: number | null;
+  commentCount: number | null;
+  postedAt: string | null;
 };
 
 export type CandidatePlaceDisabledReason =
@@ -71,10 +79,18 @@ export type LinkAnalysis = {
   analysisRequestId: number;
   linkId: number;
   status: LinkAnalysisStatus;
+  sourceUrl: string | null;
   candidatePlaces: CandidatePlace[];
-  captionRaw?: string | null;
+  contentText?: string | null;
+  linkStats: LinkStats | null;
   errorCode?: string;
   errorMessage?: string;
+};
+
+export type LinkStats = {
+  likeCount: number | null;
+  commentCount: number | null;
+  postedAt: string | null;
 };
 
 export type CandidatePlace = {

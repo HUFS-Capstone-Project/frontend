@@ -20,9 +20,9 @@ export const PLACE_FLOW_COPY = {
   manualPlaceFallback: {
     subtitle: "해당 장소를 직접 검색해 주세요",
   },
-  /** 인라인 캡션 블록 섹션 라벨 */
-  captionSectionLabel: "CAPTION",
-  captionEmptyHint: "캡션 정보가 없어요",
+  /** 인라인 콘텐츠 블록 섹션 라벨 */
+  contentSectionLabel: "CONTENT",
+  contentEmptyHint: "본문 정보가 없어요",
   saving: "저장 중...",
   save: "저장하기",
   pickPlaces: "장소 선택",
@@ -31,11 +31,11 @@ export const PLACE_FLOW_COPY = {
   linkFromUrl: {
     titleLine1: "링크를 분석해",
     titleLine2: "저장할 장소를 찾아드릴게요",
-    inputPlaceholder: "예: https://www.instagram.com/p/...",
+    inputPlaceholder: "예: https://example.com/place",
     /** 링크 분석 대기 중 안내 문구 */
     processingCarousel: [
       "링크 속 장소를 찾고 있어요",
-      "캡션을 꼼꼼히 읽어보는 중이에요",
+      "본문을 꼼꼼히 읽어보는 중이에요",
       "어떤 장소들이 숨어 있는지 확인하고 있어요",
       "지도에서 실제 장소와 맞춰보고 있어요",
       "거의 다 찾았어요! 잠시만요...",

@@ -183,7 +183,7 @@ export function useLinkAddFlow({
 
     return mapLinkAnalysisToResult({
       linkAnalysis: latest,
-      originalUrl: url.trim(),
+      fallbackSourceUrl: url.trim(),
       jobId: requestJobId,
     });
   }, [linkAnalysisStatusQuery.data, requestJobId, url]);
@@ -197,9 +197,11 @@ export function useLinkAddFlow({
       linkId,
       analysisRequestId,
       jobId: requestJobId,
-      originalUrl: url.trim(),
+      sourceUrl: url.trim(),
       status: "FAILED",
       candidatePlaces: [],
+      contentText: null,
+      linkStats: null,
       completed: true,
       errorMessage: resolveLinkStatusErrorMessage(linkAnalysisStatusQuery.error),
     };
@@ -289,9 +291,11 @@ export function useLinkAddFlow({
         analysisRequestId: null,
         linkId: null,
         jobId: null,
-        originalUrl: trimmedUrl,
+        sourceUrl: trimmedUrl,
         status: "FAILED",
         candidatePlaces: [],
+        contentText: null,
+        linkStats: null,
         completed: true,
         errorMessage: resolveRegisterLinkErrorMessage(error),
       });
@@ -430,16 +434,6 @@ function validateLinkUrl(value: string): string | null {
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     return "http/https 링크만 등록할 수 있어요.";
-  }
-
-  const hostname = parsed.hostname.toLowerCase();
-  const isInstagram =
-    hostname === "instagram.com" ||
-    hostname === "www.instagram.com" ||
-    hostname.endsWith(".instagram.com");
-
-  if (!isInstagram) {
-    return "인스타그램 링크만 등록할 수 있어요.";
   }
 
   return null;

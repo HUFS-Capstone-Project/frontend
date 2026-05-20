@@ -24,6 +24,8 @@ export type {
   LinkAnalysisRequestResultDto,
   LinkAnalysisSource,
   LinkAnalysisStatus,
+  LinkStats,
+  LinkStatsDto,
   OverrideCandidatePlaceRequest,
   OverrideCandidatePlaceResponseDto,
   OverrideCandidatePlaceResult,

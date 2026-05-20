@@ -94,8 +94,8 @@ export function ManualPlaceFallbackScreen({
     <PlaceSearchMapSheet
       title={PLACE_FLOW_COPY.notFoundTitle}
       subtitle={PLACE_FLOW_COPY.manualPlaceFallback.subtitle}
-      linkUrl={result.originalUrl}
-      captionRaw={result.captionRaw}
+      linkUrl={result.sourceUrl}
+      contentText={result.contentText}
       keyword={keyword}
       selectedPlaceId={selectedPlaceId}
       searchResults={searchResults}

@@ -26,6 +26,8 @@ export type SavedPlace = {
   longitude?: number;
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
+  /** INSTAGRAM | NAVER_BLOG | GENERIC_WEB */
+  sourceType?: string | null;
   memo?: string;
   memos?: RoomPlaceMemo[];
   businessHours?: BusinessHoursDisplay | null;

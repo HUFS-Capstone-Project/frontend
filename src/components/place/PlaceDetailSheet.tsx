@@ -30,7 +30,10 @@ const BUSINESS_HOURS_MAX_POLLING_MS = 20_000;
 
 type DetailSavedPlace = MySavedPlace &
   Partial<
-    Pick<MapSavedPlace, "latitude" | "longitude" | "businessHours" | "categoryName" | "tagNames">
+    Pick<
+      MapSavedPlace,
+      "latitude" | "longitude" | "businessHours" | "categoryName" | "tagNames" | "sourceType"
+    >
   >;
 
 type PlaceDetailSheetProps = {
@@ -124,6 +127,7 @@ export function PlaceDetailSheet({
             longitude: place.longitude ?? 0,
             address: place.address,
             shareLinkUrl: place.shareLinkUrl ?? null,
+            sourceType: place.sourceType ?? null,
             memo: localMemos[place.id] ?? place.memo,
             memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : place.memos,
             businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
@@ -367,7 +371,11 @@ export function PlaceDetailSheet({
 
             <div className="scrollbar-hide mt-4 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
               {trimmedShareUrl ? (
-                <PlaceFlowOriginalLinkChipRow linkUrl={trimmedShareUrl} className="contents" />
+                <PlaceFlowOriginalLinkChipRow
+                  linkUrl={trimmedShareUrl}
+                  sourceType={place.sourceType}
+                  className="contents"
+                />
               ) : null}
               <button
                 type="button"

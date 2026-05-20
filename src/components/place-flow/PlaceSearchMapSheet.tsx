@@ -31,7 +31,7 @@ type PlaceSearchMapSheetProps = {
   title: string;
   subtitle: string;
   linkUrl?: string | null;
-  captionRaw?: string | null;
+  contentText?: string | null;
   initialMode?: PlaceSearchMapSheetMode;
   keyword: string;
   selectedPlaceId: string | null;
@@ -59,7 +59,7 @@ export function PlaceSearchMapSheet({
   title,
   subtitle,
   linkUrl,
-  captionRaw,
+  contentText,
   initialMode = "intro",
   keyword,
   selectedPlaceId,
@@ -92,7 +92,7 @@ export function PlaceSearchMapSheet({
     ? { latitude: selectedPlace.latitude, longitude: selectedPlace.longitude }
     : mapFallbackCenter;
   const selectedMapPlaces = selectedPlace ? [selectedPlace] : [];
-  const caption = normalizeCaption(captionRaw);
+  const content = normalizeContentText(contentText);
 
   useEffect(() => {
     if (mode !== "search" || isSearchCollapsed) {
@@ -198,7 +198,7 @@ export function PlaceSearchMapSheet({
             title={title}
             subtitle={subtitle}
             linkUrl={linkUrl}
-            caption={caption}
+            content={content}
             onEnterSearch={enterSearchMode}
             onCancel={onCancel}
           />
@@ -288,14 +288,14 @@ function IntroSheetContent({
   title,
   subtitle,
   linkUrl,
-  caption,
+  content,
   onEnterSearch,
   onCancel,
 }: {
   title: string;
   subtitle: string;
   linkUrl?: string | null;
-  caption: string | null;
+  content: string | null;
   onEnterSearch: () => void;
   onCancel: () => void;
 }) {
@@ -336,9 +336,9 @@ function IntroSheetContent({
       </div>
 
       <div className="border-border mt-5 border-t pt-5">
-        <ReelsCaptionBlock
-          key={`${caption ?? ""}-${linkUrl?.trim() ?? ""}`}
-          caption={caption}
+        <LinkContentBlock
+          key={`${content ?? ""}-${linkUrl?.trim() ?? ""}`}
+          content={content}
           originalLinkUrl={linkUrl}
         />
       </div>
@@ -469,13 +469,13 @@ function SearchSheetContent({
   );
 }
 
-function ReelsCaptionBlock({
-  caption,
+function LinkContentBlock({
+  content,
   originalLinkUrl,
   className,
 }: {
-  caption: string | null;
-  /** 원본 링크가 있으면 CAPTION 라벨 오른쪽에 「원본 보기」 칩 */
+  content: string | null;
+  /** 원본 링크가 있으면 CONTENT 라벨 오른쪽에 「원본 보기」 칩 */
   originalLinkUrl?: string | null;
   className?: string;
 }) {
@@ -490,7 +490,7 @@ function ReelsCaptionBlock({
 
   const labelRow = (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <p className={cn(labelClassName, "shrink-0")}>{PLACE_FLOW_COPY.captionSectionLabel}</p>
+      <p className={cn(labelClassName, "shrink-0")}>{PLACE_FLOW_COPY.contentSectionLabel}</p>
       {showOriginalChip ? (
         <PlaceFlowOriginalLinkChipRow linkUrl={trimmedOriginalLink} className="min-w-0 shrink" />
       ) : null}
@@ -499,7 +499,7 @@ function ReelsCaptionBlock({
 
   useLayoutEffect(() => {
     const element = bodyRef.current;
-    if (!caption || !element) {
+    if (!content || !element) {
       return;
     }
 
@@ -524,14 +524,14 @@ function ReelsCaptionBlock({
     return () => {
       observer?.disconnect();
     };
-  }, [caption, expanded]);
+  }, [content, expanded]);
 
-  if (!caption) {
+  if (!content) {
     return (
       <div className={cn(className)}>
         {labelRow}
         <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-          {PLACE_FLOW_COPY.captionEmptyHint}
+          {PLACE_FLOW_COPY.contentEmptyHint}
         </p>
       </div>
     );
@@ -548,7 +548,7 @@ function ReelsCaptionBlock({
           expanded && "scrollbar-hide max-h-[min(40dvh,18rem)] overflow-y-auto",
         )}
       >
-        {caption}
+        {content}
       </p>
 
       {hasOverflow || expanded ? (
@@ -565,11 +565,11 @@ function ReelsCaptionBlock({
   );
 }
 
-function normalizeCaption(captionRaw: string | null | undefined): string | null {
-  if (typeof captionRaw !== "string") {
+function normalizeContentText(contentText: string | null | undefined): string | null {
+  if (typeof contentText !== "string") {
     return null;
   }
 
-  const trimmed = captionRaw.trim();
+  const trimmed = contentText.trim();
   return trimmed.length > 0 ? trimmed : null;
 }

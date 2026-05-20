@@ -6,6 +6,8 @@ import type {
   LinkAnalysisRequestResult,
   LinkAnalysisRequestResultDto,
   LinkAnalysisStatus,
+  LinkStats,
+  LinkStatsDto,
   OverrideCandidatePlaceResponseDto,
   OverrideCandidatePlaceResult,
   SaveCandidatePlacesResponseDto,
@@ -59,10 +61,24 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     analysisRequestId,
     linkId: dto.linkId,
     status: dto.status,
+    sourceUrl: normalizeOptionalString(dto.sourceUrl),
     candidatePlaces: dto.candidatePlaces.map(toCandidatePlace),
-    captionRaw: dto.captionRaw ?? null,
+    contentText: dto.contentText ?? null,
+    linkStats: toLinkStats(dto.linkStats),
     errorCode: dto.errorCode ?? undefined,
     errorMessage: dto.errorMessage ?? undefined,
+  };
+}
+
+export function toLinkStats(dto: LinkStatsDto | null | undefined): LinkStats | null {
+  if (dto == null) {
+    return null;
+  }
+
+  return {
+    likeCount: dto.likeCount,
+    commentCount: dto.commentCount,
+    postedAt: dto.postedAt,
   };
 }
 

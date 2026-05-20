@@ -16,6 +16,7 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     longitude: toCoordinateNumber(place.longitude),
     address: place.roadAddress ?? place.address ?? "",
     shareLinkUrl: place.sourceUrl ?? null,
+    sourceType: place.sourceType ?? null,
     memo: place.memo ?? undefined,
     memos: place.memos,
     businessHours: place.businessHoursStatus === "SUCCEEDED" ? place.businessHours : null,

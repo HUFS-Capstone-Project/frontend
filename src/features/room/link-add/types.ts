@@ -1,4 +1,9 @@
-import type { CandidatePlace, LinkAnalysis, LinkAnalysisStatus } from "@/features/link-analysis";
+import type {
+  CandidatePlace,
+  LinkAnalysis,
+  LinkAnalysisStatus,
+  LinkStats,
+} from "@/features/link-analysis";
 
 export type Step = "input" | "processing" | "analysisResult";
 
@@ -6,10 +11,11 @@ export type LinkAnalysisResult = {
   analysisRequestId: number | null;
   linkId: number | null;
   jobId: string | null;
-  originalUrl: string;
+  sourceUrl: string;
   status: LinkAnalysisStatus;
   candidatePlaces: CandidatePlace[];
-  captionRaw?: string | null;
+  contentText?: string | null;
+  linkStats: LinkStats | null;
   completed: boolean;
   errorCode?: string;
   errorMessage?: string;
@@ -17,23 +23,36 @@ export type LinkAnalysisResult = {
 
 export function mapLinkAnalysisToResult(params: {
   linkAnalysis: LinkAnalysis;
-  originalUrl: string;
+  fallbackSourceUrl?: string;
   jobId?: string | null;
 }): LinkAnalysisResult {
-  const { linkAnalysis, originalUrl, jobId = null } = params;
+  const { linkAnalysis, fallbackSourceUrl = "", jobId = null } = params;
 
   return {
     analysisRequestId: linkAnalysis.analysisRequestId,
     linkId: linkAnalysis.linkId,
     jobId,
-    originalUrl,
+    sourceUrl: resolveLinkAnalysisSourceUrl(linkAnalysis.sourceUrl, fallbackSourceUrl),
     status: linkAnalysis.status,
     candidatePlaces: linkAnalysis.candidatePlaces,
-    captionRaw: linkAnalysis.captionRaw ?? null,
+    contentText: linkAnalysis.contentText ?? null,
+    linkStats: linkAnalysis.linkStats,
     completed: true,
     errorCode: linkAnalysis.errorCode,
     errorMessage: resolveAnalysisErrorMessage(linkAnalysis),
   };
+}
+
+export function resolveLinkAnalysisSourceUrl(
+  apiSourceUrl: string | null | undefined,
+  fallbackSourceUrl: string,
+): string {
+  const fromApi = apiSourceUrl?.trim() ?? "";
+  if (fromApi.length > 0) {
+    return fromApi;
+  }
+
+  return fallbackSourceUrl.trim();
 }
 
 function resolveAnalysisErrorMessage(linkAnalysis: LinkAnalysis): string | undefined {
