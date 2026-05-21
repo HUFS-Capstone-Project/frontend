@@ -50,6 +50,24 @@ export const linkAnalysisService = {
     return toLinkAnalysis(res.data.data, analysisRequestId);
   },
 
+  retryLinkAnalysis: async (
+    roomId: string,
+    analysisRequestId: number,
+  ): Promise<LinkAnalysisRequestResult> => {
+    return withCsrfRetry(async () => {
+      const res = await api.post<LinkAnalysisCommonResponse<LinkAnalysisRequestResultDto>>(
+        API_PATHS.rooms.linkAnalysisRequestRetry(roomId, analysisRequestId),
+        undefined,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
+
+      return toLinkAnalysisRequestResult(res.data.data);
+    });
+  },
+
   saveCandidatePlaces: async (
     roomId: string,
     analysisRequestId: number,

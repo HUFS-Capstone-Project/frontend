@@ -7,6 +7,7 @@ import {
   isLinkAnalysisTerminal,
   useLinkAnalysisStatusQuery,
   useRequestLinkAnalysisMutation,
+  useRetryLinkAnalysisMutation,
   useSaveCandidatePlacesMutation,
 } from "@/features/link-analysis";
 import { isApiError } from "@/shared/api/axios";
@@ -89,6 +90,7 @@ export function useLinkAddFlow({
   const submitSequenceRef = useRef(0);
 
   const requestLinkAnalysisMutation = useRequestLinkAnalysisMutation(room?.id ?? null);
+  const retryLinkAnalysisMutation = useRetryLinkAnalysisMutation(room?.id ?? null);
   const saveCandidatePlacesMutation = useSaveCandidatePlacesMutation({
     roomId: room?.id ?? null,
     analysisRequestId,
@@ -288,7 +290,7 @@ export function useLinkAddFlow({
       setRequestJobId(requested.jobId ?? null);
       setRequestStatus(requested.status);
 
-      if (isLinkAnalysisTerminal(requested.status)) {
+      if (shouldRenderRequestResultImmediately(requested.status)) {
         setRequestErrorResult(
           mapLinkAnalysisRequestToResult({
             requested,
@@ -319,10 +321,63 @@ export function useLinkAddFlow({
   }, [originalUrl, requestLinkAnalysisMutation, room]);
 
   const retryLinkAnalysis = useCallback(async () => {
+    if (!room || analysisRequestId == null || retryLinkAnalysisMutation.isPending) {
+      return;
+    }
+
+    const submitSequence = submitSequenceRef.current + 1;
+    submitSequenceRef.current = submitSequence;
+    const trimmedOriginalUrl = originalUrl.trim();
+
+    setOriginalUrlState(trimmedOriginalUrl);
+    setOriginalUrlError(null);
     setRequestErrorResult(null);
+    setRequestStatus(null);
+    setSelectedKakaoPlaceIds([]);
     setSaveError(null);
-    await submitLink();
-  }, [submitLink]);
+    setStep("processing");
+
+    try {
+      const requested = await retryLinkAnalysisMutation.mutateAsync(analysisRequestId);
+
+      if (submitSequenceRef.current !== submitSequence) {
+        return;
+      }
+
+      setAnalysisRequestId(requested.analysisRequestId);
+      setLinkId(requested.linkId);
+      setRequestJobId(requested.jobId ?? null);
+      setRequestStatus(requested.status);
+
+      if (shouldRenderRequestResultImmediately(requested.status)) {
+        setRequestErrorResult(
+          mapLinkAnalysisRequestToResult({
+            requested,
+            originalUrl: trimmedOriginalUrl,
+          }),
+        );
+        setStep("analysisResult");
+      }
+    } catch (error) {
+      if (submitSequenceRef.current !== submitSequence) {
+        return;
+      }
+
+      setRequestErrorResult({
+        analysisRequestId,
+        linkId,
+        jobId: requestJobId,
+        originalUrl: trimmedOriginalUrl,
+        status: "FAILED",
+        candidatePlaces: [],
+        contentText: null,
+        linkStats: null,
+        completed: true,
+        errorMessage: resolveRegisterLinkErrorMessage(error),
+      });
+      setStep("analysisResult");
+    }
+  }, [analysisRequestId, linkId, originalUrl, requestJobId, retryLinkAnalysisMutation, room]);
 
   const toggleCandidatePlace = useCallback((place: CandidatePlace) => {
     if (!canSelectCandidatePlace(place)) {
@@ -419,9 +474,11 @@ export function useLinkAddFlow({
     selectedKakaoPlaceIds: selectedSelectableKakaoPlaceIds,
     currentStatus,
     saveError,
-    isSubmitting: requestLinkAnalysisMutation.isPending,
+    isSubmitting: requestLinkAnalysisMutation.isPending || retryLinkAnalysisMutation.isPending,
     isSubmitEnabled:
-      validateOriginalUrl(originalUrl) == null && !requestLinkAnalysisMutation.isPending,
+      validateOriginalUrl(originalUrl) == null &&
+      !requestLinkAnalysisMutation.isPending &&
+      !retryLinkAnalysisMutation.isPending,
     isSavePending: saveCandidatePlacesMutation.isPending,
     canSaveSelectedCandidates,
     cancelOngoingSubmission,
@@ -453,6 +510,10 @@ function validateOriginalUrl(value: string): string | null {
   }
 
   return null;
+}
+
+function shouldRenderRequestResultImmediately(status: LinkAnalysisStatus): boolean {
+  return isLinkAnalysisTerminal(status) && status !== "SUCCEEDED";
 }
 
 function resolveRegisterLinkErrorMessage(error: unknown): string {

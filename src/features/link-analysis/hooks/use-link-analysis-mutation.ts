@@ -27,3 +27,30 @@ export function useRequestLinkAnalysisMutation(roomId: string | null) {
     },
   });
 }
+
+export function useRetryLinkAnalysisMutation(roomId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...linkAnalysisQueryKeys.all, "retry", roomId],
+    mutationFn: (analysisRequestId: number) => {
+      if (!roomId) {
+        throw new Error("roomId is required");
+      }
+
+      return linkAnalysisService.retryLinkAnalysis(roomId, analysisRequestId);
+    },
+    onSuccess: (result, requestedAnalysisRequestId) => {
+      if (!roomId) {
+        return;
+      }
+
+      queryClient.removeQueries({
+        queryKey: linkAnalysisQueryKeys.analysis(roomId, requestedAnalysisRequestId),
+      });
+      queryClient.removeQueries({
+        queryKey: linkAnalysisQueryKeys.analysis(roomId, result.analysisRequestId),
+      });
+    },
+  });
+}

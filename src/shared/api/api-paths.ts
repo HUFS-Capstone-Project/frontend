@@ -25,6 +25,8 @@ export const API_PATHS = {
     linkAnalysisRequests: (roomId: string) => `/v1/rooms/${roomId}/link-analysis-requests`,
     linkAnalysisRequest: (roomId: string, analysisRequestId: number) =>
       `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}`,
+    linkAnalysisRequestRetry: (roomId: string, analysisRequestId: number) =>
+      `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/retry`,
     linkAnalysisRequestPlaces: (roomId: string, analysisRequestId: number) =>
       `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/places`,
     linkAnalysisRequestManualPlace: (roomId: string, analysisRequestId: number) =>
