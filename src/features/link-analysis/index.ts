@@ -9,7 +9,9 @@ export {
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
   hasKakaoPlaceId,
+  isInstagramRateLimitedError,
   isLinkAnalysisTerminal,
+  LINK_ANALYSIS_ERROR_CODE,
   LINK_ANALYSIS_STATUS,
   shouldPollLinkAnalysis,
 } from "./model/link-analysis-types";

@@ -12,6 +12,7 @@ import {
   canEditCandidatePlace,
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
+  isInstagramRateLimitedError,
 } from "@/features/link-analysis";
 import { LINK_FLOW_AFTER_HEADLINES_CLASS } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
@@ -58,7 +59,14 @@ export function CandidatePlaceResultScreen({
   const navigate = useNavigate();
 
   const isSucceeded = result.status === "SUCCEEDED";
-  const canRetry = canRetryLinkAnalysis(result.status);
+  const canRetry = canRetryLinkAnalysis(result.status, result.retryable);
+  const isInstagramRateLimited = isInstagramRateLimitedError(result.errorCode);
+  const notFoundTitle = isInstagramRateLimited
+    ? PLACE_FLOW_COPY.instagramRateLimited.title
+    : PLACE_FLOW_COPY.notFoundTitle;
+  const notFoundHint = isInstagramRateLimited
+    ? (result.errorMessage ?? "")
+    : PLACE_FLOW_COPY.notFoundHint;
   const selectedCount = selectedKakaoPlaceIds.length;
   const selectableCount = result.candidatePlaces.filter(canSelectCandidatePlace).length;
   const canShowSaveButton = isSucceeded;
@@ -104,10 +112,10 @@ export function CandidatePlaceResultScreen({
           <div className="space-y-4">
             <PlaceFlowHeadlines
               titleId="link-candidate-not-found-title"
-              title={PLACE_FLOW_COPY.notFoundTitle}
-              subtitle={PLACE_FLOW_COPY.notFoundHint}
+              title={notFoundTitle}
+              subtitle={notFoundHint}
             />
-            {result.errorMessage && !isSucceeded ? (
+            {result.errorMessage && !isSucceeded && !isInstagramRateLimited ? (
               <p className={PROMPT_FLOW_ALERT_INLINE_CLASS} role="alert">
                 {result.errorMessage}
               </p>
@@ -183,7 +191,7 @@ export function CandidatePlaceResultScreen({
             </PillButton>
           }
         />
-      ) : showNotFoundHelp && canRetry ? (
+      ) : showNotFoundHelp ? (
         <TwoButtonFooter
           left={
             <PlaceFlowCancelPillButton onClick={onClose}>
@@ -191,22 +199,17 @@ export function CandidatePlaceResultScreen({
             </PlaceFlowCancelPillButton>
           }
           right={
-            <PillButton type="button" variant="onboarding" onClick={onRetry}>
-              {PLACE_FLOW_COPY.retry}
-            </PillButton>
-          }
-        />
-      ) : showNotFoundHelp && isSucceeded && onSearchManually ? (
-        <TwoButtonFooter
-          left={
-            <PlaceFlowCancelPillButton onClick={onClose}>
-              {PLACE_FLOW_COPY.cancel}
-            </PlaceFlowCancelPillButton>
-          }
-          right={
-            <PillButton type="button" variant="onboarding" onClick={onSearchManually}>
-              직접 검색
-            </PillButton>
+            canRetry ? (
+              <PillButton type="button" variant="onboarding" onClick={onRetry}>
+                {PLACE_FLOW_COPY.retry}
+              </PillButton>
+            ) : isSucceeded && onSearchManually ? (
+              <PillButton type="button" variant="onboarding" onClick={onSearchManually}>
+                직접 검색
+              </PillButton>
+            ) : (
+              <span className="block w-full" aria-hidden />
+            )
           }
         />
       ) : null}

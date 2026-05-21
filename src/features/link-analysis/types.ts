@@ -20,6 +20,10 @@ export type LinkAnalysisRequestResultDto = {
   linkId: number;
   jobId: string | null;
   status: LinkAnalysisStatus;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  retryable?: boolean | null;
+  cooldownSeconds?: number | null;
 };
 
 export type LinkAnalysisDto = {
@@ -31,6 +35,8 @@ export type LinkAnalysisDto = {
   candidatePlaces: CandidatePlaceDto[];
   errorCode: string | null;
   errorMessage: string | null;
+  retryable?: boolean | null;
+  cooldownSeconds?: number | null;
 };
 
 export type LinkStatsDto = {
@@ -73,6 +79,10 @@ export type LinkAnalysisRequestResult = {
   linkId: number;
   jobId?: string;
   status: LinkAnalysisStatus;
+  errorCode?: string;
+  errorMessage?: string;
+  retryable?: boolean;
+  cooldownSeconds?: number;
 };
 
 export type LinkAnalysis = {
@@ -85,6 +95,8 @@ export type LinkAnalysis = {
   linkStats: LinkStats | null;
   errorCode?: string;
   errorMessage?: string;
+  retryable?: boolean;
+  cooldownSeconds?: number;
 };
 
 export type LinkStats = {

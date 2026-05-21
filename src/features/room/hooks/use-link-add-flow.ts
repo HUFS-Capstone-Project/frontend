@@ -14,7 +14,12 @@ import type { RoomListRow } from "@/shared/types/room";
 import type { LinkAddDraft } from "@/store/link-add-draft-store";
 import { useLinkAddDraftStore } from "@/store/link-add-draft-store";
 
-import { type LinkAnalysisResult, mapLinkAnalysisToResult, type Step } from "../link-add";
+import {
+  type LinkAnalysisResult,
+  mapLinkAnalysisRequestToResult,
+  mapLinkAnalysisToResult,
+  type Step,
+} from "../link-add";
 import { incrementRoomPlaceCountInCache } from "../utils/room-query-cache";
 
 const DEFAULT_STEP: Step = "input";
@@ -282,6 +287,16 @@ export function useLinkAddFlow({
       setLinkId(requested.linkId);
       setRequestJobId(requested.jobId ?? null);
       setRequestStatus(requested.status);
+
+      if (isLinkAnalysisTerminal(requested.status)) {
+        setRequestErrorResult(
+          mapLinkAnalysisRequestToResult({
+            requested,
+            originalUrl: trimmedOriginalUrl,
+          }),
+        );
+        setStep("analysisResult");
+      }
     } catch (error) {
       if (submitSequenceRef.current !== submitSequence) {
         return;

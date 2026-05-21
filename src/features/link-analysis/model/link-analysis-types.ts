@@ -22,6 +22,10 @@ export const LINK_ANALYSIS_STATUS = {
   DISPATCH_FAILED: "DISPATCH_FAILED",
 } as const satisfies Record<LinkAnalysisStatus, LinkAnalysisStatus>;
 
+export const LINK_ANALYSIS_ERROR_CODE = {
+  INSTAGRAM_RATE_LIMITED: "INSTAGRAM_RATE_LIMITED",
+} as const;
+
 const POLLING_STATUSES = new Set<LinkAnalysisStatus>([
   LINK_ANALYSIS_STATUS.REQUESTED,
   LINK_ANALYSIS_STATUS.PROCESSING,
@@ -41,8 +45,19 @@ export function isLinkAnalysisTerminal(status: LinkAnalysisStatus | undefined): 
   return status != null && TERMINAL_STATUSES.has(status);
 }
 
-export function canRetryLinkAnalysis(status: LinkAnalysisStatus | undefined): boolean {
+export function canRetryLinkAnalysis(
+  status: LinkAnalysisStatus | undefined,
+  retryable?: boolean,
+): boolean {
+  if (retryable === false) {
+    return false;
+  }
+
   return status === LINK_ANALYSIS_STATUS.FAILED || status === LINK_ANALYSIS_STATUS.DISPATCH_FAILED;
+}
+
+export function isInstagramRateLimitedError(errorCode: string | undefined): boolean {
+  return errorCode === LINK_ANALYSIS_ERROR_CODE.INSTAGRAM_RATE_LIMITED;
 }
 
 export function toLinkAnalysisRequestResult(
@@ -53,6 +68,10 @@ export function toLinkAnalysisRequestResult(
     linkId: dto.linkId,
     jobId: dto.jobId ?? undefined,
     status: dto.status,
+    errorCode: normalizeOptionalString(dto.errorCode) ?? undefined,
+    errorMessage: normalizeOptionalString(dto.errorMessage) ?? undefined,
+    retryable: dto.retryable ?? undefined,
+    cooldownSeconds: normalizeOptionalNumber(dto.cooldownSeconds),
   };
 }
 
@@ -65,8 +84,10 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     candidatePlaces: dto.candidatePlaces.map(toCandidatePlace),
     contentText: dto.contentText ?? null,
     linkStats: toLinkStats(dto.linkStats),
-    errorCode: dto.errorCode ?? undefined,
-    errorMessage: dto.errorMessage ?? undefined,
+    errorCode: normalizeOptionalString(dto.errorCode) ?? undefined,
+    errorMessage: normalizeOptionalString(dto.errorMessage) ?? undefined,
+    retryable: dto.retryable ?? undefined,
+    cooldownSeconds: normalizeOptionalNumber(dto.cooldownSeconds),
   };
 }
 
@@ -163,4 +184,12 @@ function normalizeOptionalString(value: string | null | undefined): string | nul
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeOptionalNumber(value: number | null | undefined): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return undefined;
+  }
+
+  return value;
 }

@@ -1,6 +1,7 @@
 import type {
   CandidatePlace,
   LinkAnalysis,
+  LinkAnalysisRequestResult,
   LinkAnalysisStatus,
   LinkStats,
 } from "@/features/link-analysis";
@@ -19,6 +20,8 @@ export type LinkAnalysisResult = {
   completed: boolean;
   errorCode?: string;
   errorMessage?: string;
+  retryable?: boolean;
+  cooldownSeconds?: number;
 };
 
 export function mapLinkAnalysisToResult(params: {
@@ -40,6 +43,31 @@ export function mapLinkAnalysisToResult(params: {
     completed: true,
     errorCode: linkAnalysis.errorCode,
     errorMessage: resolveAnalysisErrorMessage(linkAnalysis),
+    retryable: linkAnalysis.retryable,
+    cooldownSeconds: linkAnalysis.cooldownSeconds,
+  };
+}
+
+export function mapLinkAnalysisRequestToResult(params: {
+  requested: LinkAnalysisRequestResult;
+  originalUrl: string;
+}): LinkAnalysisResult {
+  const { requested, originalUrl } = params;
+
+  return {
+    analysisRequestId: requested.analysisRequestId,
+    linkId: requested.linkId,
+    jobId: requested.jobId ?? null,
+    originalUrl: originalUrl.trim(),
+    status: requested.status,
+    candidatePlaces: [],
+    contentText: null,
+    linkStats: null,
+    completed: true,
+    errorCode: requested.errorCode,
+    errorMessage: requested.errorMessage ?? resolveAnalysisErrorMessageFromStatus(requested.status),
+    retryable: requested.retryable,
+    cooldownSeconds: requested.cooldownSeconds,
   };
 }
 
@@ -60,11 +88,17 @@ function resolveAnalysisErrorMessage(linkAnalysis: LinkAnalysis): string | undef
     return linkAnalysis.errorMessage;
   }
 
-  if (linkAnalysis.status === "FAILED") {
+  return resolveAnalysisErrorMessageFromStatus(linkAnalysis.status);
+}
+
+export function resolveAnalysisErrorMessageFromStatus(
+  status: LinkAnalysisStatus,
+): string | undefined {
+  if (status === "FAILED") {
     return "링크 분석에 실패했습니다.";
   }
 
-  if (linkAnalysis.status === "DISPATCH_FAILED") {
+  if (status === "DISPATCH_FAILED") {
     return "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요.";
   }
 

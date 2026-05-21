@@ -2,7 +2,7 @@ type PlaceFlowHeadlinesProps = {
   /** 링크 추가 등에서만 방 이름 표시 */
   roomName?: string | null;
   title: string;
-  subtitle: string;
+  subtitle?: string | null;
   /** `aria-labelledby`용 첫 타이틀 id */
   titleId?: string;
 };
@@ -24,7 +24,9 @@ export function PlaceFlowHeadlines({
       <h2 id={titleId} className="text-foreground text-xl leading-tight font-bold">
         {title}
       </h2>
-      <p className="text-foreground text-xl leading-tight font-bold">{subtitle}</p>
+      {subtitle != null && subtitle.trim().length > 0 ? (
+        <p className="text-foreground text-xl leading-tight font-bold">{subtitle}</p>
+      ) : null}
     </div>
   );
 }

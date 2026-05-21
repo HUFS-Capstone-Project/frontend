@@ -16,6 +16,9 @@ export const PLACE_FLOW_COPY = {
   applyChange: "변경하기",
   notFoundTitle: "장소를 찾지 못했어요",
   notFoundHint: "원하는 장소를 직접 검색해 주세요",
+  instagramRateLimited: {
+    title: "Instagram 분석이 일시적으로 제한됐어요",
+  },
   /** 링크 분석 후 수동 검색 유도(PlaceSearchMapSheet intro) */
   manualPlaceFallback: {
     subtitle: "해당 장소를 직접 검색해 주세요",
