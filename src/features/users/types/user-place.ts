@@ -40,7 +40,7 @@ export type UserPlaceResponse = {
   roadAddress: string | null;
   latitude?: string | number | null;
   longitude?: string | number | null;
-  sourceUrl?: string | null;
+  originalUrl?: string | null;
   serviceCategoryCode: ServiceCategoryCode | string | null;
   serviceCategoryName: string | null;
   serviceTagCode: string | null;
@@ -76,7 +76,7 @@ export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {
     categoryName: item.serviceCategoryName?.trim() || item.serviceTagName?.trim() || null,
     tagKeys: item.serviceTagCode ? [item.serviceTagCode] : undefined,
     tagNames: item.serviceTagName ? [item.serviceTagName] : undefined,
-    shareLinkUrl: item.sourceUrl ?? null,
+    shareLinkUrl: item.originalUrl ?? null,
     memo: item.memo ?? undefined,
     memos: item.memos,
     latitude: toCoordinateNumber(item.latitude),

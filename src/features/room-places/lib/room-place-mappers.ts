@@ -15,7 +15,7 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     latitude: toCoordinateNumber(place.latitude),
     longitude: toCoordinateNumber(place.longitude),
     address: place.roadAddress ?? place.address ?? "",
-    shareLinkUrl: place.sourceUrl ?? null,
+    shareLinkUrl: place.originalUrl ?? null,
     sourceType: place.sourceType ?? null,
     memo: place.memo ?? undefined,
     memos: place.memos,

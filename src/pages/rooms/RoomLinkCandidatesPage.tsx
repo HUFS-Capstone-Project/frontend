@@ -4,12 +4,12 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { LinkAddFlowView } from "@/components/room/link-add";
 import { useRoomListRowById } from "@/features/room/hooks";
-import { peekLinkAddPendingUrl } from "@/features/room/link-add-pending-url-storage";
+import { peekLinkAddPendingOriginalUrl } from "@/features/room/link-add-pending-original-url-storage";
 import { APP_ROUTES } from "@/shared/config/routes";
 
 export type RoomLinkCandidatesLocationState = {
   linkAddDraftSession?: string;
-  linkAddPendingUrl?: string;
+  linkAddPendingOriginalUrl?: string;
   selectedKakaoPlaceIds?: string[];
 };
 
@@ -35,16 +35,18 @@ export default function RoomLinkCandidatesPage() {
       return null;
     }
     const fromState =
-      typeof state?.linkAddPendingUrl === "string" && state.linkAddPendingUrl.length > 0
-        ? state.linkAddPendingUrl
+      typeof state?.linkAddPendingOriginalUrl === "string" &&
+      state.linkAddPendingOriginalUrl.length > 0
+        ? state.linkAddPendingOriginalUrl
         : "";
-    const pendingUrl = fromState || peekLinkAddPendingUrl(trimmedRoomId, analysisRequestIdNum);
+    const pendingOriginalUrl =
+      fromState || peekLinkAddPendingOriginalUrl(trimmedRoomId, analysisRequestIdNum);
     const selectedKakaoPlaceIds = Array.isArray(state?.selectedKakaoPlaceIds)
       ? state.selectedKakaoPlaceIds
       : [];
     return {
       analysisRequestId: analysisRequestIdNum,
-      url: pendingUrl,
+      originalUrl: pendingOriginalUrl,
       selectedKakaoPlaceIds,
     };
   }, [analysisRequestIdNum, draftSessionId, state, trimmedRoomId]);

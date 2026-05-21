@@ -15,7 +15,7 @@ export function normalizeLinkSourceType(value: string | null | undefined): LinkS
   return null;
 }
 
-/** API sourceType이 없을 때 sourceUrl 호스트로 추론 */
+/** API sourceType이 없을 때 originalUrl 호스트로 추론 */
 export function inferLinkSourceTypeFromUrl(url: string): LinkSourceType {
   const trimmed = url.trim();
   if (trimmed.length === 0) {
@@ -41,7 +41,7 @@ export function inferLinkSourceTypeFromUrl(url: string): LinkSourceType {
 
 export function resolveLinkSourceType(
   sourceType: string | null | undefined,
-  sourceUrl: string,
+  originalUrl: string,
 ): LinkSourceType {
-  return normalizeLinkSourceType(sourceType) ?? inferLinkSourceTypeFromUrl(sourceUrl);
+  return normalizeLinkSourceType(sourceType) ?? inferLinkSourceTypeFromUrl(originalUrl);
 }

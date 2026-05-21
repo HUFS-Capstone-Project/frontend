@@ -6,7 +6,7 @@ import { LINK_ADD_FLOW_ROOT_CLASS } from "@/features/place-flow/link-flow-layout
 import type { LinkAddCandidatesBootstrap } from "@/features/room/hooks";
 import { useLinkAddFlow } from "@/features/room/hooks";
 import { shouldAutoExitToInperson } from "@/features/room/link-add/should-auto-exit-to-inperson";
-import { setLinkAddPendingUrl } from "@/features/room/link-add-pending-url-storage";
+import { setLinkAddPendingOriginalUrl } from "@/features/room/link-add-pending-original-url-storage";
 import { ROOM_APP_PATHS } from "@/shared/config/routes";
 import type { RoomListRow } from "@/shared/types/room";
 import { useLinkAddDraftStore } from "@/store/link-add-draft-store";
@@ -43,9 +43,9 @@ export function LinkAddFlowView({
 
   const {
     renderStep,
-    url,
-    setUrl,
-    urlError,
+    originalUrl,
+    setOriginalUrl,
+    originalUrlError,
     renderAnalysisResult,
     selectedKakaoPlaceIds,
     saveError,
@@ -103,23 +103,23 @@ export function LinkAddFlowView({
     }
 
     didNavigateToCandidatesRef.current = true;
-    const trimmedUrl = url.trim();
-    setLinkAddPendingUrl(room.id, analysisRequestId, trimmedUrl);
+    const trimmedOriginalUrl = originalUrl.trim();
+    setLinkAddPendingOriginalUrl(room.id, analysisRequestId, trimmedOriginalUrl);
     navigate(ROOM_APP_PATHS.linkCandidates(room.id, analysisRequestId), {
       replace: true,
       state: {
-        linkAddPendingUrl: trimmedUrl,
+        linkAddPendingOriginalUrl: trimmedOriginalUrl,
         selectedKakaoPlaceIds,
       },
     });
   }, [
     autoNavigateToCandidates,
     navigate,
+    originalUrl,
     renderAnalysisResult,
     renderStep,
     room?.id,
     selectedKakaoPlaceIds,
-    url,
   ]);
 
   if (!room) {
@@ -181,9 +181,9 @@ export function LinkAddFlowView({
     <div className={LINK_ADD_FLOW_ROOT_CLASS}>
       {renderStep === "input" ? (
         <LinkInputScreen
-          url={url}
-          urlError={urlError}
-          onChangeUrl={setUrl}
+          originalUrl={originalUrl}
+          originalUrlError={originalUrlError}
+          onChangeOriginalUrl={setOriginalUrl}
           onCancel={handleRequestClose}
           onSubmit={() => {
             void submitLink();

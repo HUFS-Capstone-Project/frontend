@@ -61,7 +61,7 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     analysisRequestId,
     linkId: dto.linkId,
     status: dto.status,
-    sourceUrl: normalizeOptionalString(dto.sourceUrl),
+    originalUrl: normalizeOptionalString(dto.originalUrl),
     candidatePlaces: dto.candidatePlaces.map(toCandidatePlace),
     contentText: dto.contentText ?? null,
     linkStats: toLinkStats(dto.linkStats),

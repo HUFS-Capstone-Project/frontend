@@ -11,18 +11,18 @@ import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS } from "@/features/place-flow/prompt-flow-layout";
 
 export type LinkInputScreenProps = {
-  url: string;
-  urlError?: string | null;
-  onChangeUrl: (value: string) => void;
+  originalUrl: string;
+  originalUrlError?: string | null;
+  onChangeOriginalUrl: (value: string) => void;
   onCancel: () => void;
   onSubmit: () => void;
   isSubmitEnabled: boolean;
 };
 
 export function LinkInputScreen({
-  url,
-  urlError,
-  onChangeUrl,
+  originalUrl,
+  originalUrlError,
+  onChangeOriginalUrl,
   onCancel,
   onSubmit,
   isSubmitEnabled,
@@ -42,8 +42,8 @@ export function LinkInputScreen({
         </label>
         <input
           id="room-link-input"
-          value={url}
-          onChange={(event) => onChangeUrl(event.target.value)}
+          value={originalUrl}
+          onChange={(event) => onChangeOriginalUrl(event.target.value)}
           placeholder={inputPlaceholder}
           autoComplete="off"
           spellCheck={false}
@@ -51,9 +51,9 @@ export function LinkInputScreen({
           autoCapitalize="none"
           className="border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-full border px-4 text-sm outline-none"
         />
-        {urlError ? (
+        {originalUrlError ? (
           <p className={PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS} role="alert">
-            {urlError}
+            {originalUrlError}
           </p>
         ) : null}
       </div>

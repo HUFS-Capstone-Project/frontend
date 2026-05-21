@@ -68,7 +68,7 @@ export function CandidatePlaceResultScreen({
     selectableCount,
   });
 
-  const trimmedSourceUrl = result.sourceUrl.trim();
+  const trimmedOriginalUrl = result.originalUrl.trim();
 
   const rowEntries = useMemo(() => {
     return result.candidatePlaces.map((place, index) => {
@@ -93,8 +93,8 @@ export function CandidatePlaceResultScreen({
             />
 
             <div className={LINK_FLOW_AFTER_HEADLINES_CLASS}>
-              {trimmedSourceUrl ? (
-                <PlaceFlowOriginalLinkChipRow linkUrl={trimmedSourceUrl} />
+              {trimmedOriginalUrl ? (
+                <PlaceFlowOriginalLinkChipRow linkUrl={trimmedOriginalUrl} />
               ) : null}
             </div>
           </section>
@@ -144,7 +144,7 @@ export function CandidatePlaceResultScreen({
                               linkAddRoomId,
                               linkAddAnalysisRequestId: result.analysisRequestId ?? undefined,
                               linkAddLinkId: result.analysisRequestId ?? undefined,
-                              linkAddOriginalUrl: result.sourceUrl,
+                              linkAddOriginalUrl: result.originalUrl,
                               linkAddCandidateId: place.candidateId,
                               linkAddDraftSession: sessionId,
                             },

@@ -11,7 +11,7 @@ export type LinkAnalysisResult = {
   analysisRequestId: number | null;
   linkId: number | null;
   jobId: string | null;
-  sourceUrl: string;
+  originalUrl: string;
   status: LinkAnalysisStatus;
   candidatePlaces: CandidatePlace[];
   contentText?: string | null;
@@ -23,16 +23,16 @@ export type LinkAnalysisResult = {
 
 export function mapLinkAnalysisToResult(params: {
   linkAnalysis: LinkAnalysis;
-  fallbackSourceUrl?: string;
+  fallbackOriginalUrl?: string;
   jobId?: string | null;
 }): LinkAnalysisResult {
-  const { linkAnalysis, fallbackSourceUrl = "", jobId = null } = params;
+  const { linkAnalysis, fallbackOriginalUrl = "", jobId = null } = params;
 
   return {
     analysisRequestId: linkAnalysis.analysisRequestId,
     linkId: linkAnalysis.linkId,
     jobId,
-    sourceUrl: resolveLinkAnalysisSourceUrl(linkAnalysis.sourceUrl, fallbackSourceUrl),
+    originalUrl: resolveLinkAnalysisOriginalUrl(linkAnalysis.originalUrl, fallbackOriginalUrl),
     status: linkAnalysis.status,
     candidatePlaces: linkAnalysis.candidatePlaces,
     contentText: linkAnalysis.contentText ?? null,
@@ -43,16 +43,16 @@ export function mapLinkAnalysisToResult(params: {
   };
 }
 
-export function resolveLinkAnalysisSourceUrl(
-  apiSourceUrl: string | null | undefined,
-  fallbackSourceUrl: string,
+export function resolveLinkAnalysisOriginalUrl(
+  apiOriginalUrl: string | null | undefined,
+  fallbackOriginalUrl: string,
 ): string {
-  const fromApi = apiSourceUrl?.trim() ?? "";
+  const fromApi = apiOriginalUrl?.trim() ?? "";
   if (fromApi.length > 0) {
     return fromApi;
   }
 
-  return fallbackSourceUrl.trim();
+  return fallbackOriginalUrl.trim();
 }
 
 function resolveAnalysisErrorMessage(linkAnalysis: LinkAnalysis): string | undefined {

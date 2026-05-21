@@ -37,7 +37,7 @@ export type RoomPlaceDto = {
   roadAddress: string | null;
   latitude: string | number | null;
   longitude: string | number | null;
-  sourceUrl?: string | null;
+  originalUrl?: string | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   serviceCategoryCode: ServiceCategoryCode;

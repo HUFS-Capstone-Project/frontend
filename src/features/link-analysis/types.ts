@@ -11,7 +11,7 @@ export type LinkAnalysisStatus =
 export type LinkAnalysisSource = "WEB" | "APP";
 
 export type RequestLinkAnalysisRequest = {
-  url: string;
+  originalUrl: string;
   source?: LinkAnalysisSource;
 };
 
@@ -25,7 +25,7 @@ export type LinkAnalysisRequestResultDto = {
 export type LinkAnalysisDto = {
   linkId: number;
   status: LinkAnalysisStatus;
-  sourceUrl?: string | null;
+  originalUrl?: string | null;
   contentText?: string | null;
   linkStats: LinkStatsDto | null;
   candidatePlaces: CandidatePlaceDto[];
@@ -79,7 +79,7 @@ export type LinkAnalysis = {
   analysisRequestId: number;
   linkId: number;
   status: LinkAnalysisStatus;
-  sourceUrl: string | null;
+  originalUrl: string | null;
   candidatePlaces: CandidatePlace[];
   contentText?: string | null;
   linkStats: LinkStats | null;

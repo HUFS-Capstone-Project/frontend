@@ -3,7 +3,7 @@ import { create } from "zustand";
 export type LinkAddDraft = {
   roomId: string;
   sessionId: string;
-  url: string;
+  originalUrl: string;
   analysisRequestId: number | null;
   linkId: number | null;
   requestJobId: string | null;
