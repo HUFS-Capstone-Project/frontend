@@ -18,6 +18,7 @@ import {
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
 import { cn } from "@/lib/utils";
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
 
@@ -31,6 +32,7 @@ type PlaceSearchMapSheetProps = {
   title: string;
   subtitle: string;
   linkUrl?: string | null;
+  linkSourceType?: LinkSourceType | null;
   contentText?: string | null;
   initialMode?: PlaceSearchMapSheetMode;
   keyword: string;
@@ -59,6 +61,7 @@ export function PlaceSearchMapSheet({
   title,
   subtitle,
   linkUrl,
+  linkSourceType = null,
   contentText,
   initialMode = "intro",
   keyword,
@@ -198,6 +201,7 @@ export function PlaceSearchMapSheet({
             title={title}
             subtitle={subtitle}
             linkUrl={linkUrl}
+            linkSourceType={linkSourceType}
             content={content}
             onEnterSearch={enterSearchMode}
             onCancel={onCancel}
@@ -288,6 +292,7 @@ function IntroSheetContent({
   title,
   subtitle,
   linkUrl,
+  linkSourceType,
   content,
   onEnterSearch,
   onCancel,
@@ -295,6 +300,7 @@ function IntroSheetContent({
   title: string;
   subtitle: string;
   linkUrl?: string | null;
+  linkSourceType?: LinkSourceType | null;
   content: string | null;
   onEnterSearch: () => void;
   onCancel: () => void;
@@ -340,6 +346,7 @@ function IntroSheetContent({
           key={`${content ?? ""}-${linkUrl?.trim() ?? ""}`}
           content={content}
           originalLinkUrl={linkUrl}
+          linkSourceType={linkSourceType}
         />
       </div>
     </section>
@@ -472,11 +479,13 @@ function SearchSheetContent({
 function LinkContentBlock({
   content,
   originalLinkUrl,
+  linkSourceType,
   className,
 }: {
   content: string | null;
   /** 원본 링크가 있으면 CONTENT 라벨 오른쪽에 「원본 보기」 칩 */
   originalLinkUrl?: string | null;
+  linkSourceType?: LinkSourceType | null;
   className?: string;
 }) {
   const bodyRef = useRef<HTMLParagraphElement | null>(null);
@@ -492,7 +501,11 @@ function LinkContentBlock({
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <p className={cn(labelClassName, "shrink-0")}>{PLACE_FLOW_COPY.contentSectionLabel}</p>
       {showOriginalChip ? (
-        <PlaceFlowOriginalLinkChipRow linkUrl={trimmedOriginalLink} className="min-w-0 shrink" />
+        <PlaceFlowOriginalLinkChipRow
+          linkUrl={trimmedOriginalLink}
+          linkSourceType={linkSourceType}
+          className="min-w-0 shrink"
+        />
       ) : null}
     </div>
   );

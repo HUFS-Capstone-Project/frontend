@@ -102,7 +102,10 @@ export function CandidatePlaceResultScreen({
 
             <div className={LINK_FLOW_AFTER_HEADLINES_CLASS}>
               {trimmedOriginalUrl ? (
-                <PlaceFlowOriginalLinkChipRow linkUrl={trimmedOriginalUrl} />
+                <PlaceFlowOriginalLinkChipRow
+                  linkUrl={trimmedOriginalUrl}
+                  linkSourceType={result.linkSourceType}
+                />
               ) : null}
             </div>
           </section>

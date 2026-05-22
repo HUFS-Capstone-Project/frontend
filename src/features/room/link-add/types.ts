@@ -5,6 +5,7 @@ import type {
   LinkAnalysisStatus,
   LinkStats,
 } from "@/features/link-analysis";
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 
 export type Step = "input" | "processing" | "analysisResult";
 
@@ -22,6 +23,7 @@ export type LinkAnalysisResult = {
   errorMessage?: string;
   retryable?: boolean;
   cooldownSeconds?: number;
+  linkSourceType?: LinkSourceType;
 };
 
 export function mapLinkAnalysisToResult(params: {
@@ -45,6 +47,7 @@ export function mapLinkAnalysisToResult(params: {
     errorMessage: resolveAnalysisErrorMessage(linkAnalysis),
     retryable: linkAnalysis.retryable,
     cooldownSeconds: linkAnalysis.cooldownSeconds,
+    linkSourceType: linkAnalysis.linkSourceType,
   };
 }
 
@@ -68,6 +71,7 @@ export function mapLinkAnalysisRequestToResult(params: {
     errorMessage: requested.errorMessage ?? resolveAnalysisErrorMessageFromStatus(requested.status),
     retryable: requested.retryable,
     cooldownSeconds: requested.cooldownSeconds,
+    linkSourceType: requested.linkSourceType,
   };
 }
 

@@ -72,6 +72,7 @@ export function toLinkAnalysisRequestResult(
     errorMessage: normalizeOptionalString(dto.errorMessage) ?? undefined,
     retryable: dto.retryable ?? undefined,
     cooldownSeconds: normalizeOptionalNumber(dto.cooldownSeconds),
+    linkSourceType: dto.linkSourceType ?? undefined,
   };
 }
 
@@ -88,6 +89,7 @@ export function toLinkAnalysis(dto: LinkAnalysisDto, analysisRequestId: number):
     errorMessage: normalizeOptionalString(dto.errorMessage) ?? undefined,
     retryable: dto.retryable ?? undefined,
     cooldownSeconds: normalizeOptionalNumber(dto.cooldownSeconds),
+    linkSourceType: dto.linkSourceType ?? undefined,
   };
 }
 

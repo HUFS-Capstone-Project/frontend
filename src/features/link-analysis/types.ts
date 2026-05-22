@@ -1,3 +1,4 @@
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import type { CommonResponse } from "@/shared/types/api-types";
 import type { ServiceCategoryCode } from "@/shared/types/map-home";
 
@@ -24,6 +25,7 @@ export type LinkAnalysisRequestResultDto = {
   errorMessage?: string | null;
   retryable?: boolean | null;
   cooldownSeconds?: number | null;
+  linkSourceType?: LinkSourceType | null;
 };
 
 export type LinkAnalysisDto = {
@@ -37,6 +39,7 @@ export type LinkAnalysisDto = {
   errorMessage: string | null;
   retryable?: boolean | null;
   cooldownSeconds?: number | null;
+  linkSourceType?: LinkSourceType | null;
 };
 
 export type LinkStatsDto = {
@@ -83,6 +86,7 @@ export type LinkAnalysisRequestResult = {
   errorMessage?: string;
   retryable?: boolean;
   cooldownSeconds?: number;
+  linkSourceType?: LinkSourceType;
 };
 
 export type LinkAnalysis = {
@@ -97,6 +101,7 @@ export type LinkAnalysis = {
   errorMessage?: string;
   retryable?: boolean;
   cooldownSeconds?: number;
+  linkSourceType?: LinkSourceType;
 };
 
 export type LinkStats = {
