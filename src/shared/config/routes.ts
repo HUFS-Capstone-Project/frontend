@@ -11,6 +11,10 @@ export const APP_ROUTES = {
   editPlace: "/places/edit",
   /** 공유 링크 기준 후보 장소 선택(등록 플로우) */
   placeRegisterFromLink: "/places/register/from-link",
+  /** 공개 개인정보처리방침 */
+  privacyPolicy: "/privacys",
+  /** 공개 서비스 이용약관 */
+  termsOfService: "/terms",
 } as const;
 
 /** 방 컨텍스트 장소·링크 추가 플로우 (리소스 중심 URL) */

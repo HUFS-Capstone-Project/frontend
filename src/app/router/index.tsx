@@ -9,6 +9,8 @@ import { ProtectedShellSuspenseFallback } from "@/app/router/ProtectedShellSuspe
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import EditPlacePage from "@/pages/EditPlacePage";
 import EntryPage from "@/pages/EntryPage";
+import PrivacyPolicyPage from "@/pages/legal/PrivacyPolicyPage";
+import TermsOfServicePage from "@/pages/legal/TermsOfServicePage";
 import LinkPlaceSelectPage from "@/pages/LinkPlaceSelectPage";
 import LoginPage from "@/pages/LoginPage";
 import { mapHomeLoader } from "@/pages/map/map-home-loader";
@@ -33,6 +35,8 @@ export const router = createBrowserRouter([
       { path: "places/register/from-link", element: <LinkPlaceSelectPage /> },
       { path: "places/edit", element: <EditPlacePage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "privacys", element: <PrivacyPolicyPage /> },
+      { path: "terms", element: <TermsOfServicePage /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,
