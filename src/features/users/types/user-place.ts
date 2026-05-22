@@ -1,5 +1,6 @@
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
-import type { ServiceCategoryCode } from "@/shared/types/map-home";
+import type { PlaceAddedVia, ServiceCategoryCode } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
 import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
@@ -41,6 +42,8 @@ export type UserPlaceResponse = {
   latitude?: string | number | null;
   longitude?: string | number | null;
   originalUrl?: string | null;
+  linkSourceType?: LinkSourceType | null;
+  addedVia?: PlaceAddedVia | null;
   serviceCategoryCode: ServiceCategoryCode | string | null;
   serviceCategoryName: string | null;
   serviceTagCode: string | null;
@@ -77,6 +80,8 @@ export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {
     tagKeys: item.serviceTagCode ? [item.serviceTagCode] : undefined,
     tagNames: item.serviceTagName ? [item.serviceTagName] : undefined,
     shareLinkUrl: item.originalUrl ?? null,
+    addedVia: item.addedVia ?? null,
+    linkSourceType: item.linkSourceType ?? null,
     memo: item.memo ?? undefined,
     memos: item.memos,
     latitude: toCoordinateNumber(item.latitude),

@@ -1,9 +1,11 @@
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import type { BusinessHoursDisplay } from "@/shared/types/business-hours";
 import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type MapPlaceCategory = string;
 export type MapPrimaryCategory = string;
 export type ServiceCategoryCode = "FOOD" | "CAFE" | "ACTIVITY";
+export type PlaceAddedVia = "LINK_ANALYSIS" | "LINK_ANALYSIS_MANUAL_SEARCH" | "EXTERNAL_SEARCH";
 
 export const MAP_ALL_CATEGORY_FILTER_CHIP = "전체" as const;
 export type MapAllCategoryFilterChip = typeof MAP_ALL_CATEGORY_FILTER_CHIP;
@@ -28,8 +30,9 @@ export type SavedPlace = {
   address: string;
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
-  /** INSTAGRAM | NAVER_BLOG | GENERIC_WEB */
-  sourceType?: string | null;
+  addedVia?: PlaceAddedVia | null;
+  /** Link platform such as INSTAGRAM, NAVER_BLOG, YOUTUBE, or GENERIC_WEB. */
+  linkSourceType?: LinkSourceType | null;
   memo?: string;
   memos?: RoomPlaceMemo[];
   businessHours?: BusinessHoursDisplay | null;

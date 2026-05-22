@@ -1,4 +1,4 @@
-export const LINK_SOURCE_TYPES = ["INSTAGRAM", "NAVER_BLOG", "GENERIC_WEB"] as const;
+export const LINK_SOURCE_TYPES = ["INSTAGRAM", "NAVER_BLOG", "YOUTUBE", "GENERIC_WEB"] as const;
 
 export type LinkSourceType = (typeof LINK_SOURCE_TYPES)[number];
 
@@ -15,7 +15,7 @@ export function normalizeLinkSourceType(value: string | null | undefined): LinkS
   return null;
 }
 
-/** API sourceType이 없을 때 originalUrl 호스트로 추론 */
+/** Infer from originalUrl host when API linkSourceType is absent. */
 export function inferLinkSourceTypeFromUrl(url: string): LinkSourceType {
   const trimmed = url.trim();
   if (trimmed.length === 0) {
@@ -32,6 +32,10 @@ export function inferLinkSourceTypeFromUrl(url: string): LinkSourceType {
     if (host.includes("naver.com") || host.includes("naver.me")) {
       return "NAVER_BLOG";
     }
+
+    if (host.includes("youtube.com") || host === "youtu.be") {
+      return "YOUTUBE";
+    }
   } catch {
     // fall through
   }
@@ -40,8 +44,8 @@ export function inferLinkSourceTypeFromUrl(url: string): LinkSourceType {
 }
 
 export function resolveLinkSourceType(
-  sourceType: string | null | undefined,
+  linkSourceType: string | null | undefined,
   originalUrl: string,
 ): LinkSourceType {
-  return normalizeLinkSourceType(sourceType) ?? inferLinkSourceTypeFromUrl(originalUrl);
+  return normalizeLinkSourceType(linkSourceType) ?? inferLinkSourceTypeFromUrl(originalUrl);
 }

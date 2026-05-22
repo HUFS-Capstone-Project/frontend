@@ -1,5 +1,6 @@
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import type { BusinessHoursDisplay } from "@/shared/types/business-hours";
-import type { MapPrimaryCategory } from "@/shared/types/map-home";
+import type { MapPrimaryCategory, PlaceAddedVia } from "@/shared/types/map-home";
 import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type RecentPlace = {
@@ -26,8 +27,9 @@ export type SavedPlace = {
   longitude?: number;
   /** SNS·웹 등 원본 공유 링크 */
   shareLinkUrl?: string | null;
-  /** INSTAGRAM | NAVER_BLOG | GENERIC_WEB */
-  sourceType?: string | null;
+  addedVia?: PlaceAddedVia | null;
+  /** Link platform such as INSTAGRAM, NAVER_BLOG, YOUTUBE, or GENERIC_WEB. */
+  linkSourceType?: LinkSourceType | null;
   memo?: string;
   memos?: RoomPlaceMemo[];
   businessHours?: BusinessHoursDisplay | null;

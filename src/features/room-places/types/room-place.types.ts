@@ -1,5 +1,6 @@
+import type { LinkSourceType } from "@/shared/lib/link-source-type";
 import type { BusinessHoursDisplay, BusinessHoursStatus } from "@/shared/types/business-hours";
-import type { ServiceCategoryCode } from "@/shared/types/map-home";
+import type { PlaceAddedVia, ServiceCategoryCode } from "@/shared/types/map-home";
 import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 
 export type RoomPlaceListParams = {
@@ -38,6 +39,8 @@ export type RoomPlaceDto = {
   latitude: string | number | null;
   longitude: string | number | null;
   originalUrl?: string | null;
+  linkSourceType?: LinkSourceType | null;
+  addedVia?: PlaceAddedVia | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   serviceCategoryCode: ServiceCategoryCode;
@@ -50,7 +53,6 @@ export type RoomPlaceDto = {
   sigunguName: string | null;
   memo: string | null;
   memos: RoomPlaceMemo[];
-  sourceType: string | null;
   sourceRoomLinkId: number | null;
   createdBy: number | null;
   createdAt: string | null;

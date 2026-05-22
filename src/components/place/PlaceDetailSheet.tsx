@@ -32,7 +32,13 @@ type DetailSavedPlace = MySavedPlace &
   Partial<
     Pick<
       MapSavedPlace,
-      "latitude" | "longitude" | "businessHours" | "categoryName" | "tagNames" | "sourceType"
+      | "latitude"
+      | "longitude"
+      | "businessHours"
+      | "categoryName"
+      | "tagNames"
+      | "addedVia"
+      | "linkSourceType"
     >
   >;
 
@@ -127,7 +133,8 @@ export function PlaceDetailSheet({
             longitude: place.longitude ?? 0,
             address: place.address,
             shareLinkUrl: place.shareLinkUrl ?? null,
-            sourceType: place.sourceType ?? null,
+            addedVia: place.addedVia ?? null,
+            linkSourceType: place.linkSourceType ?? null,
             memo: localMemos[place.id] ?? place.memo,
             memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : place.memos,
             businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
@@ -373,7 +380,7 @@ export function PlaceDetailSheet({
               {trimmedShareUrl ? (
                 <PlaceFlowOriginalLinkChipRow
                   linkUrl={trimmedShareUrl}
-                  sourceType={place.sourceType}
+                  linkSourceType={place.linkSourceType}
                   className="contents"
                 />
               ) : null}

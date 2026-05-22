@@ -21,6 +21,8 @@ export function mapPlacesMatchingMySaved(places: MySavedPlace[]): MapSavedPlace[
       longitude: place.longitude ?? 0,
       address: place.address,
       shareLinkUrl: place.shareLinkUrl ?? null,
+      addedVia: place.addedVia ?? null,
+      linkSourceType: place.linkSourceType ?? null,
       memo: place.memo,
       memos: place.memos,
       businessHours: place.businessHours ?? null,
