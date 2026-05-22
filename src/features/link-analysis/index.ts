@@ -14,6 +14,7 @@ export {
   hasKakaoPlaceId,
   isInstagramRateLimitedError,
   isLinkAnalysisTerminal,
+  isUnsupportedPlatformUrlError,
   LINK_ANALYSIS_ERROR_CODE,
   LINK_ANALYSIS_STATUS,
   shouldPollLinkAnalysis,

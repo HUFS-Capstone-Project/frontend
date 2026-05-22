@@ -53,6 +53,7 @@ export function LinkAddFlowView({
     isSavePending,
     canSaveSelectedCandidates,
     cancelOngoingSubmission,
+    resetFlow,
     submitLink,
     retryLinkAnalysis,
     toggleCandidatePlace,
@@ -65,6 +66,22 @@ export function LinkAddFlowView({
     candidatesBootstrap,
     onSaveSuccess: handleSaveSuccess,
   });
+
+  const handleReenterLink = useCallback(() => {
+    if (!room?.id) {
+      return;
+    }
+
+    useLinkAddDraftStore.getState().clearForRoom(room.id);
+    cancelOngoingSubmission();
+
+    if (candidatesOnly) {
+      navigate(ROOM_APP_PATHS.placeFromLink(room.id), { replace: true });
+      return;
+    }
+
+    resetFlow();
+  }, [cancelOngoingSubmission, candidatesOnly, navigate, resetFlow, room]);
 
   const handleRequestClose = useCallback(() => {
     if (room?.id) {
@@ -159,6 +176,7 @@ export function LinkAddFlowView({
         onRetry={() => {
           void retryLinkAnalysis();
         }}
+        onReenterLink={handleReenterLink}
         onToggleCandidatePlace={toggleCandidatePlace}
         onSave={() => {
           void saveSelectedCandidatePlaces();
@@ -216,6 +234,7 @@ export function LinkAddFlowView({
           onRetry={() => {
             void retryLinkAnalysis();
           }}
+          onReenterLink={handleReenterLink}
           onToggleCandidatePlace={toggleCandidatePlace}
           onSave={() => {
             void saveSelectedCandidatePlaces();

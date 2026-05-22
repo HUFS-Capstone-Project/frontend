@@ -13,6 +13,7 @@ import {
   canRetryLinkAnalysis,
   canSelectCandidatePlace,
   isInstagramRateLimitedError,
+  isUnsupportedPlatformUrlError,
 } from "@/features/link-analysis";
 import { LINK_FLOW_AFTER_HEADLINES_CLASS } from "@/features/place-flow/link-flow-layout";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
@@ -27,6 +28,8 @@ import type { LinkAnalysisResult } from "@/features/room/link-add";
 import { APP_ROUTES } from "@/shared/config/routes";
 import type { SavedPlace } from "@/shared/types/map-home";
 
+import { SupportedPlatformList } from "./SupportedPlatformList";
+
 export type CandidatePlaceResultScreenProps = {
   linkAddRoomId: string;
   result: LinkAnalysisResult;
@@ -36,6 +39,7 @@ export type CandidatePlaceResultScreenProps = {
   canSave?: boolean;
   onClose: () => void;
   onRetry: () => void;
+  onReenterLink?: () => void;
   onSearchManually?: () => void;
   onToggleCandidatePlace: (place: CandidatePlace) => void;
   onSave: () => void;
@@ -51,6 +55,7 @@ export function CandidatePlaceResultScreen({
   canSave = false,
   onClose,
   onRetry,
+  onReenterLink,
   onSearchManually,
   onToggleCandidatePlace,
   onSave,
@@ -59,14 +64,14 @@ export function CandidatePlaceResultScreen({
   const navigate = useNavigate();
 
   const isSucceeded = result.status === "SUCCEEDED";
-  const canRetry = canRetryLinkAnalysis(result.status, result.retryable);
   const isInstagramRateLimited = isInstagramRateLimitedError(result.errorCode);
-  const notFoundTitle = isInstagramRateLimited
-    ? PLACE_FLOW_COPY.instagramRateLimited.title
-    : PLACE_FLOW_COPY.notFoundTitle;
-  const notFoundHint = isInstagramRateLimited
-    ? (result.errorMessage ?? "")
-    : PLACE_FLOW_COPY.notFoundHint;
+  const isUnsupportedPlatform = isUnsupportedPlatformUrlError(result.errorCode);
+  const canRetry = !isUnsupportedPlatform && canRetryLinkAnalysis(result.status, result.retryable);
+  const notFoundTitle = getNotFoundTitle({ isInstagramRateLimited });
+  const notFoundHint = getNotFoundHint({
+    isInstagramRateLimited,
+    errorMessage: result.errorMessage,
+  });
   const selectedCount = selectedKakaoPlaceIds.length;
   const selectableCount = result.candidatePlaces.filter(canSelectCandidatePlace).length;
   const canShowSaveButton = isSucceeded;
@@ -111,7 +116,18 @@ export function CandidatePlaceResultScreen({
           </section>
         ) : null}
 
-        {showNotFoundHelp ? (
+        {showNotFoundHelp && isUnsupportedPlatform ? (
+          <div>
+            <PlaceFlowHeadlines
+              titleId="link-unsupported-platform-title"
+              title={PLACE_FLOW_COPY.unsupportedPlatformUrl.title}
+              subtitle={PLACE_FLOW_COPY.unsupportedPlatformUrl.subtitle}
+            />
+            <div className="mt-16">
+              <SupportedPlatformList />
+            </div>
+          </div>
+        ) : showNotFoundHelp ? (
           <div className="space-y-4">
             <PlaceFlowHeadlines
               titleId="link-candidate-not-found-title"
@@ -202,7 +218,11 @@ export function CandidatePlaceResultScreen({
             </PlaceFlowCancelPillButton>
           }
           right={
-            canRetry ? (
+            isUnsupportedPlatform && onReenterLink ? (
+              <PillButton type="button" variant="onboarding" onClick={onReenterLink}>
+                {PLACE_FLOW_COPY.reenterLink}
+              </PillButton>
+            ) : canRetry ? (
               <PillButton type="button" variant="onboarding" onClick={onRetry}>
                 {PLACE_FLOW_COPY.retry}
               </PillButton>
@@ -242,6 +262,28 @@ function candidatePlaceToSavedPlace(place: CandidatePlace, index: number): Saved
 
 function getCandidatePlaceKey(place: CandidatePlace, index: number): string {
   return place.kakaoPlaceId ?? String(place.candidateId ?? index);
+}
+
+function getNotFoundTitle({ isInstagramRateLimited }: { isInstagramRateLimited: boolean }): string {
+  if (isInstagramRateLimited) {
+    return PLACE_FLOW_COPY.instagramRateLimited.title;
+  }
+
+  return PLACE_FLOW_COPY.notFoundTitle;
+}
+
+function getNotFoundHint({
+  isInstagramRateLimited,
+  errorMessage,
+}: {
+  isInstagramRateLimited: boolean;
+  errorMessage?: string;
+}): string {
+  if (isInstagramRateLimited) {
+    return errorMessage ?? "";
+  }
+
+  return PLACE_FLOW_COPY.notFoundHint;
 }
 
 function getSaveButtonLabel(params: {

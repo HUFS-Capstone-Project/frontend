@@ -19,6 +19,15 @@ export const PLACE_FLOW_COPY = {
   instagramRateLimited: {
     title: "Instagram 분석이 일시적으로 제한됐어요",
   },
+  unsupportedPlatformUrl: {
+    title: "이 링크는 분석할 수 없어요",
+    subtitle: "지원되는 링크를 다시 넣어 주세요",
+    platforms: {
+      instagram: "Instagram",
+      naverBlog: "네이버 블로그",
+      youtube: "YouTube",
+    },
+  },
   /** 링크 분석 후 수동 검색 유도(PlaceSearchMapSheet intro) */
   manualPlaceFallback: {
     subtitle: "해당 장소를 직접 검색해 주세요",
@@ -31,10 +40,11 @@ export const PLACE_FLOW_COPY = {
   pickPlaces: "장소 선택",
   noneToSave: "장소 없음",
   retry: "다시 시도",
+  reenterLink: "다시 넣기",
   linkFromUrl: {
     titleLine1: "링크를 분석해",
     titleLine2: "저장할 장소를 찾아드릴게요",
-    inputPlaceholder: "장소가 담긴 링크를 넣어 주세요",
+    inputPlaceholder: "장소가 소개된 링크를 붙여넣어 주세요",
     /** 링크 분석 대기 중 안내 문구 */
     processingCarousel: [
       "링크 속 장소를 찾고 있어요",

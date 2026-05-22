@@ -24,6 +24,7 @@ export const LINK_ANALYSIS_STATUS = {
 
 export const LINK_ANALYSIS_ERROR_CODE = {
   INSTAGRAM_RATE_LIMITED: "INSTAGRAM_RATE_LIMITED",
+  UNSUPPORTED_PLATFORM_URL: "UNSUPPORTED_PLATFORM_URL",
 } as const;
 
 const POLLING_STATUSES = new Set<LinkAnalysisStatus>([
@@ -58,6 +59,10 @@ export function canRetryLinkAnalysis(
 
 export function isInstagramRateLimitedError(errorCode: string | undefined): boolean {
   return errorCode === LINK_ANALYSIS_ERROR_CODE.INSTAGRAM_RATE_LIMITED;
+}
+
+export function isUnsupportedPlatformUrlError(errorCode: string | undefined): boolean {
+  return errorCode === LINK_ANALYSIS_ERROR_CODE.UNSUPPORTED_PLATFORM_URL;
 }
 
 export function toLinkAnalysisRequestResult(
