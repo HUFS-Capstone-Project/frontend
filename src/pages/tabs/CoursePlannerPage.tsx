@@ -7,7 +7,11 @@ import { CourseEditPanel } from "@/components/course-planner/CourseEditPanel";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import { CoursePlaceInfoPanel, type CourseStop } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerMapPreview } from "@/components/course-planner/CoursePlannerMapPreview";
-import { CoursePlannerPanel, type PlaceTypeId } from "@/components/course-planner/CoursePlannerPanel";
+import {
+  CoursePlannerPanel,
+  type CourseCategoryOrder,
+  type PlaceTypeId,
+} from "@/components/course-planner/CoursePlannerPanel";
 import { CourseResultPanel, type CourseOption } from "@/components/course-planner/CourseResultPanel";
 import {
   DateTimeSelectionPanel,
@@ -68,7 +72,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
   const [draftDate, setDraftDate] = useState("2026.04.20");
   const [draftStartTime, setDraftStartTime] = useState<string | null>("13:00");
   const [draftEndTime, setDraftEndTime] = useState<string | null>("21:00");
-  const [selectedPlaceTypeIds, setSelectedPlaceTypeIds] = useState<PlaceTypeId[]>(["restaurant"]);
+  const [courseOrders, setCourseOrders] = useState<CourseCategoryOrder[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState(mockCourses[0]?.id ?? "");
   const [courseTitle, setCourseTitle] = useState(mockCourses[0]?.title ?? "코스 1");
   const [courseStops, setCourseStops] = useState<CourseStop[]>(mockStops);
@@ -99,7 +103,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     return <Navigate to="/room" replace />;
   }
 
-  const canGenerate = regionValue.trim().length > 0 && selectedPlaceTypeIds.length > 0;
+  const canGenerate = regionValue.trim().length > 0 && courseOrders.length > 0 && courseOrders.every((order) => order.tags.length > 0);
 
   const handleSelectCity = (city: string) => {
     setDraftCity(city);
@@ -125,13 +129,46 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     setMode("form");
   };
 
-  const handleTogglePlaceType = (placeTypeId: PlaceTypeId) => {
-    setSelectedPlaceTypeIds((current) => {
-      if (current.includes(placeTypeId)) {
-        return current.filter((id) => id !== placeTypeId);
-      }
-      return [...current, placeTypeId];
-    });
+  const createOrder = (category: PlaceTypeId): CourseCategoryOrder => ({
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    category,
+    tags: [],
+  });
+
+  const handleCreateFirstOrder = (placeTypeId: PlaceTypeId) => {
+    setCourseOrders([createOrder(placeTypeId)]);
+  };
+
+  const handleAddOrder = () => {
+    setCourseOrders((current) => [...current, createOrder("restaurant")]);
+  };
+
+  const handleSelectOrderCategory = (orderId: number, placeTypeId: PlaceTypeId) => {
+    setCourseOrders((current) =>
+      current.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              category: placeTypeId,
+              tags: [],
+            }
+          : order,
+      ),
+    );
+  };
+
+  const handleToggleOrderTag = (orderId: number, tag: string) => {
+    setCourseOrders((current) =>
+      current.map((order) => {
+        if (order.id !== orderId) return order;
+
+        const hasTag = order.tags.includes(tag);
+        return {
+          ...order,
+          tags: hasTag ? order.tags.filter((item) => item !== tag) : [...order.tags, tag],
+        };
+      }),
+    );
   };
 
   const handleResetPlanner = () => {
@@ -142,7 +179,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     setDraftDate("2026.04.20");
     setDraftStartTime("13:00");
     setDraftEndTime("21:00");
-    setSelectedPlaceTypeIds(["restaurant"]);
+    setCourseOrders([]);
     setCompletionNoticeVisible(false);
     setMode("form");
   };
@@ -208,11 +245,14 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           <CoursePlannerPanel
             regionValue={regionValue}
             dateTimeValue={getDateTimeDisplayValue(dateTimeValue)}
-            selectedPlaceTypeIds={selectedPlaceTypeIds}
+            courseOrders={courseOrders}
             canGenerate={canGenerate}
             onOpenRegionSelect={() => setMode("region")}
             onOpenDateTimeSelect={() => setMode("datetime")}
-            onTogglePlaceType={handleTogglePlaceType}
+            onCreateFirstOrder={handleCreateFirstOrder}
+            onAddOrder={handleAddOrder}
+            onSelectOrderCategory={handleSelectOrderCategory}
+            onToggleOrderTag={handleToggleOrderTag}
             onGenerate={handleGenerateCourse}
             onReset={handleResetPlanner}
           />

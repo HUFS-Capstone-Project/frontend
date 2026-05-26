@@ -13,6 +13,7 @@ import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
 import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import SplashScreenPage from "@/pages/SplashScreenPage";
+import CoursePlannerPagePreview from "@/pages/tabs/CoursePlannerPage";
 
 const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
       { path: "dev/click_place", element: <DevClickPlacePage /> },
       { path: "dev/SelectOption", element: <DevSelectOptionPage /> },
       { path: "login", element: <LoginPage /> },
-      { path: "dev/course", element: <CoursePlannerPage skipRoomGuard /> },
+      { path: "dev/course", element: <CoursePlannerPagePreview skipRoomGuard /> },
       { path: "app", element: <Navigate to="/" replace /> },
       {
         path: "auth/callback",
