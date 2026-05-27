@@ -34,18 +34,22 @@ type SaveConfirmKind = "create" | "edit";
 type CoursePlaceInfoPanelProps = {
   courseTitle: string;
   stops: CourseStop[];
+  roomId?: string | null;
   onBack: () => void;
   onSave: (payload: CourseSavePayload) => void;
   /** true면 조회 모드에서 「데이트 코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
   hideNewCourseSaveButton?: boolean;
+  className?: string;
 };
 
 export function CoursePlaceInfoPanel({
   courseTitle,
   stops,
+  roomId = null,
   onBack,
   onSave,
   hideNewCourseSaveButton = false,
+  className,
 }: CoursePlaceInfoPanelProps) {
   const openDetail = usePlaceDetailStore((s) => s.openDetail);
 
@@ -135,6 +139,7 @@ export function CoursePlaceInfoPanel({
         hideNewCourseSaveButton && !isEditing
           ? "pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))]"
           : "pb-0",
+        className,
       )}
     >
       {isEditing ? (
@@ -309,6 +314,7 @@ export function CoursePlaceInfoPanel({
 
       <CoursePlaceAddSheet
         open={isAddPlaceOpen}
+        roomId={roomId}
         excludedPlaceIds={draftStops.map((stop) => stop.placeId)}
         onClose={() => setIsAddPlaceOpen(false)}
         onConfirm={handleAddPlace}

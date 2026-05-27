@@ -1,12 +1,30 @@
-import { CalendarDays, Coffee, Flag, Plus, Trash2, Utensils } from "lucide-react";
-import type { ReactNode } from "react";
+import { CalendarDays, Plus, RefreshCcw, Trash2 } from "lucide-react";
 
-import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
 import { CoursePlannerField } from "@/components/course-planner/CoursePlannerField";
-import { PlaceTypeChip } from "@/components/course-planner/PlaceTypeChip";
+import { CategoryChipGrid, CategoryChipSkeletonList } from "@/components/map/CategoryChipGrid";
+import { TagChipGroup } from "@/components/map/TagChipGroup";
+import { isDefaultGroup, isEmptyGroup } from "@/features/map/utils/filter-panel-group";
 import { cn } from "@/lib/utils";
 
-export type PlaceTypeId = "restaurant" | "cafe" | "activity";
+export type PlaceTypeId = string;
+
+export type CoursePlannerTag = {
+  code: string;
+  name: string;
+  sortOrder: number;
+};
+
+export type CoursePlannerCategory = {
+  id: PlaceTypeId;
+  label: string;
+  tagGroups: {
+    code: string;
+    name: string | null;
+    sortOrder: number;
+    tags: CoursePlannerTag[];
+  }[];
+  tags: CoursePlannerTag[];
+};
 
 export type CourseCategoryOrder = {
   id: number;
@@ -18,174 +36,192 @@ type CoursePlannerPanelProps = {
   regionValue: string;
   dateTimeValue: string;
   courseOrders: CourseCategoryOrder[];
-  canGenerate: boolean;
+  categoryOptions: CoursePlannerCategory[];
+  isCategoryLoading?: boolean;
+  isCategoryError?: boolean;
+  className?: string;
   onOpenRegionSelect: () => void;
   onOpenDateTimeSelect: () => void;
-  onCreateFirstOrder: (placeTypeId: PlaceTypeId) => void;
   onAddOrder: () => void;
   onRemoveOrder: (orderId: number) => void;
   onSelectOrderCategory: (orderId: number, placeTypeId: PlaceTypeId) => void;
   onToggleOrderTag: (orderId: number, tag: string) => void;
-  onGenerate: () => void;
-  onReset: () => void;
-};
-
-const placeTypes: Array<{ id: PlaceTypeId; label: string; icon: ReactNode }> = [
-  { id: "restaurant", label: "음식점", icon: <Utensils className="size-3.5" /> },
-  { id: "cafe", label: "카페", icon: <Coffee className="size-3.5" /> },
-  { id: "activity", label: "놀거리", icon: <Flag className="size-3.5" /> },
-];
-
-const categoryTags: Record<PlaceTypeId, string[]> = {
-  restaurant: ["전체", "한식", "중식", "일식", "양식", "분식", "아시아식", "술집", "기타"],
-  cafe: ["제과, 베이커리", "디저트 카페", "브런치 카페", "루프탑 카페", "보드카페", "만화카페"],
-  activity: [
-    "전체",
-    "테마파크",
-    "보드카페",
-    "만화카페",
-    "문화,예술",
-    "방탈출카페",
-    "스포츠",
-    "찜질방",
-    "공원",
-    "생활용품점",
-    "아쿠아리움",
-    "기타",
-  ],
+  onRetryLoadCategories?: () => void;
 };
 
 export function CoursePlannerPanel({
   regionValue,
   dateTimeValue,
   courseOrders,
-  canGenerate,
+  categoryOptions,
+  isCategoryLoading = false,
+  isCategoryError = false,
+  className,
   onOpenRegionSelect,
   onOpenDateTimeSelect,
-  onCreateFirstOrder,
   onAddOrder,
   onRemoveOrder,
   onSelectOrderCategory,
   onToggleOrderTag,
-  onGenerate,
-  onReset,
+  onRetryLoadCategories,
 }: CoursePlannerPanelProps) {
+  const categoryCodes = categoryOptions.map((category) => category.id);
+  const showAddButton = !isCategoryLoading && !(isCategoryError && categoryOptions.length === 0);
+
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
-      <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
-        맞춤 데이트코스 설정하기
+    <section className={cn("bg-background w-full max-w-full min-w-0 px-6 pt-8 pb-0", className)}>
+      <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold">
+        맞춤 데이트 코스 만들기
       </h1>
 
       <div className="mt-6 grid gap-5">
         <CoursePlannerField
-          label="지역설정"
+          label="지역 설정"
           required
           value={regionValue}
-          placeholder="지역을 선택해주세요."
+          placeholder="지역을 선택해 주세요."
           onClick={onOpenRegionSelect}
         />
 
         <CoursePlannerField
           label="날짜 및 시간 설정"
           value={dateTimeValue}
-          placeholder="날짜 및 시간을 설정해주세요."
+          placeholder="날짜 및 시간을 설정해 주세요."
           icon={<CalendarDays className="size-4" aria-hidden />}
           onClick={onOpenDateTimeSelect}
         />
 
-        <div className="grid gap-2">
-          <div className="flex items-center justify-between">
+        <div className="grid gap-3">
+          <div>
             <span className="text-foreground text-sm font-semibold">
-              데이트 카테고리 및 순서 설정
+              방문할 장소 유형 고르기
               <span className="ml-0.5 text-[#f06f6b]">*</span>
             </span>
-
-            {courseOrders.length > 0 ? (
-              <button
-                type="button"
-                onClick={onAddOrder}
-                className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-                aria-label="순서 추가"
-              >
-                <Plus className="size-4" aria-hidden />
-              </button>
-            ) : null}
+            <p className="text-muted-foreground mt-1 text-xs">
+              코스 순서대로 장소 유형과 세부 조건을 선택해 주세요.
+            </p>
           </div>
 
-          {courseOrders.length === 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {placeTypes.map((type) => (
-                <PlaceTypeChip
-                  key={type.id}
-                  label={type.label}
-                  icon={type.icon}
-                  onClick={() => onCreateFirstOrder(type.id)}
-                />
-              ))}
+          {isCategoryLoading ? (
+            <CategoryChipSkeletonList
+              keyPrefix="course-category-chip-skeleton"
+              itemClassName="bg-background/85"
+            />
+          ) : isCategoryError && categoryOptions.length === 0 ? (
+            <div className="rounded-lg border border-dashed px-4 py-4">
+              <p className="text-muted-foreground text-sm">카테고리를 불러오지 못했어요.</p>
+              {onRetryLoadCategories ? (
+                <button
+                  type="button"
+                  onClick={onRetryLoadCategories}
+                  className="text-primary mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"
+                >
+                  <RefreshCcw className="size-3.5" aria-hidden />
+                  다시 불러오기
+                </button>
+              ) : null}
             </div>
           ) : (
             <div className="grid gap-3">
-              {courseOrders.map((order, index) => (
-                <div
-                  key={order.id}
-                  className="rounded-[20px] border border-[#e7e5e4] bg-white px-3 py-3.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#f4a09a] text-[0.68rem] font-bold text-white">
-                      {index + 1}
-                    </span>
+              {courseOrders.map((order, index) => {
+                const selectedCategory = categoryOptions.find((type) => type.id === order.category);
 
-                    <button
-                      type="button"
-                      onClick={() => onRemoveOrder(order.id)}
-                      className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full text-[#5f6368] transition-colors hover:bg-[#f5f5f5] focus-visible:ring-3 focus-visible:outline-none"
-                      aria-label="카테고리 삭제"
-                    >
-                      <Trash2 className="size-4" aria-hidden />
-                    </button>
-                  </div>
+                return (
+                  <div
+                    key={order.id}
+                    className="border-border/55 bg-background/85 rounded-2xl border px-3 py-3.5"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="bg-primary text-primary-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.68rem] font-bold">
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-foreground truncate text-sm font-semibold">
+                            {index + 1}번째로 갈 장소
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            이 순서에 넣을 장소 유형을 정해 주세요.
+                          </p>
+                        </div>
+                      </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {placeTypes.map((type) => (
-                      <PlaceTypeChip
-                        key={type.id}
-                        label={type.label}
-                        icon={type.icon}
-                        selected={order.category === type.id}
-                        selectedStyle="muted"
-                        onClick={() => onSelectOrderCategory(order.id, type.id)}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2 rounded-2xl border border-[#ececec] bg-[#fafafa] p-3">
-                    {categoryTags[order.category].map((tag) => {
-                      const selected = order.tags.includes(tag);
-                      return (
+                      {courseOrders.length > 1 ? (
                         <button
-                          key={tag}
                           type="button"
-                          onClick={() => onToggleOrderTag(order.id, tag)}
-                          className={cn(
-                            "focus-visible:ring-ring/50 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
-                            selected
-                              ? "border-[#f4a09a] bg-[#fff0ee] text-[#d95f5b]"
-                              : "border-[#dfdfdf] bg-white text-[#5f6368] hover:bg-[#f8f8f8]",
-                          )}
+                          onClick={() => onRemoveOrder(order.id)}
+                          className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-7 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+                          aria-label="방문 순서 삭제"
                         >
-                          {tag}
+                          <Trash2 className="size-4" aria-hidden />
                         </button>
-                      );
-                    })}
+                      ) : null}
+                    </div>
+
+                    <div>
+                      <CategoryChipGrid
+                        categories={categoryCodes}
+                        isLoading={false}
+                        getCategoryLabel={(category) =>
+                          categoryOptions.find((option) => option.id === category)?.label ??
+                          category
+                        }
+                        isHighlighted={(category) => order.category === category}
+                        isPanelFocused={() => false}
+                        getSelectedTagCount={(category) =>
+                          order.category === category ? order.tags.length : 0
+                        }
+                        onToggleCategory={(category) => onSelectOrderCategory(order.id, category)}
+                      />
+                    </div>
+
+                    <div className="border-border/60 mt-3 space-y-3 border-t pt-3">
+                      {selectedCategory && selectedCategory.tagGroups.length > 0 ? (
+                        selectedCategory.tagGroups.map((group) => {
+                          if (isEmptyGroup(group)) {
+                            return null;
+                          }
+
+                          return (
+                            <div key={`${selectedCategory.id}-${group.code}`}>
+                              {!isDefaultGroup(group) ? (
+                                <div className="text-muted-foreground/90 mb-1.5 text-[0.75rem] font-semibold tracking-tight">
+                                  {group.name}
+                                </div>
+                              ) : null}
+                              <TagChipGroup
+                                tags={group.tags}
+                                selectedKeys={order.tags}
+                                onToggleTagKey={(tag) => onToggleOrderTag(order.id, tag)}
+                              />
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-muted-foreground text-xs">
+                          선택할 수 있는 세부 태그가 없어요.
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
+
+          {showAddButton ? (
+            <button
+              type="button"
+              onClick={onAddOrder}
+              className="border-border bg-background text-muted-foreground hover:bg-muted/35 focus-visible:ring-ring/50 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+              disabled={categoryOptions.length === 0}
+            >
+              <Plus className="size-4" aria-hidden />
+              방문할 장소 추가하기
+            </button>
+          ) : null}
         </div>
       </div>
-
-      <CoursePlannerActions canGenerate={canGenerate} onGenerate={onGenerate} onReset={onReset} />
     </section>
   );
 }

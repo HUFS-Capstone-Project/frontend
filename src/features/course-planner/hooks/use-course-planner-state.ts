@@ -25,6 +25,9 @@ type UseCoursePlannerStateParams = {
   showToast: (message: string, durationMs?: number) => void;
 };
 
+const COURSE_DEFAULT_START_TIME = "13:00";
+const COURSE_DEFAULT_END_TIME = "18:00";
+
 export function useCoursePlannerState({
   courses,
   defaultCourseId,
@@ -39,8 +42,8 @@ export function useCoursePlannerState({
   const [draftDistrict, setDraftDistrict] = useState<string>(COURSE_DEFAULT_REGION.district);
   const [dateTimeValue, setDateTimeValue] = useState<DateTimeSelection | null>(null);
   const [draftDate, setDraftDate] = useState<string | null>(null);
-  const [draftStartTime, setDraftStartTime] = useState<string | null>(null);
-  const [draftEndTime, setDraftEndTime] = useState<string | null>(null);
+  const [draftStartTime, setDraftStartTime] = useState<string | null>(COURSE_DEFAULT_START_TIME);
+  const [draftEndTime, setDraftEndTime] = useState<string | null>(COURSE_DEFAULT_END_TIME);
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [courseTitle, setCourseTitle] = useState(courses[0]?.title ?? COURSE_FALLBACK_TITLE);
   const [courseStops, setCourseStops] = useState<CourseStop[]>(() =>
@@ -79,6 +82,8 @@ export function useCoursePlannerState({
 
   const handleOpenDateTimeSelect = useCallback(() => {
     closeTagPanel();
+    setDraftStartTime((current) => current ?? COURSE_DEFAULT_START_TIME);
+    setDraftEndTime((current) => current ?? COURSE_DEFAULT_END_TIME);
     setMode("datetime");
   }, [closeTagPanel]);
 
@@ -120,8 +125,8 @@ export function useCoursePlannerState({
     setDraftDistrict(COURSE_DEFAULT_REGION.district);
     setDateTimeValue(null);
     setDraftDate(null);
-    setDraftStartTime(null);
-    setDraftEndTime(null);
+    setDraftStartTime(COURSE_DEFAULT_START_TIME);
+    setDraftEndTime(COURSE_DEFAULT_END_TIME);
     resetCategorySelection();
     setSelectedCourseId("");
     setCourseTitle(courses[0]?.title ?? COURSE_FALLBACK_TITLE);

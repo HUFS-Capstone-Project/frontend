@@ -19,6 +19,7 @@ type RegionSelectionPanelProps = {
   cityErrorMessage?: string | null;
   districtErrorMessage?: string | null;
   searchKeyword?: string;
+  className?: string;
   onSearchKeywordChange?: (keyword: string) => void;
   onSelectCity: (city: string, option?: RegionSelectionOption) => void;
   onSelectDistrict: (district: string, option?: RegionSelectionOption) => void;
@@ -36,6 +37,7 @@ export function RegionSelectionPanel({
   cityErrorMessage = null,
   districtErrorMessage = null,
   searchKeyword,
+  className,
   onSearchKeywordChange,
   onSelectCity,
   onSelectDistrict,
@@ -108,7 +110,7 @@ export function RegionSelectionPanel({
   };
 
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
+    <section className={cn("bg-background px-6 pt-8 pb-0", className)}>
       <div className="flex items-center justify-between">
         <h1 className="text-foreground text-base font-bold">지역설정</h1>
         <button
