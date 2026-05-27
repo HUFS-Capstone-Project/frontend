@@ -8,16 +8,18 @@ export type { CourseOption };
 type CourseResultPanelProps = {
   courses: CourseOption[];
   selectedCourseId: string;
+  className?: string;
   onSelectCourse: (courseId: string) => void;
 };
 
 export function CourseResultPanel({
   courses,
   selectedCourseId,
+  className,
   onSelectCourse,
 }: CourseResultPanelProps) {
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
+    <section className={cn("bg-background px-6 pt-8 pb-0", className)}>
       <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
         맞춤 데이트 코스 확인하기
       </h1>

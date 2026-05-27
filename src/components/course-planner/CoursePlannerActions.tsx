@@ -6,15 +6,17 @@ type CoursePlannerActionsProps = {
   canGenerate: boolean;
   onGenerate: () => void;
   onReset: () => void;
+  className?: string;
 };
 
 export function CoursePlannerActions({
   canGenerate,
   onGenerate,
   onReset,
+  className,
 }: CoursePlannerActionsProps) {
   return (
-    <div className="mt-4 flex gap-2">
+    <div className={cn("mt-4 flex gap-2", className)}>
       <button
         type="button"
         onClick={onReset}

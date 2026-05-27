@@ -1,68 +1,96 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { EditPlaceResultCard } from "@/components/link-place/EditPlaceResultCard";
-import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearchEmptyRow";
-import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { PillButton } from "@/components/ui/PillButton";
-import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
-import { PROMPT_FLOW_LIST_TOP_BORDER_CLASS } from "@/features/place-flow/prompt-flow-layout";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
+import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
+import type { PlaceCandidate } from "@/features/place-candidates";
+import {
+  canSubmitPlaceCandidate,
+  placeCandidateToSavedPlace,
+  usePlaceCandidates,
+} from "@/features/place-candidates";
+import { cn } from "@/lib/utils";
 import type { SavedPlace } from "@/shared/types/map-home";
+import {
+  FULLSCREEN_FLOW_PANEL_CLASSES,
+  FULLSCREEN_FLOW_ROUTE_OUTER_CLASSES,
+} from "@/shared/ui/fullscreen-flow-layout";
 
 type CoursePlaceAddSheetProps = {
   open: boolean;
+  roomId?: string | null;
   excludedPlaceIds: string[];
   onClose: () => void;
   onConfirm: (place: SavedPlace) => void;
 };
 
-function findPlaceMatches(keyword: string): SavedPlace[] {
-  const trimmedKeyword = keyword.trim();
-  if (!trimmedKeyword) {
-    return [];
-  }
-
-  return SAVED_PLACE_MOCKS.filter(
-    (place) => place.name.includes(trimmedKeyword) || place.address.includes(trimmedKeyword),
-  );
-}
+const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export function CoursePlaceAddSheet({
   open,
+  roomId = null,
   excludedPlaceIds,
   onClose,
   onConfirm,
 }: CoursePlaceAddSheetProps) {
   const [keyword, setKeyword] = useState("");
+  const [submittedKeyword, setSubmittedKeyword] = useState("");
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const excludedPlaceIdSet = useMemo(() => new Set(excludedPlaceIds), [excludedPlaceIds]);
-
-  const searchResults = useMemo(() => findPlaceMatches(keyword), [keyword]);
-  const availableResults = useMemo(
-    () => searchResults.filter((place) => !excludedPlaceIdSet.has(place.id)),
-    [excludedPlaceIdSet, searchResults],
-  );
-  const selectedPlace = availableResults.find((place) => place.id === selectedPlaceId) ?? null;
   const trimmedKeyword = keyword.trim();
-  const canSearch = trimmedKeyword.length > 0;
-  const canConfirm = selectedPlace != null;
+  const submittedTrimmedKeyword = submittedKeyword.trim();
+  const isSubmittedKeywordCurrent = submittedTrimmedKeyword === trimmedKeyword;
+
+  const placeCandidatesQuery = usePlaceCandidates({
+    roomId: roomId ?? null,
+    params: {
+      keyword: submittedTrimmedKeyword,
+      limit: 10,
+    },
+    enabled: open && Boolean(roomId) && submittedTrimmedKeyword.length > 0,
+  });
+  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
+
+  const availableResults = useMemo(() => {
+    if (!isSubmittedKeywordCurrent || submittedTrimmedKeyword.length === 0) {
+      return [];
+    }
+
+    return placeCandidates
+      .map((place, index) => ({
+        candidate: place,
+        savedPlace: placeCandidateToSavedPlace(place, index),
+      }))
+      .filter(({ candidate, savedPlace }) => {
+        if (!canSubmitPlaceCandidate(candidate)) {
+          return false;
+        }
+
+        return (
+          !excludedPlaceIdSet.has(savedPlace.id) &&
+          !(savedPlace.kakaoPlaceId && excludedPlaceIdSet.has(savedPlace.kakaoPlaceId))
+        );
+      });
+  }, [excludedPlaceIdSet, isSubmittedKeywordCurrent, placeCandidates, submittedTrimmedKeyword]);
+
+  const selectedPlace =
+    availableResults.find(({ savedPlace }) => savedPlace.id === selectedPlaceId)?.savedPlace ??
+    null;
+  const searchResults = availableResults.map(({ savedPlace }) => savedPlace);
 
   const resetAndClose = () => {
     setKeyword("");
+    setSubmittedKeyword("");
     setSelectedPlaceId(null);
     onClose();
   };
 
   const handleSubmitSearch = () => {
-    if (!canSearch) {
+    if (trimmedKeyword.length === 0) {
       return;
     }
 
-    if (availableResults.length === 1) {
-      setSelectedPlaceId(availableResults[0].id);
-    }
+    setSubmittedKeyword(trimmedKeyword);
+    setSelectedPlaceId(null);
   };
 
   const handleConfirm = () => {
@@ -72,86 +100,40 @@ export function CoursePlaceAddSheet({
 
     onConfirm(selectedPlace);
     setKeyword("");
+    setSubmittedKeyword("");
     setSelectedPlaceId(null);
   };
 
-  const hasOnlyDuplicateMatches =
-    trimmedKeyword.length > 0 && searchResults.length > 0 && availableResults.length === 0;
+  if (!open) {
+    return null;
+  }
 
   return createPortal(
-    <BottomSheet open={open} onClose={resetAndClose} intrinsicPanelHeight enableHistory={false}>
-      <section className="bg-background px-6 pt-8 pb-0">
-        <div className="space-y-1">
-          <h2 className="text-foreground text-[1.25rem] leading-tight font-semibold tracking-[-0.01em]">
-            장소 추가하기
-          </h2>
-          <p className="text-muted-foreground text-sm">코스에 추가할 장소를 검색해 주세요</p>
-        </div>
-
-        <div className="mt-5">
-          <PlaceFlowSearchFieldRow
-            id="course-place-add-search"
-            value={keyword}
-            onChange={(next) => {
-              setKeyword(next);
-              setSelectedPlaceId(null);
-            }}
-            placeholder={PLACE_FLOW_COPY.searchPlaceholder}
-            searchButtonLabel={PLACE_FLOW_COPY.searchButton}
-            onSubmitSearch={handleSubmitSearch}
-            searchButtonDisabled={!canSearch}
-          />
-        </div>
-
-        <div className="mt-4 max-h-[min(40dvh,20rem)] overflow-y-auto">
-          {trimmedKeyword ? (
-            <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
-              {availableResults.length === 0 ? (
-                <PlaceFlowSearchEmptyRow
-                  title={hasOnlyDuplicateMatches ? "이미 추가된 장소예요" : undefined}
-                  hint={
-                    hasOnlyDuplicateMatches ? "코스에 없는 다른 장소를 검색해 주세요" : undefined
-                  }
-                />
-              ) : (
-                availableResults.map((place) => (
-                  <EditPlaceResultCard
-                    key={place.id}
-                    place={place}
-                    selected={selectedPlaceId === place.id}
-                    onSelect={() => setSelectedPlaceId(place.id)}
-                  />
-                ))
-              )}
-            </ul>
-          ) : null}
-        </div>
-
-        <div className="mt-6 flex w-full gap-2">
-          <div className="min-w-0 flex-1">
-            <PillButton
-              type="button"
-              variant="outline"
-              onClick={resetAndClose}
-              className="border-border text-muted-foreground hover:bg-muted/50 h-11 min-h-11 rounded-lg text-sm"
-            >
-              취소
-            </PillButton>
-          </div>
-          <div className="min-w-0 flex-1">
-            <PillButton
-              type="button"
-              variant={canConfirm ? "onboarding" : "onboardingMuted"}
-              disabled={!canConfirm}
-              onClick={handleConfirm}
-              className="h-11 min-h-11 rounded-lg text-sm"
-            >
-              확인
-            </PillButton>
-          </div>
-        </div>
+    <div className={cn(FULLSCREEN_FLOW_ROUTE_OUTER_CLASSES, "z-[80]")}>
+      <section className={FULLSCREEN_FLOW_PANEL_CLASSES}>
+        <PlaceSearchMapSheet
+          title="장소 추가하기"
+          subtitle="코스에 추가할 장소를 검색해 주세요."
+          initialMode="search"
+          keyword={keyword}
+          selectedPlaceId={selectedPlaceId}
+          searchResults={searchResults}
+          isSearching={placeCandidatesQuery.isFetching}
+          isSearchError={placeCandidatesQuery.isError && isSubmittedKeywordCurrent}
+          showEmptyResult={submittedTrimmedKeyword.length > 0 && isSubmittedKeywordCurrent}
+          canConfirm={selectedPlace != null}
+          onKeywordChange={(next) => {
+            setKeyword(next);
+            setSelectedPlaceId(null);
+          }}
+          onSubmitSearch={handleSubmitSearch}
+          onSelectPlace={setSelectedPlaceId}
+          onClearSelectedPlace={() => setSelectedPlaceId(null)}
+          onCancel={resetAndClose}
+          onConfirm={handleConfirm}
+        />
       </section>
-    </BottomSheet>,
+    </div>,
     document.body,
   );
 }

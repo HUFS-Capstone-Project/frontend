@@ -14,6 +14,7 @@ type DateTimeSelectionScreenProps = {
   selectedDate: string | null;
   selectedStartTime: string | null;
   selectedEndTime: string | null;
+  className?: string;
   onSelectDate: (date: string) => void;
   onSelectStartTime: (time: string | null) => void;
   onSelectEndTime: (time: string | null) => void;
@@ -31,6 +32,7 @@ export function DateTimeSelectionScreen({
   selectedDate,
   selectedStartTime,
   selectedEndTime,
+  className,
   onSelectDate,
   onSelectStartTime,
   onSelectEndTime,
@@ -61,7 +63,7 @@ export function DateTimeSelectionScreen({
   const headerTitle = step === "date" ? "날짜 선택" : "시간 설정";
 
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
+    <section className={cn("bg-background px-6 pt-8 pb-0", className)}>
       <div className="flex items-center gap-2">
         {step === "time" ? (
           <button
