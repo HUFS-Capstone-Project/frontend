@@ -5,7 +5,11 @@ import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
-import { CoursePlannerPanel } from "@/components/course-planner/CoursePlannerPanel";
+import {
+  CoursePlannerPanel,
+  type CourseCategoryOrder,
+  type PlaceTypeId,
+} from "@/components/course-planner/CoursePlannerPanel";
 import { CourseResultPanel } from "@/components/course-planner/CourseResultPanel";
 import { DateTimeSelectionScreen } from "@/components/course-planner/DateTimeSelectionScreen";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
@@ -14,8 +18,6 @@ import { CourseDevMapBackground } from "@/features/course-planner/components/Cou
 import { COURSE_LOADING_ROOM_FALLBACK } from "@/features/course-planner/constants";
 import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-course-planner-courses";
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
-import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
-import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import {
   REGION_ALL_CODE,
   REGION_ALL_OPTION,
@@ -27,13 +29,19 @@ import {
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import MapHomeWithDetail from "@/pages/map/MapHomeWithDetail";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
-import { MAP_ALL_CATEGORY_FILTER_CHIP } from "@/shared/types/map-home";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 type CoursePlannerPageProps = {
   skipRoomGuard?: boolean;
 };
+
+function createOrder(category: PlaceTypeId): CourseCategoryOrder {
+  return {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    category,
+    tags: [],
+  };
+}
 
 export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlannerPageProps) {
   const navigate = useNavigate();
@@ -42,35 +50,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     useBottomNavController();
   const { courses, defaultCourseId, getCourseStops } = useCoursePlannerCourses();
   const [regionSearchKeyword, setRegionSearchKeyword] = useState("");
-
-  const {
-    filterCategories,
-    categories,
-    categoryNameByCode,
-    isCategoryLoading,
-    isCategoryError,
-    retryLoad,
-  } = usePlaceFilterViewModel();
-
-  const {
-    activeCategories,
-    focusedCategory,
-    toggleCategory,
-    closeTagPanel,
-    isTagPanelOpen,
-    selectedTagKeysByCategory,
-    selectedTagCountByCategory,
-    toggleTagInCategory,
-    resetFocusedCategoryTags,
-  } = useMapSearchFilters({
-    places: SAVED_PLACE_MOCKS,
-    filterCategories,
-    initialFocusedCategory: "놀거리",
-  });
-
-  const resetCategorySelection = useCallback(() => {
-    toggleCategory(MAP_ALL_CATEGORY_FILTER_CHIP);
-  }, [toggleCategory]);
+  const [courseOrders, setCourseOrders] = useState<CourseCategoryOrder[]>([]);
 
   const {
     mode,
@@ -84,7 +64,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     courseTitle,
     courseStops,
     dateTimeDisplayValue,
-    canGenerate,
+    canGenerate: canGenerateByRegion,
     setMode,
     setDraftDistrict,
     setDraftDate,
@@ -95,8 +75,8 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     handleConfirmDateTime,
     handleSelectCity,
     handleConfirmRegion,
-    handleResetPlanner,
-    handleGenerateCourse,
+    handleResetPlanner: resetPlannerBase,
+    handleGenerateCourse: generateCourseBase,
     handleSelectCourse,
     handleBackToCourseResults,
     handleSaveCourse,
@@ -104,8 +84,8 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     courses,
     defaultCourseId,
     getCourseStops,
-    closeTagPanel,
-    resetCategorySelection,
+    closeTagPanel: () => undefined,
+    resetCategorySelection: () => undefined,
     showToast,
   });
   const sidosQuery = useSidosQuery();
@@ -194,50 +174,68 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     handleConfirmRegion();
   }, [handleConfirmRegion]);
 
-  const handleRetryLoadCategories = useCallback(() => {
-    void retryLoad();
-  }, [retryLoad]);
-
   const handleDismissCourse = useCallback(() => {
     navigate(APP_ROUTES.map);
   }, [navigate]);
 
-  const placeFilterBarProps = useMemo(
-    () => ({
-      categories,
-      categoryNameByCode,
-      filterCategories,
-      isCategoryLoading,
-      isCategoryError,
-      onRetryLoadCategories: handleRetryLoadCategories,
-      activeCategories,
-      focusedCategory,
-      onToggleCategory: toggleCategory,
-      isTagPanelOpen,
-      selectedTagKeysByCategory,
-      selectedTagCountByCategory,
-      onToggleTagInCategory: toggleTagInCategory,
-      onResetFocusedCategoryTags: resetFocusedCategoryTags,
-      onCloseTagPanel: closeTagPanel,
-    }),
-    [
-      activeCategories,
-      categories,
-      categoryNameByCode,
-      closeTagPanel,
-      filterCategories,
-      focusedCategory,
-      handleRetryLoadCategories,
-      isCategoryError,
-      isCategoryLoading,
-      isTagPanelOpen,
-      resetFocusedCategoryTags,
-      selectedTagCountByCategory,
-      selectedTagKeysByCategory,
-      toggleCategory,
-      toggleTagInCategory,
-    ],
-  );
+  const handleCreateFirstOrder = useCallback((placeTypeId: PlaceTypeId) => {
+    setCourseOrders([createOrder(placeTypeId)]);
+  }, []);
+
+  const handleAddOrder = useCallback(() => {
+    setCourseOrders((current) => [...current, createOrder("restaurant")]);
+  }, []);
+
+  const handleRemoveOrder = useCallback((orderId: number) => {
+    setCourseOrders((current) => current.filter((order) => order.id !== orderId));
+  }, []);
+
+  const handleSelectOrderCategory = useCallback((orderId: number, placeTypeId: PlaceTypeId) => {
+    setCourseOrders((current) =>
+      current.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              category: placeTypeId,
+              tags: [],
+            }
+          : order,
+      ),
+    );
+  }, []);
+
+  const handleToggleOrderTag = useCallback((orderId: number, tag: string) => {
+    setCourseOrders((current) =>
+      current.map((order) => {
+        if (order.id !== orderId) {
+          return order;
+        }
+
+        const hasTag = order.tags.includes(tag);
+        return {
+          ...order,
+          tags: hasTag ? order.tags.filter((item) => item !== tag) : [...order.tags, tag],
+        };
+      }),
+    );
+  }, []);
+
+  const handleResetPlanner = useCallback(() => {
+    setCourseOrders([]);
+    resetPlannerBase();
+  }, [resetPlannerBase]);
+
+  const canGenerate =
+    canGenerateByRegion &&
+    courseOrders.length > 0 &&
+    courseOrders.every((order) => order.tags.length > 0);
+
+  const handleGenerateCourse = useCallback(() => {
+    if (!canGenerate) {
+      return;
+    }
+    generateCourseBase();
+  }, [canGenerate, generateCourseBase]);
 
   if (!skipRoomGuard && !selectedRoom) {
     return <Navigate to={APP_ROUTES.room} replace />;
@@ -270,9 +268,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
             cityErrorMessage={sidosQuery.isError ? "지역 정보를 불러오지 못했어요." : null}
             districtErrorMessage={
               isAllSigunguSearchError
-                ? "시/군/구 정보를 확인할 수 없어요."
+                ? "시군구 정보를 확인할 수 없어요."
                 : !isRegionSearching && draftSidoOption && sigungusQuery.isError
-                  ? "시/군/구 정보를 확인할 수 없어요."
+                  ? "시군구 정보를 확인할 수 없어요."
                   : null
             }
             searchKeyword={regionSearchKeyword}
@@ -301,10 +299,15 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           <CoursePlannerPanel
             regionValue={regionValue}
             dateTimeValue={dateTimeDisplayValue}
+            courseOrders={courseOrders}
             canGenerate={canGenerate}
-            placeFilterBarProps={placeFilterBarProps}
             onOpenRegionSelect={() => setMode("region")}
             onOpenDateTimeSelect={handleOpenDateTimeSelect}
+            onCreateFirstOrder={handleCreateFirstOrder}
+            onAddOrder={handleAddOrder}
+            onRemoveOrder={handleRemoveOrder}
+            onSelectOrderCategory={handleSelectOrderCategory}
+            onToggleOrderTag={handleToggleOrderTag}
             onGenerate={handleGenerateCourse}
             onReset={handleResetPlanner}
           />
