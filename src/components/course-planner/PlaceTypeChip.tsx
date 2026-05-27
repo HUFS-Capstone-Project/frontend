@@ -17,9 +17,10 @@ export function PlaceTypeChip({
   selectedStyle = "accent",
   onClick,
 }: PlaceTypeChipProps) {
-  const selectedClassName = selectedStyle === "muted"
-    ? "border-[#d9d9d9] bg-[#f1f1f1] text-[#4b5563]"
-    : "border-[#f06f6b] bg-[#fff0ee] text-[#d95f5b]";
+  const selectedClassName =
+    selectedStyle === "muted"
+      ? "border-[#d9d9d9] bg-[#f1f1f1] text-[#4b5563]"
+      : "border-[#f06f6b] bg-[#fff0ee] text-[#d95f5b]";
 
   return (
     <button
@@ -27,7 +28,7 @@ export function PlaceTypeChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "focus-visible:ring-ring/50 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
         selected
           ? selectedClassName
           : "border-[#e5e7eb] bg-white text-[#4b5563] hover:bg-[#fafafa]",

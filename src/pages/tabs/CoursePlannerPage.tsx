@@ -6,8 +6,8 @@ import { CourseGenerationLoadingPanel } from "@/components/course-planner/Course
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import {
-  CoursePlannerPanel,
   type CourseCategoryOrder,
+  CoursePlannerPanel,
   type PlaceTypeId,
 } from "@/components/course-planner/CoursePlannerPanel";
 import { CourseResultPanel } from "@/components/course-planner/CourseResultPanel";

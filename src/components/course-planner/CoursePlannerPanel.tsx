@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { CalendarDays, Coffee, Flag, Plus, Trash2, Utensils } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
 import { CoursePlannerField } from "@/components/course-planner/CoursePlannerField";
@@ -138,7 +138,7 @@ export function CoursePlannerPanel({
                     <button
                       type="button"
                       onClick={() => onRemoveOrder(order.id)}
-                      className="inline-flex size-7 items-center justify-center rounded-full text-[#5f6368] transition-colors hover:bg-[#f5f5f5] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                      className="focus-visible:ring-ring/50 inline-flex size-7 items-center justify-center rounded-full text-[#5f6368] transition-colors hover:bg-[#f5f5f5] focus-visible:ring-3 focus-visible:outline-none"
                       aria-label="카테고리 삭제"
                     >
                       <Trash2 className="size-4" aria-hidden />
@@ -167,7 +167,7 @@ export function CoursePlannerPanel({
                           type="button"
                           onClick={() => onToggleOrderTag(order.id, tag)}
                           className={cn(
-                            "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                            "focus-visible:ring-ring/50 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
                             selected
                               ? "border-[#f4a09a] bg-[#fff0ee] text-[#d95f5b]"
                               : "border-[#dfdfdf] bg-white text-[#5f6368] hover:bg-[#f8f8f8]",
