@@ -94,11 +94,11 @@ export function CoursePlannerPanel({
         <div className="grid gap-3">
           <div>
             <span className="text-foreground text-sm font-semibold">
-              방문할 장소 유형 고르기
+              어떤 장소를 넣을까요?
               <span className="ml-0.5 text-[#f06f6b]">*</span>
             </span>
             <p className="text-muted-foreground mt-1 text-xs">
-              코스 순서대로 장소 유형과 세부 조건을 선택해 주세요.
+              코스에 넣고 싶은 장소를 순서대로 골라주세요.
             </p>
           </div>
 
@@ -141,7 +141,7 @@ export function CoursePlannerPanel({
                             {index + 1}번째로 갈 장소
                           </p>
                           <p className="text-muted-foreground text-xs">
-                            이 순서에 넣을 장소 유형을 정해 주세요.
+                            이 순서에 넣을 장소 유형을 골라주세요.
                           </p>
                         </div>
                       </div>
