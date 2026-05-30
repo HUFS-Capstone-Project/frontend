@@ -32,6 +32,14 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <EntryPage /> },
+      {
+        path: "dev/list",
+        element: (
+          <Suspense fallback={<ProtectedShellSuspenseFallback />}>
+            <PlaceListPage />
+          </Suspense>
+        ),
+      },
       { path: "places/register/from-link", element: <LinkPlaceSelectPage /> },
       { path: "places/edit", element: <EditPlacePage /> },
       { path: "login", element: <LoginPage /> },
