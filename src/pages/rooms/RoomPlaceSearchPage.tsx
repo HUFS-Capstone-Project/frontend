@@ -24,7 +24,6 @@ import {
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
   PROMPT_FLOW_SCROLL_BODY_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
-import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
@@ -56,7 +55,7 @@ export default function RoomPlaceSearchPage() {
   const linkPreviewUrl =
     typeof routeState?.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
       ? routeState.linkAddOriginalUrl
-      : LINK_PREVIEW_MOCK;
+      : null;
   const trimmedKeyword = keyword.trim();
   const canSearch = trimmedKeyword.length > 0;
 
@@ -165,7 +164,7 @@ export default function RoomPlaceSearchPage() {
         />
 
         <div className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}>
-          <CopyableLinkBar url={linkPreviewUrl} />
+          {linkPreviewUrl ? <CopyableLinkBar url={linkPreviewUrl} /> : null}
 
           <PlaceFlowSearchFieldRow
             id="inperson-place-search"

@@ -11,7 +11,11 @@ function toCoordinateNumber(value: string | number | null | undefined) {
 }
 
 /** 캘린더 필터(`yyyy.MM.dd`)와 맞추기 위한 키 */
-export function toCourseDateKey(isoInstant: string) {
+export function toCourseDateKey(isoInstant: string | null | undefined) {
+  if (!isoInstant) {
+    return null;
+  }
+
   const date = new Date(isoInstant);
   if (Number.isNaN(date.getTime())) {
     return null;
@@ -68,10 +72,11 @@ export function mapMySavedDateCourseToSavedCourse(
 ): SavedCourse {
   return {
     id: item.dateCourseId,
-    title: `${item.roomName.trim()} | ${item.courseName.trim()}`,
+    title: item.courseName.trim(),
     executedAtLabel: formatSavedAtLabel(item.savedAt),
     badgeLabel: "하트",
     savedFromRoomId: item.roomPublicId,
+    savedFromRoomName: item.roomName.trim(),
     courseDateKey: toCourseDateKey(item.startDateTime) ?? toCourseDateKey(item.savedAt),
     stops: item.places
       .slice()

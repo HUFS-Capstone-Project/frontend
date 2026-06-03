@@ -72,15 +72,17 @@ export type GenerateDateCoursesResponse = {
 
 export type SavedRoomDateCourseItemResponse = {
   dateCourseId: string;
-  courseName: string;
-  mode: DateCourseMode;
-  startDateTime: string;
-  endDateTime: string;
-  savedByUserId: string;
-  savedByNickname: string;
-  savedAt: string;
-  places: DateCoursePlaceResponse[];
-  orderedCoordinates: DateCourseCoordinateResponse[];
+  courseName: string | null;
+  mode?: DateCourseMode | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  savedByUserId: number | string | null;
+  savedByNickname: string | null;
+  savedByProfileImageUrl: string | null;
+  savedAt: string | null;
+  roomPublicId?: string | null;
+  places?: DateCoursePlaceResponse[];
+  orderedCoordinates?: DateCourseCoordinateResponse[];
 };
 
 export type DateCourseListResponse<T> = {
@@ -97,6 +99,11 @@ export type DateCourseDetailResponse = {
   mode: DateCourseMode;
   startDateTime: string;
   endDateTime: string;
+  savedByUserId?: number | string | null;
+  savedByNickname?: string | null;
+  savedByProfileImageUrl?: string | null;
+  savedAt?: string | null;
+  roomPublicId?: string | null;
   places: DateCoursePlaceResponse[];
   orderedCoordinates: DateCourseCoordinateResponse[];
 };

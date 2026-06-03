@@ -1,4 +1,4 @@
-import { AlertCircle, Check, ChevronDown, Pin, User } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, Pin } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
@@ -18,10 +18,11 @@ import {
   savedCourseToPlannerStops,
 } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
+import { RoomAvatar } from "@/components/room/RoomAvatar";
 import { useRoomsQuery } from "@/features/room";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
+import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -315,11 +316,8 @@ export function MySavedCoursesPage({
                                 className="sr-only"
                                 aria-checked={checked}
                               />
-                              <span
-                                className="bg-muted text-muted-foreground col-start-1 row-span-2 row-start-1 flex size-9 shrink-0 items-center justify-center self-center rounded-full"
-                                aria-hidden
-                              >
-                                <User className="size-4.5" strokeWidth={2} />
+                              <span className="col-start-1 row-span-2 row-start-1 size-9 shrink-0 self-center overflow-hidden rounded-full">
+                                <RoomAvatar avatarSeed={room.avatarSeed} size="100%" />
                               </span>
 
                               <div className="text-foreground col-start-2 row-start-1 min-w-0 text-xs leading-tight font-semibold">

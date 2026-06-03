@@ -15,6 +15,7 @@ import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { useMyDateCoursesQuery } from "@/features/course-planner/hooks/use-my-date-courses-query";
 import { mapMySavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-my-saved-date-course";
+import { useRoomsQuery } from "@/features/room";
 import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import {
   useMyPlacesQuery,
@@ -74,14 +75,29 @@ export default function MyPage() {
   const myDateCoursesQuery = useMyDateCoursesQuery({
     enabled: view === "main" || view === "courses",
   });
+  const roomsQuery = useRoomsQuery({
+    enabled: view === "main" || view === "courses",
+  });
   const apiCourses = useMemo(
     () => (myDateCoursesQuery.data?.items ?? []).map(mapMySavedDateCourseToSavedCourse),
     [myDateCoursesQuery.data?.items],
   );
-  const coursesList = useMemo(
-    () => apiCourses.map((course) => courseOverrides[course.id] ?? course),
-    [apiCourses, courseOverrides],
-  );
+  const coursesList = useMemo(() => {
+    const roomById = new Map((roomsQuery.data ?? []).map((room) => [room.roomId, room]));
+
+    return apiCourses.map((course) => {
+      const overridden = courseOverrides[course.id] ?? course;
+      const room = overridden.savedFromRoomId
+        ? roomById.get(overridden.savedFromRoomId)
+        : undefined;
+
+      return {
+        ...overridden,
+        savedFromRoomName: overridden.savedFromRoomName ?? room?.roomName ?? null,
+        savedFromRoomAvatarSeed: room?.avatarSeed ?? overridden.savedFromRoomAvatarSeed ?? null,
+      };
+    });
+  }, [apiCourses, courseOverrides, roomsQuery.data]);
   const apiPlaces = useMemo(
     () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
     [myPlacesQuery.data?.items],

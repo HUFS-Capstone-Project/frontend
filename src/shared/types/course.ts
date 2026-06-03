@@ -51,6 +51,12 @@ export type SavedCourse = {
   executedAtLabel: string;
   badgeLabel: string;
   stops: SavedCourseStop[];
+  savedByUserId?: number | string | null;
+  savedByNickname?: string | null;
+  savedByProfileImageUrl?: string | null;
+  savedAt?: string | null;
+  savedFromRoomName?: string | null;
+  savedFromRoomAvatarSeed?: string | null;
   /** 이 코스를 저장했을 때의 방 public id — 방 필터용 */
   savedFromRoomId?: string | null;
   /** 코스 시작일 (`yyyy.MM.dd`) — 날짜 필터용 */

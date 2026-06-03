@@ -18,8 +18,8 @@ import {
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
 import { cn } from "@/lib/utils";
+import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { LinkSourceType } from "@/shared/lib/link-source-type";
-import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;

@@ -59,10 +59,7 @@ export function MyPlaceSummaryCard({
             <MyPlaceSummarySkeletonRows />
           ) : hasPlaces ? (
             recentPlaces.slice(0, 2).map((place) => (
-              <div
-                key={place.id}
-                className="flex min-w-0 items-center gap-1.5 py-2"
-              >
+              <div key={place.id} className="flex min-w-0 items-center gap-1.5 py-2">
                 <PlaceCategoryIconChip
                   place={{ category: place.category, categoryName: place.categoryName }}
                   className="size-4"

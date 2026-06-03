@@ -19,12 +19,8 @@ import {
 import { useRoomMembersQuery } from "@/features/room";
 import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { MAP_INITIAL_CENTER, MAP_KOREA_BOUNDS, MAP_SEARCH_PLACEHOLDER } from "@/shared/config/map";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
-import {
-  MAP_INITIAL_CENTER,
-  MAP_KOREA_BOUNDS,
-  MAP_SEARCH_PLACEHOLDER,
-} from "@/shared/mocks/place-mocks";
 import type { MapCoordinate, RoomFriend, SavedPlace } from "@/shared/types/map-home";
 import { PLACE_DETAIL_OPEN_EVENT } from "@/store/place-detail-store";
 import { useRoomSelectionStore } from "@/store/room-selection-store";

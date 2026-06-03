@@ -36,14 +36,10 @@ import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-v
 import { type RegionSelectionOption, toRegionSelectionOption } from "@/features/regions";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
+import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
 import type { CourseSavePayload } from "@/shared/types/course";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
-
-type CoursePlannerPageProps = {
-  skipRoomGuard?: boolean;
-};
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
@@ -117,7 +113,7 @@ function resolveCoursePlannerApiErrorMessage(error: unknown) {
   return firstFieldError ?? formError.formError ?? resolveGeneralApiErrorMessage(error);
 }
 
-export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlannerPageProps) {
+export default function CoursePlannerPage() {
   const queryClient = useQueryClient();
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
@@ -507,7 +503,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     [handleSaveCourse, queryClient, saveCourse, selectedCourseId, showToast],
   );
 
-  if (!skipRoomGuard && !selectedRoom) {
+  if (!selectedRoom) {
     return <Navigate to={APP_ROUTES.room} replace />;
   }
 

@@ -1,11 +1,10 @@
 import { SearchField } from "@/components/common/SearchField";
 import { cn } from "@/lib/utils";
 
-const ROOM_SEARCH_DEFAULT_PLACEHOLDER = "친구 이름 또는 장소 검색";
+const ROOM_SEARCH_DEFAULT_PLACEHOLDER = "방 이름 또는 장소 검색";
 
 export type RoomMainHeaderProps = {
   title: string;
-  /** 검색창 placeholder (기본: 친구 이름 또는 장소 검색) */
   searchPlaceholder?: string;
   searchValue?: string;
   onSearchValueChange?: (value: string) => void;

@@ -15,6 +15,7 @@ import { FilterBar } from "@/components/map/FilterBar";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { SavedPlaceItem } from "@/components/mypage/SavedPlaceItem";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { PlaceListSavedCoursesPage } from "@/components/place-list/PlaceListSavedCoursesPage";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
@@ -70,6 +71,7 @@ export default function PlaceListPage() {
   const [draftSigungu, setDraftSigungu] = useState<RegionSelectionOption>(REGION_ALL_OPTION);
   const [regionSearchKeyword, setRegionSearchKeyword] = useState("");
   const [isRegionPanelOpen, setIsRegionPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"places" | "courses">("places");
   const roomPlaceListParams = useMemo(() => {
     const hasSido = selectedSido.code !== REGION_ALL_CODE;
     const hasSigungu = hasSido && selectedSigungu.code !== REGION_ALL_CODE;
@@ -217,6 +219,21 @@ export default function PlaceListPage() {
     }));
   }, [categoryFilteredPlaces]);
 
+  const savedPlacesForCourses = useMemo(
+    () =>
+      listPlacesBase.map((place) => ({
+        id: place.id,
+        name: place.name,
+        address: place.address,
+        category: place.category,
+        shareLinkUrl: place.shareLinkUrl,
+        roomId: effectiveRoomId ?? undefined,
+        memo: place.memo,
+        memos: place.memos,
+      })),
+    [effectiveRoomId, listPlacesBase],
+  );
+
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
@@ -296,11 +313,26 @@ export default function PlaceListPage() {
     shownCount === regionTotal && regionTotal === categoryTotal
       ? `${formatCount(shownCount)}개`
       : shownCount === regionTotal
-        ? `${formatCount(shownCount)}개 · 전체 ${formatCount(categoryTotal)}`
-        : `${formatCount(shownCount)}개 · 전체 ${formatCount(regionTotal)}`;
+        ? `${formatCount(shownCount)}개 / 전체 ${formatCount(categoryTotal)}`
+        : `${formatCount(shownCount)}개 / 전체 ${formatCount(regionTotal)}`;
   const roomName =
     selectedRoom?.id === effectiveRoomId ? selectedRoom.name : roomDetailQuery.data?.roomName;
-  const pageTitle = roomName ? `${roomName} 목록` : "목록";
+  const pageTitle = roomName;
+
+  if (activeTab === "courses") {
+    return (
+      <PlaceListSavedCoursesPage
+        roomId={effectiveRoomId}
+        roomName={roomName}
+        savedPlaces={savedPlacesForCourses}
+        toastMessage={toastMessage}
+        toastPlacement={toastPlacement}
+        onSelectBottomNav={handleSelectBottomNav}
+        onBackToMap={() => navigate(APP_ROUTES.map)}
+        onSwitchTab={setActiveTab}
+      />
+    );
+  }
 
   const hasRegionFilter = selectedSido.code !== REGION_ALL_CODE;
   const emptyMessage = roomPlacesQuery.isError
@@ -410,7 +442,23 @@ export default function PlaceListPage() {
         onBack={handleHeaderBack}
       >
         {!detailOpen ? (
-          <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-2")}>
+          <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-3")}>
+            <div className="grid grid-cols-2 border-b border-[#ececec]">
+              <button
+                type="button"
+                className="border-b-2 border-[#f38c86] pb-2 text-center text-sm font-semibold text-[#f38c86]"
+              >
+                장소 목록
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("courses")}
+                className="border-l border-[#ececec] pb-2 text-center text-sm font-medium text-[#b3b3b3]"
+              >
+                저장된 데이트 코스
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={handleOpenRegionSelect}
