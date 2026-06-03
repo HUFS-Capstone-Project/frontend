@@ -1,13 +1,10 @@
 import { AlertCircle, Check, ChevronDown, ChevronRight } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
-import { BottomNavigationBar, type BottomNavId } from "@/components/common/BottomNavigationBar";
+import { type BottomNavId,BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
-import {
-  LIST_TOP_BAR_AFTER_TITLE_CLASS,
-  ListTopBar,
-} from "@/components/common/ListTopBar";
+import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
@@ -25,8 +22,8 @@ import {
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useRoomsQuery } from "@/features/room";
-import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
+import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
@@ -281,7 +278,10 @@ export function PlaceListSavedCoursesPage({
               </button>
             </div>
 
-            <div ref={filterChromeRef} className="relative flex flex-wrap items-center gap-2 overflow-visible">
+            <div
+              ref={filterChromeRef}
+              className="relative flex flex-wrap items-center gap-2 overflow-visible"
+            >
               <button
                 type="button"
                 onClick={handleSelectAll}
@@ -321,7 +321,9 @@ export function PlaceListSavedCoursesPage({
                     {isRoomsLoading ? (
                       <div className="px-3 py-4 text-xs text-[#8b8b8b]">방 목록 불러오는 중...</div>
                     ) : roomsList.length === 0 ? (
-                      <div className="px-3 py-4 text-xs text-[#8b8b8b]">참여 중인 방이 없습니다.</div>
+                      <div className="px-3 py-4 text-xs text-[#8b8b8b]">
+                        참여 중인 방이 없습니다.
+                      </div>
                     ) : (
                       roomsList.map((room) => {
                         const checked = selectedRoomIds.includes(room.roomId);
@@ -378,7 +380,10 @@ export function PlaceListSavedCoursesPage({
                       "absolute right-0 z-40 mt-1! w-[16rem] rounded-lg! p-2",
                     )}
                   >
-                    <DateCalendarPanel selectedDate={selectedDate} onSelectDate={handlePickCalendarDate} />
+                    <DateCalendarPanel
+                      selectedDate={selectedDate}
+                      onSelectDate={handlePickCalendarDate}
+                    />
                   </div>
                 ) : null}
               </div>
