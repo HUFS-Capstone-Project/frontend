@@ -1,4 +1,4 @@
-import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
+import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { MapCoordinate, SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 

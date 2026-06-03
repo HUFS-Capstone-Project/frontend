@@ -17,7 +17,6 @@ import { roomPlaceToSavedPlace, useRoomPlace } from "@/features/room-places";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { sharePlace } from "@/shared/lib/share-place";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import type { RoomPlaceMemo } from "@/shared/types/place-memo";
@@ -146,13 +145,7 @@ export function PlaceDetailSheet({
     } else if (shouldFetchRoomPlaceDetail) {
       sourcePlaces = [];
     } else {
-      sourcePlaces = SAVED_PLACE_MOCKS.filter((place) => !localRemoved.has(place.id)).map(
-        (place) => ({
-          ...place,
-          memo: localMemos[place.id],
-          memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : undefined,
-        }),
-      );
+      sourcePlaces = [];
     }
 
     return sourcePlaces;

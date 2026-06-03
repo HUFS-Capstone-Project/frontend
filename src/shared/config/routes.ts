@@ -9,8 +9,6 @@ export const APP_ROUTES = {
   course: "/courses",
   mypage: "/me",
   editPlace: "/places/edit",
-  /** 공유 링크 기준 후보 장소 선택(등록 플로우) */
-  placeRegisterFromLink: "/places/register/from-link",
   /** 공개 개인정보처리방침 */
   privacyPolicy: "/privacys",
   /** 공개 서비스 이용약관 */

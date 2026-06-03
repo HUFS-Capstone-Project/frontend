@@ -50,6 +50,7 @@ export function mapRoomSavedDateCourseToSavedCourse(
     savedByNickname: item.savedByNickname ?? null,
     savedByProfileImageUrl: item.savedByProfileImageUrl ?? null,
     savedAt,
+    savedFromRoomName: null,
     savedFromRoomId: item.roomPublicId ?? roomId ?? null,
     courseDateKey:
       toCourseDateKey(item.startDateTime) ?? (savedAt ? toCourseDateKey(savedAt) : null),

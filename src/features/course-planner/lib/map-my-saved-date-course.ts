@@ -72,10 +72,11 @@ export function mapMySavedDateCourseToSavedCourse(
 ): SavedCourse {
   return {
     id: item.dateCourseId,
-    title: `${item.roomName.trim()} | ${item.courseName.trim()}`,
+    title: item.courseName.trim(),
     executedAtLabel: formatSavedAtLabel(item.savedAt),
     badgeLabel: "하트",
     savedFromRoomId: item.roomPublicId,
+    savedFromRoomName: item.roomName.trim(),
     courseDateKey: toCourseDateKey(item.startDateTime) ?? toCourseDateKey(item.savedAt),
     stops: item.places
       .slice()

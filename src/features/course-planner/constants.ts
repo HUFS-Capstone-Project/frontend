@@ -22,7 +22,6 @@ export const COURSE_DISTRICTS_BY_CITY: Record<string, string[]> = {
 export const COURSE_GENERATION_DELAY_MS = 900;
 export const COURSE_TOAST_DURATION_MS = 3200;
 export const COURSE_FALLBACK_TITLE = "코스 1";
-export const COURSE_DEV_MAP_TITLE = "데이트 지도";
 export const COURSE_LOADING_ROOM_FALLBACK = "방";
 
 export const DATE_COURSE_MAX_NAME_LENGTH = 20;

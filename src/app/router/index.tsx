@@ -11,7 +11,6 @@ import EditPlacePage from "@/pages/EditPlacePage";
 import EntryPage from "@/pages/EntryPage";
 import PrivacyPolicyPage from "@/pages/legal/PrivacyPolicyPage";
 import TermsOfServicePage from "@/pages/legal/TermsOfServicePage";
-import LinkPlaceSelectPage from "@/pages/LinkPlaceSelectPage";
 import LoginPage from "@/pages/LoginPage";
 import { mapHomeLoader } from "@/pages/map/map-home-loader";
 import NicknamePage from "@/pages/onboarding/NicknamePage";
@@ -19,7 +18,6 @@ import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import RoomLinkCandidatesPage from "@/pages/rooms/RoomLinkCandidatesPage";
 import RoomPlaceFromLinkPage from "@/pages/rooms/RoomPlaceFromLinkPage";
 import RoomPlaceSearchPage from "@/pages/rooms/RoomPlaceSearchPage";
-import CoursePlannerPagePreview from "@/pages/tabs/CoursePlannerPage";
 
 const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
@@ -33,20 +31,10 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <EntryPage /> },
-      {
-        path: "dev/list",
-        element: (
-          <Suspense fallback={<ProtectedShellSuspenseFallback />}>
-            <PlaceListPage />
-          </Suspense>
-        ),
-      },
-      { path: "places/register/from-link", element: <LinkPlaceSelectPage /> },
       { path: "places/edit", element: <EditPlacePage /> },
       { path: "login", element: <LoginPage /> },
       { path: "privacys", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
-      { path: "dev/course", element: <CoursePlannerPagePreview skipRoomGuard /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,

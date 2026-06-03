@@ -1,5 +1,3 @@
-import { MOCK_LEGACY_PLACE_ID_TO_ROOM_PLACE_ID } from "@/shared/mocks/course-mocks";
-import { SAVED_PLACE_MOCKS } from "@/shared/mocks/place-mocks";
 import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -12,11 +10,6 @@ function resolveRoomPlaceId(
     return stop.roomPlaceId;
   }
 
-  const mapped = MOCK_LEGACY_PLACE_ID_TO_ROOM_PLACE_ID[stop.id];
-  if (mapped != null) {
-    return mapped;
-  }
-
   const fromMy = savedPlaces.find((p) => p.name === stop.name || p.address === stop.address);
   if (fromMy?.roomPlaceId != null) {
     return fromMy.roomPlaceId;
@@ -25,11 +18,6 @@ function resolveRoomPlaceId(
   const parsedFromMy = Number(fromMy?.id);
   if (Number.isInteger(parsedFromMy)) {
     return parsedFromMy;
-  }
-
-  const fromMap = SAVED_PLACE_MOCKS.find((p) => p.name === stop.name || p.address === stop.address);
-  if (fromMap?.roomPlaceId != null) {
-    return fromMap.roomPlaceId;
   }
 
   const parsedStopId = Number(stop.id);
@@ -110,20 +98,6 @@ export function mapPlacesFromSavedCourses(
         seen.add(roomPlaceId);
         result.push(fromApi);
         continue;
-      }
-
-      const mock = SAVED_PLACE_MOCKS.find(
-        (place) =>
-          place.roomPlaceId === roomPlaceId ||
-          MOCK_LEGACY_PLACE_ID_TO_ROOM_PLACE_ID[place.id] === roomPlaceId,
-      );
-      if (mock) {
-        seen.add(roomPlaceId);
-        result.push({
-          ...mock,
-          id: String(roomPlaceId),
-          roomPlaceId,
-        });
       }
     }
   }

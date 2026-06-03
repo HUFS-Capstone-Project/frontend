@@ -28,7 +28,7 @@ import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/l
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
-import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
+import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";

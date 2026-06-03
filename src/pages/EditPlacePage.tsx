@@ -16,9 +16,8 @@ import {
   resolveEditPlaceReturnTo,
 } from "@/features/place-flow/edit-place-navigation";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
-import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
-import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
+import { ROOM_APP_PATHS } from "@/shared/config/routes";
 import { useEditPlaceStore } from "@/store/edit-place-store";
 
 const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
@@ -85,7 +84,7 @@ export default function EditPlacePage() {
   const linkPreviewUrl =
     typeof routeState.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
       ? routeState.linkAddOriginalUrl
-      : LINK_PREVIEW_MOCK;
+      : null;
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
       return [];
@@ -208,7 +207,7 @@ export default function EditPlacePage() {
       return;
     }
 
-    navigate(APP_ROUTES.placeRegisterFromLink);
+    navigate(-1);
   };
 
   return (

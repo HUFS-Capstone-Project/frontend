@@ -1,6 +1,7 @@
 import { ChevronRight, Heart, User, UsersRound } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { RoomAvatar } from "@/components/room/RoomAvatar";
 import { cn } from "@/lib/utils";
 import type { SavedCourse } from "@/shared/types/course";
 
@@ -14,7 +15,14 @@ export function SavedCourseCard({ course, onSelect, className }: SavedCourseCard
   const isFriendCourse = course.badgeLabel === "친구";
   const Icon = isFriendCourse ? UsersRound : Heart;
   const saverNickname = course.savedByNickname?.trim() ?? "";
+  const roomName = course.savedFromRoomName?.trim() ?? "";
+  const roomAvatarSeed = course.savedFromRoomAvatarSeed?.trim() ?? "";
   const hasSaver = saverNickname.length > 0 || Boolean(course.savedByProfileImageUrl?.trim());
+  const metadata = saverNickname
+    ? `${saverNickname}님이 저장 · ${course.executedAtLabel}`
+    : roomName
+      ? `${roomName}에서 저장 · ${course.executedAtLabel}`
+      : course.executedAtLabel;
 
   return (
     <button
@@ -28,6 +36,10 @@ export function SavedCourseCard({ course, onSelect, className }: SavedCourseCard
     >
       {hasSaver ? (
         <SaverAvatar imageUrl={course.savedByProfileImageUrl} />
+      ) : roomAvatarSeed ? (
+        <span className="size-9 shrink-0 overflow-hidden rounded-full">
+          <RoomAvatar avatarSeed={roomAvatarSeed} size="100%" />
+        </span>
       ) : (
         <span className="bg-brand-coral-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-full">
           {isFriendCourse ? (
@@ -43,9 +55,7 @@ export function SavedCourseCard({ course, onSelect, className }: SavedCourseCard
           {course.title}
         </span>
         <span className="text-muted-foreground mt-0.5 block truncate text-[0.66rem] font-medium">
-          {saverNickname
-            ? `${saverNickname}님이 저장 · ${course.executedAtLabel}`
-            : course.executedAtLabel}
+          {metadata}
         </span>
       </span>
 

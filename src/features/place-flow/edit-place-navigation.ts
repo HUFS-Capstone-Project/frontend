@@ -1,4 +1,4 @@
-export type EditPlaceReturnTo = "link-add" | "register-place" | "back";
+export type EditPlaceReturnTo = "link-add" | "back";
 
 export type EditPlaceLocationState = {
   placeId?: string;
@@ -44,11 +44,8 @@ export function resolveEditPlaceReturnTo(state: EditPlaceLocationState): EditPla
   if (state.onConfirmNavigate === "link-add-back") {
     return "link-add";
   }
-  if (state.onConfirmNavigate === "register_place") {
-    return "register-place";
-  }
   if (state.onConfirmNavigate === "back") {
     return "back";
   }
-  return "register-place";
+  return "back";
 }
