@@ -18,3 +18,12 @@ export const REGION_ALL_OPTION: RegionSelectionOption = {
   code: REGION_ALL_CODE,
   name: REGION_ALL_NAME,
 };
+
+export function toRegionSelectionOption(
+  option: Pick<RegionOption, "code" | "name">,
+): RegionSelectionOption {
+  return {
+    code: option.code,
+    name: option.name,
+  };
+}

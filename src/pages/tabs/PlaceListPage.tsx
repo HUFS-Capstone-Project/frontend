@@ -22,6 +22,7 @@ import {
   REGION_ALL_CODE,
   REGION_ALL_OPTION,
   type RegionSelectionOption,
+  toRegionSelectionOption,
   useSidosQuery,
   useSigungusQueries,
   useSigungusQuery,
@@ -149,7 +150,11 @@ export default function PlaceListPage() {
     categoriesOnly: true,
   });
 
-  const sidoOptions = sidosQuery.data?.length ? sidosQuery.data : [REGION_ALL_OPTION];
+  const sidoOptions = useMemo(
+    () =>
+      sidosQuery.data?.length ? sidosQuery.data.map(toRegionSelectionOption) : [REGION_ALL_OPTION],
+    [sidosQuery.data],
+  );
   const allSigunguOptions = useMemo((): RegionSelectionOption[] => {
     return allSigungusQueries.flatMap((query, index) => {
       const parentSido = searchableSidoOptions[index];
@@ -168,13 +173,19 @@ export default function PlaceListPage() {
         }));
     });
   }, [allSigungusQueries, searchableSidoOptions]);
-  const sigunguOptions = isRegionSearching
-    ? allSigunguOptions
-    : draftSido.code === REGION_ALL_CODE
-      ? [REGION_ALL_OPTION]
-      : sigungusQuery.data?.length
-        ? sigungusQuery.data
-        : [REGION_ALL_OPTION];
+  const sigunguOptions = useMemo<RegionSelectionOption[]>(() => {
+    if (isRegionSearching) {
+      return allSigunguOptions;
+    }
+
+    if (draftSido.code === REGION_ALL_CODE) {
+      return [REGION_ALL_OPTION];
+    }
+
+    return sigungusQuery.data?.length
+      ? sigungusQuery.data.map(toRegionSelectionOption)
+      : [REGION_ALL_OPTION];
+  }, [allSigunguOptions, draftSido.code, isRegionSearching, sigungusQuery.data]);
   const isAllSigunguSearchLoading =
     isRegionSearching &&
     allSigungusQueries.some((query) => query.isLoading || query.isFetching) &&

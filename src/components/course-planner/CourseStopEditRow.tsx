@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 
+import { CourseStopTitle } from "@/components/course-planner/CourseStopTitle";
 import { cn } from "@/lib/utils";
 import type { CourseStop } from "@/shared/types/course";
 
@@ -68,9 +69,9 @@ export function CourseStopEditRow({
             aria-label={isSelected ? `${stop.name} 선택 해제` : `${stop.name} 선택`}
           >
             <span className="pointer-events-none flex flex-col gap-1 text-left">
-              <span className="text-foreground text-sm font-bold">{stop.name}</span>
+              <CourseStopTitle stop={stop} />
               <span className="text-muted-foreground text-xs leading-snug">{stop.address}</span>
-              {!isLast ? (
+              {!isLast && stop.walkingTime ? (
                 <span className="text-muted-foreground mt-2 text-xs">{stop.walkingTime}</span>
               ) : null}
             </span>

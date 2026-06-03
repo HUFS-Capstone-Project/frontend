@@ -6,9 +6,14 @@ import type { SavedPlace } from "@/shared/types/map-home";
 type PlaceCategoryIconChipProps = {
   place: Pick<SavedPlace, "category" | "categoryName">;
   className?: string;
+  iconClassName?: string;
 };
 
-export function PlaceCategoryIconChip({ place, className }: PlaceCategoryIconChipProps) {
+export function PlaceCategoryIconChip({
+  place,
+  className,
+  iconClassName = "size-3 shrink-0 opacity-100",
+}: PlaceCategoryIconChipProps) {
   const categoryCode = place.category.trim();
   const categoryLabel =
     place.categoryName?.trim() ||
@@ -27,7 +32,7 @@ export function PlaceCategoryIconChip({ place, className }: PlaceCategoryIconChi
       title={categoryLabel}
       aria-label={`카테고리 ${categoryLabel}`}
     >
-      {renderMapPrimaryCategoryIcon(categoryCode || categoryLabel, "size-3 shrink-0 opacity-100")}
+      {renderMapPrimaryCategoryIcon(categoryCode || categoryLabel, iconClassName)}
     </span>
   );
 }

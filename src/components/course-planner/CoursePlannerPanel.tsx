@@ -32,6 +32,8 @@ export type CourseCategoryOrder = {
   tags: string[];
 };
 
+const MAX_COURSE_ORDER_COUNT = 5;
+
 type CoursePlannerPanelProps = {
   regionValue: string;
   dateTimeValue: string;
@@ -66,7 +68,10 @@ export function CoursePlannerPanel({
   onRetryLoadCategories,
 }: CoursePlannerPanelProps) {
   const categoryCodes = categoryOptions.map((category) => category.id);
-  const showAddButton = !isCategoryLoading && !(isCategoryError && categoryOptions.length === 0);
+  const showAddButton =
+    courseOrders.length < MAX_COURSE_ORDER_COUNT &&
+    !isCategoryLoading &&
+    !(isCategoryError && categoryOptions.length === 0);
 
   return (
     <section className={cn("bg-background w-full max-w-full min-w-0 px-6 pt-8 pb-0", className)}>
@@ -85,6 +90,7 @@ export function CoursePlannerPanel({
 
         <CoursePlannerField
           label="날짜 및 시간 설정"
+          required
           value={dateTimeValue}
           placeholder="날짜 및 시간을 설정해 주세요."
           icon={<CalendarDays className="size-4" aria-hidden />}

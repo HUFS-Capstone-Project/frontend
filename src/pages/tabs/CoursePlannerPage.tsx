@@ -1,9 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
+import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
@@ -19,21 +21,24 @@ import { DateTimeSelectionScreen } from "@/components/course-planner/DateTimeSel
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
-import { COURSE_LOADING_ROOM_FALLBACK } from "@/features/course-planner/constants";
+import type { GenerateDateCourseRequest } from "@/features/course-planner/api/date-course-api";
+import {
+  COURSE_LOADING_ROOM_FALLBACK,
+  COURSE_TOAST_DURATION_MS,
+  COURSE_TOAST_TEXT,
+} from "@/features/course-planner/constants";
 import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-course-planner-courses";
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
+import { useDateCourseSidosQuery } from "@/features/course-planner/hooks/use-date-course-sidos-query";
+import { useDateCourseSigungusQuery } from "@/features/course-planner/hooks/use-date-course-sigungus-query";
+import { dateCourseQueryKeys } from "@/features/course-planner/query-keys";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
-import {
-  REGION_ALL_CODE,
-  REGION_ALL_OPTION,
-  type RegionSelectionOption,
-  useSidosQuery,
-  useSigungusQueries,
-  useSigungusQuery,
-} from "@/features/regions";
+import { type RegionSelectionOption, toRegionSelectionOption } from "@/features/regions";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { MAP_INITIAL_CENTER, SAVED_PLACE_BY_ID } from "@/shared/mocks/place-mocks";
+import { MAP_INITIAL_CENTER } from "@/shared/mocks/place-mocks";
+import type { CourseSavePayload } from "@/shared/types/course";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
 type CoursePlannerPageProps = {
@@ -53,11 +58,81 @@ function createOrder(category: PlaceTypeId): CourseCategoryOrder {
   };
 }
 
+type GenerateDateCourseRequestInput = {
+  courseOrders: CourseCategoryOrder[];
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  sigunguCode: string;
+};
+
+function toGenerateDateCourseRequest({
+  courseOrders,
+  date,
+  startTime,
+  endTime,
+  sigunguCode,
+}: GenerateDateCourseRequestInput): GenerateDateCourseRequest | null {
+  if (!isHmString(startTime) || !isHmString(endTime) || !isEndAfterStart(startTime, endTime)) {
+    return null;
+  }
+
+  const startDateTime = toIsoInstant(date, startTime);
+  const endDateTime = toIsoInstant(date, endTime);
+  if (!startDateTime || !endDateTime) {
+    return null;
+  }
+
+  return {
+    sigunguCode,
+    startDateTime,
+    endDateTime,
+    categorySequence: courseOrders.slice(0, 5).map((order) => {
+      const tagCode = order.tags.find((tag) => tag.trim() !== "" && tag !== "ALL")?.trim();
+      return tagCode ? { categoryCode: order.category, tagCode } : { categoryCode: order.category };
+    }),
+  };
+}
+
+function toIsoInstant(dateValue: string, hmValue: string) {
+  const dateMatch = /^(\d{4})\.(\d{2})\.(\d{2})$/.exec(dateValue);
+  const timeMatch = /^(\d{2}):(\d{2})$/.exec(hmValue);
+  if (!dateMatch || !timeMatch) {
+    return null;
+  }
+
+  const [, year, month, day] = dateMatch;
+  const [, hour, minute] = timeMatch;
+  const date = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function resolveCoursePlannerApiErrorMessage(error: unknown) {
+  const formError = resolveFormApiError(error, {
+    knownFields: ["sigunguCode", "startDateTime", "endDateTime", "categorySequence"],
+  });
+  const firstFieldError = Object.values(formError.fieldErrors)[0];
+
+  return firstFieldError ?? formError.formError ?? resolveGeneralApiErrorMessage(error);
+}
+
 export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlannerPageProps) {
+  const queryClient = useQueryClient();
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
-  const { courses, defaultCourseId, getCourseStops } = useCoursePlannerCourses();
+  const {
+    courses,
+    defaultCourseId,
+    getCourseStops,
+    getCourseMapPlaces,
+    getCourseRouteCoordinates,
+    generateCourses,
+    saveCourse,
+    clearCourses,
+    isGenerating,
+  } = useCoursePlannerCourses(selectedRoom?.id ?? null);
   const {
     filterCategories,
     isCategoryLoading,
@@ -66,6 +141,9 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
   } = usePlaceFilterViewModel();
   const [regionSearchKeyword, setRegionSearchKeyword] = useState("");
   const [courseOrders, setCourseOrders] = useState<CourseCategoryOrder[]>([]);
+  const [draftSidoCode, setDraftSidoCode] = useState("");
+  const [draftSigunguCode, setDraftSigunguCode] = useState("");
+  const [selectedSigunguCode, setSelectedSigunguCode] = useState("");
 
   const {
     mode,
@@ -75,6 +153,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     draftDate,
     draftStartTime,
     draftEndTime,
+    dateTimeValue,
     selectedCourseId,
     courseTitle,
     courseStops,
@@ -91,7 +170,6 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     handleSelectCity,
     handleConfirmRegion,
     handleResetPlanner: resetPlannerBase,
-    handleGenerateCourse: generateCourseBase,
     handleSelectCourse,
     handleBackToCourseResults,
     handleSaveCourse,
@@ -104,61 +182,34 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     showToast,
   });
 
-  const sidosQuery = useSidosQuery();
-  const sidoOptions = sidosQuery.data?.length ? sidosQuery.data : [REGION_ALL_OPTION];
-  const searchableSidoOptions = useMemo(
-    () => sidosQuery.data?.filter((sido) => sido.code !== REGION_ALL_CODE) ?? [],
-    [sidosQuery.data],
+  const dateCourseSidosQuery = useDateCourseSidosQuery({
+    roomId: selectedRoom?.id ?? null,
+    enabled: mode === "region",
+  });
+  const dateCourseSigungusQuery = useDateCourseSigungusQuery({
+    roomId: selectedRoom?.id ?? null,
+    sidoCode: draftSidoCode,
+    enabled: mode === "region" && draftSidoCode.length > 0,
+  });
+  const sidoOptions = useMemo<RegionSelectionOption[]>(
+    () => dateCourseSidosQuery.data?.map(toRegionSelectionOption) ?? [],
+    [dateCourseSidosQuery.data],
   );
-  const draftSidoOption = useMemo(() => {
-    return (
-      searchableSidoOptions.find(
-        (sido) => sido.name === draftCity || sido.name.includes(draftCity),
-      ) ?? null
-    );
-  }, [draftCity, searchableSidoOptions]);
-  const isRegionSearching = regionSearchKeyword.trim().length > 0;
-  const sigungusQuery = useSigungusQuery({
-    sidoCode: draftSidoOption?.code ?? REGION_ALL_CODE,
-    enabled: mode === "region" && !isRegionSearching,
-  });
-  const allSigungusQueries = useSigungusQueries({
-    sidoCodes: searchableSidoOptions.map((sido) => sido.code),
-    enabled: mode === "region" && isRegionSearching,
-  });
-  const allSigunguOptions = useMemo((): RegionSelectionOption[] => {
-    return allSigungusQueries.flatMap((query, index) => {
-      const parentSido = searchableSidoOptions[index];
-      if (!parentSido || !query.data) {
-        return [];
-      }
-
-      return query.data
-        .filter((sigungu) => sigungu.code !== REGION_ALL_CODE)
-        .map((sigungu) => ({
-          code: sigungu.code,
-          name: sigungu.name,
-          displayName: `${parentSido.name} ${sigungu.name}`,
-          parentSidoCode: parentSido.code,
-          parentSidoName: parentSido.name,
-        }));
-    });
-  }, [allSigungusQueries, searchableSidoOptions]);
-  const sigunguOptions = isRegionSearching
-    ? allSigunguOptions
-    : draftSidoOption
-      ? sigungusQuery.data?.length
-        ? sigungusQuery.data
-        : [REGION_ALL_OPTION]
-      : [REGION_ALL_OPTION];
-  const isAllSigunguSearchLoading =
-    isRegionSearching &&
-    allSigungusQueries.some((query) => query.isLoading || query.isFetching) &&
-    allSigunguOptions.length === 0;
-  const isAllSigunguSearchError =
-    isRegionSearching &&
-    allSigungusQueries.length > 0 &&
-    allSigungusQueries.every((query) => query.isError);
+  const sigunguOptions = useMemo<RegionSelectionOption[]>(
+    () => dateCourseSigungusQuery.data?.map(toRegionSelectionOption) ?? [],
+    [dateCourseSigungusQuery.data],
+  );
+  const dateCourseSidoEmptyMessage =
+    !dateCourseSidosQuery.isLoading && !dateCourseSidosQuery.isError && sidoOptions.length === 0
+      ? "방에 저장된 장소가 없거나, 지역 정보가 없어요."
+      : null;
+  const dateCourseSigunguEmptyMessage =
+    draftSidoCode.length > 0 &&
+    !dateCourseSigungusQuery.isLoading &&
+    !dateCourseSigungusQuery.isError &&
+    sigunguOptions.length === 0
+      ? "이 시/도에 저장된 시군구가 없어요."
+      : null;
   const categoryOptions = useMemo<CoursePlannerCategory[]>(() => {
     return filterCategories
       .filter((category) => {
@@ -197,21 +248,21 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
   const handleSelectRegionCity = useCallback(
     (city: string, option?: RegionSelectionOption) => {
       handleSelectCity(option?.name ?? city);
+      setDraftSidoCode(option?.code ?? "");
+      setDraftDistrict("");
+      setDraftSigunguCode("");
+      setSelectedSigunguCode("");
     },
-    [handleSelectCity],
+    [handleSelectCity, setDraftDistrict],
   );
 
   const handleSelectRegionDistrict = useCallback(
     (district: string, option?: RegionSelectionOption) => {
-      if (option?.parentSidoName) {
-        handleSelectCity(option.parentSidoName);
-        setDraftDistrict(option.name);
-        return;
-      }
-
       setDraftDistrict(option?.name ?? district);
+      setDraftSigunguCode(option?.code ?? "");
+      setSelectedSigunguCode(option?.code ?? "");
     },
-    [handleSelectCity, setDraftDistrict],
+    [setDraftDistrict],
   );
 
   const handleCloseRegionPanel = useCallback(() => {
@@ -221,10 +272,25 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
 
   const handleConfirmCourseRegion = useCallback(() => {
     setRegionSearchKeyword("");
-    handleConfirmRegion();
-  }, [handleConfirmRegion]);
+    const matchedSigungu = sigunguOptions.find((option) => option.name === draftDistrict);
+    const nextSigunguCode = draftSigunguCode || matchedSigungu?.code || "";
+    if (!nextSigunguCode) {
+      showToast("시군구를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      return;
+    }
+
+    setSelectedSigunguCode(nextSigunguCode);
+    const sigunguName = matchedSigungu?.name ?? draftDistrict;
+    const displayLabel =
+      draftCity.trim().length > 0 ? `${draftCity} ${sigunguName}`.trim() : sigunguName;
+    handleConfirmRegion(displayLabel);
+  }, [draftCity, draftDistrict, draftSigunguCode, handleConfirmRegion, showToast, sigunguOptions]);
 
   const handleAddOrder = useCallback(() => {
+    if (courseOrders.length >= 5) {
+      return;
+    }
+
     const defaultCategory = categoryOptions[0]?.id;
     if (!defaultCategory) {
       return;
@@ -235,7 +301,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
         ? [...current, createOrder(defaultCategory)]
         : [createOrder(defaultCategory), createOrder(defaultCategory)],
     );
-  }, [categoryOptions]);
+  }, [categoryOptions, courseOrders.length]);
 
   const handleRemoveOrder = useCallback((orderId: number) => {
     setCourseOrders((current) => current.filter((order) => order.id !== orderId));
@@ -297,20 +363,12 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
 
   const handleResetPlanner = useCallback(() => {
     setCourseOrders([]);
+    setDraftSidoCode("");
+    setDraftSigunguCode("");
+    setSelectedSigunguCode("");
+    clearCourses();
     resetPlannerBase();
-  }, [resetPlannerBase]);
-
-  const canGenerate =
-    canGenerateByRegion &&
-    courseOrders.length > 0 &&
-    courseOrders.every((order) => order.tags.length > 0);
-
-  const handleGenerateCourse = useCallback(() => {
-    if (!canGenerate) {
-      return;
-    }
-    generateCourseBase();
-  }, [canGenerate, generateCourseBase]);
+  }, [clearCourses, resetPlannerBase]);
 
   const displayedCourseOrders = useMemo(() => {
     const defaultCategory = categoryOptions[0]?.id;
@@ -321,12 +379,102 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
     return [{ ...createOrder(defaultCategory), id: -1 }];
   }, [categoryOptions, courseOrders]);
 
+  const effectiveSigunguCode = useMemo(() => {
+    const confirmedCode = selectedSigunguCode.trim();
+    if (confirmedCode.length > 0) {
+      return confirmedCode;
+    }
+
+    const draftCode = draftSigunguCode.trim();
+    if (draftCode.length > 0) {
+      return draftCode;
+    }
+
+    const matchedSigungu = sigunguOptions.find(
+      (option) => option.name === draftDistrict || option.name === regionValue.trim(),
+    );
+
+    return matchedSigungu?.code ?? "";
+  }, [draftDistrict, draftSigunguCode, regionValue, selectedSigunguCode, sigunguOptions]);
+
+  const canAttemptGenerate = !isGenerating;
+
+  const handleGenerateCourse = useCallback(async () => {
+    if (isGenerating) {
+      return;
+    }
+
+    if (!selectedRoom?.id) {
+      showToast("방을 선택한 뒤 코스를 만들어주세요.", COURSE_TOAST_DURATION_MS);
+      return;
+    }
+
+    if (!canGenerateByRegion || effectiveSigunguCode.length === 0) {
+      showToast("시군구를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      return;
+    }
+
+    if (
+      !dateTimeValue ||
+      !isHmString(dateTimeValue.startTime) ||
+      !isHmString(dateTimeValue.endTime) ||
+      !isEndAfterStart(dateTimeValue.startTime, dateTimeValue.endTime)
+    ) {
+      showToast("날짜와 시간을 설정해주세요", COURSE_TOAST_DURATION_MS);
+      return;
+    }
+
+    if (
+      displayedCourseOrders.length === 0 ||
+      displayedCourseOrders.length > 5 ||
+      !displayedCourseOrders.every((order) => order.category.trim().length > 0)
+    ) {
+      showToast("방문할 장소를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      return;
+    }
+
+    const payload = toGenerateDateCourseRequest({
+      courseOrders: displayedCourseOrders,
+      date: dateTimeValue.date,
+      startTime: dateTimeValue.startTime,
+      endTime: dateTimeValue.endTime,
+      sigunguCode: effectiveSigunguCode,
+    });
+
+    if (!payload) {
+      return;
+    }
+
+    setMode("loading");
+    clearCourses();
+    try {
+      await generateCourses(payload);
+      showToast(COURSE_TOAST_TEXT.generated, COURSE_TOAST_DURATION_MS);
+      setMode("result");
+    } catch (error) {
+      setMode("form");
+      showToast(resolveCoursePlannerApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+    }
+  }, [
+    canGenerateByRegion,
+    clearCourses,
+    dateTimeValue,
+    displayedCourseOrders,
+    effectiveSigunguCode,
+    generateCourses,
+    isGenerating,
+    selectedRoom?.id,
+    setMode,
+    showToast,
+  ]);
+
   const selectedCourseMapPins = useMemo(
-    () =>
-      courseStops
-        .map((stop) => SAVED_PLACE_BY_ID.get(stop.placeId))
-        .filter((place) => place != null),
-    [courseStops],
+    () => getCourseMapPlaces(selectedCourseId || defaultCourseId),
+    [defaultCourseId, getCourseMapPlaces, selectedCourseId],
+  );
+  const selectedCourseRouteCoordinates = useMemo(
+    () => getCourseRouteCoordinates(selectedCourseId || defaultCourseId),
+    [defaultCourseId, getCourseRouteCoordinates, selectedCourseId],
   );
   const selectedCourseMapCenter = useMemo(
     () =>
@@ -334,6 +482,29 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
         ? weightedMapCenter(selectedCourseMapPins)
         : MAP_INITIAL_CENTER,
     [selectedCourseMapPins],
+  );
+
+  const handleSaveSelectedCourse = useCallback(
+    async (payload: CourseSavePayload) => {
+      if (payload.kind === "edit") {
+        handleSaveCourse(payload);
+        return;
+      }
+
+      if (!selectedCourseId) {
+        return;
+      }
+
+      try {
+        await saveCourse(selectedCourseId, payload.title);
+        await queryClient.invalidateQueries({ queryKey: dateCourseQueryKeys.all });
+        handleSaveCourse(payload);
+      } catch (error) {
+        showToast(resolveCoursePlannerApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+        throw error;
+      }
+    },
+    [handleSaveCourse, queryClient, saveCourse, selectedCourseId, showToast],
   );
 
   if (!skipRoomGuard && !selectedRoom) {
@@ -350,6 +521,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
               places={selectedCourseMapPins}
               center={selectedCourseMapCenter}
               fitBoundsPlaces={selectedCourseMapPins}
+              routeCoordinates={selectedCourseRouteCoordinates}
               viewportKey={`course-detail-${selectedCourseId ?? "default"}`}
               className="h-full w-full"
             />
@@ -382,7 +554,7 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
 
               <div className="bg-background px-6 pt-6 pb-[max(5rem,calc(env(safe-area-inset-bottom)+5rem))]">
                 <CoursePlannerActions
-                  canGenerate={canGenerate}
+                  canGenerate={canAttemptGenerate}
                   onGenerate={handleGenerateCourse}
                   onReset={handleResetPlanner}
                   className="mt-0"
@@ -420,18 +592,17 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           selectedDistrict={draftDistrict}
           cityOptions={sidoOptions}
           districtOptions={sigunguOptions}
-          isCityLoading={sidosQuery.isLoading}
-          isDistrictLoading={
-            isAllSigunguSearchLoading ||
-            (!isRegionSearching && Boolean(draftSidoOption) && sigungusQuery.isLoading)
-          }
-          cityErrorMessage={sidosQuery.isError ? "지역 정보를 불러오지 못했어요." : null}
+          isCityLoading={dateCourseSidosQuery.isLoading}
+          isDistrictLoading={draftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading}
+          cityErrorMessage={dateCourseSidosQuery.isError ? "시/도 정보를 불러오지 못했어요." : null}
+          cityEmptyMessage={dateCourseSidoEmptyMessage}
           districtErrorMessage={
-            isAllSigunguSearchError
-              ? "시군구 정보를 확인할 수 없어요."
-              : !isRegionSearching && draftSidoOption && sigungusQuery.isError
-                ? "시군구 정보를 확인할 수 없어요."
-                : null
+            dateCourseSigungusQuery.isError ? "시군구 정보를 불러오지 못했어요." : null
+          }
+          districtEmptyMessage={
+            draftSidoCode.length === 0
+              ? "시/도를 먼저 선택해주세요."
+              : dateCourseSigunguEmptyMessage
           }
           searchKeyword={regionSearchKeyword}
           onSearchKeywordChange={setRegionSearchKeyword}
@@ -461,11 +632,11 @@ export default function CoursePlannerPage({ skipRoomGuard = false }: CoursePlann
           stops={courseStops}
           roomId={selectedRoom?.id}
           onBack={handleBackToCourseResults}
-          onSave={handleSaveCourse}
+          onSave={handleSaveSelectedCourse}
         />
       </CoursePlannerBottomSheet>
 
-      <PlaceDetailSheet roomId={selectedRoom?.id} />
+      <PlaceDetailSheet roomId={selectedRoom?.id} allowMemoEdit={false} />
     </div>
   );
 }

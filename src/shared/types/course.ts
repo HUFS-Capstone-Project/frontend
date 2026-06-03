@@ -2,17 +2,26 @@ export type CourseOption = {
   id: string;
   title: string;
   description: string;
+  mode?: string;
+  startDateTime?: string;
+  endDateTime?: string;
 };
 
 export type CourseStop = {
+  /** React key; equals `String(roomPlaceId)` for API-backed stops */
   id: string;
-  /** 지도 저장 장소 ID (`SAVED_PLACE_MOCKS`) — 핀 탭과 동일한 장소 정보 시트 연동 */
-  placeId: string;
+  roomPlaceId: number;
   name: string;
   address: string;
   category: string;
-  walkingTime: string;
-  hours: string;
+  categoryName?: string | null;
+  tagCode?: string | null;
+  tagName?: string | null;
+  sequenceOrder?: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  walkingTime?: string;
+  hours?: string;
 };
 
 export type CourseSavePayload = {
@@ -23,8 +32,15 @@ export type CourseSavePayload = {
 
 export type SavedCourseStop = {
   id: string;
+  roomPlaceId?: number;
   name: string;
   address: string;
+  category?: string;
+  categoryName?: string | null;
+  tagCode?: string | null;
+  tagName?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   walkingTime?: string;
   hours?: string;
 };
@@ -35,6 +51,8 @@ export type SavedCourse = {
   executedAtLabel: string;
   badgeLabel: string;
   stops: SavedCourseStop[];
-  /** 이 코스를 저장했을 때의 방 ID(API). 없으면 방 필터는 목록 데이터가 생길 때까지 전체 표시만 적용 */
+  /** 이 코스를 저장했을 때의 방 public id — 방 필터용 */
   savedFromRoomId?: string | null;
+  /** 코스 시작일 (`yyyy.MM.dd`) — 날짜 필터용 */
+  courseDateKey?: string | null;
 };

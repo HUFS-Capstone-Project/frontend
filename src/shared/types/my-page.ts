@@ -6,6 +6,8 @@ import type { RoomPlaceMemo } from "@/shared/types/place-memo";
 export type RecentPlace = {
   id: string;
   name: string;
+  category: MapPrimaryCategory;
+  categoryName?: string | null;
 };
 
 export type SavedPlace = {

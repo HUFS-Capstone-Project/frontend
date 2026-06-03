@@ -19,6 +19,7 @@ export const API_PATHS = {
     me: "/v1/users/me",
     nickname: "/v1/users/me/nickname",
     places: "/v1/users/me/places",
+    dateCourses: "/v1/users/me/date-courses",
     onboarding: "/v1/users/me/onboarding",
   },
   rooms: {
@@ -46,6 +47,14 @@ export const API_PATHS = {
     placeCandidates: (roomId: string) => `/v1/rooms/${roomId}/place-candidates`,
     places: (roomId: string) => `/v1/rooms/${roomId}/places`,
     place: (roomId: string, roomPlaceId: number) => `/v1/rooms/${roomId}/places/${roomPlaceId}`,
+    dateCourses: (roomId: string) => `/v1/rooms/${roomId}/date-courses`,
+    dateCourseSidos: (roomId: string) => `/v1/rooms/${roomId}/date-courses/sidos`,
+    dateCourseSigungus: (roomId: string, sidoCode: string) =>
+      `/v1/rooms/${roomId}/date-courses/sidos/${sidoCode}/sigungus`,
+    dateCourse: (roomId: string, dateCourseId: string) =>
+      `/v1/rooms/${roomId}/date-courses/${dateCourseId}`,
+    saveDateCourse: (roomId: string, dateCourseId: string) =>
+      `/v1/rooms/${roomId}/date-courses/${dateCourseId}/save`,
   },
   regions: {
     sidos: "/v1/regions/sidos",

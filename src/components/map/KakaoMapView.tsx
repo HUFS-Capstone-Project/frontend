@@ -7,6 +7,7 @@ import {
   type KakaoMaps,
   type KakaoMarker,
   type KakaoMarkerImage,
+  type KakaoPolyline,
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
 import type { MapCoordinate, SavedPlace } from "@/shared/types/map-home";
@@ -18,6 +19,7 @@ export type KakaoMapViewProps = {
   center: MapCoordinate;
   fitBoundsPlaces?: SavedPlace[];
   fitBoundsCoordinates?: MapCoordinate[];
+  routeCoordinates?: MapCoordinate[];
   geocodeKeyword?: string;
   viewportKey?: string;
   level?: number;
@@ -54,6 +56,7 @@ export function KakaoMapView({
   center,
   fitBoundsPlaces = [],
   fitBoundsCoordinates = [],
+  routeCoordinates = [],
   geocodeKeyword = "",
   viewportKey = "initial",
   level = 4,
@@ -73,6 +76,7 @@ export function KakaoMapView({
   const markerImageRef = useRef<KakaoMarkerImage | null>(null);
   const selectedMarkerImageRef = useRef<KakaoMarkerImage | null>(null);
   const markerInstancesRef = useRef<KakaoMarker[]>([]);
+  const routePolylineRef = useRef<KakaoPolyline | null>(null);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -84,6 +88,11 @@ export function KakaoMapView({
   const clearMarkers = () => {
     markerInstancesRef.current.forEach((marker) => marker.setMap(null));
     markerInstancesRef.current = [];
+  };
+
+  const clearRoutePolyline = () => {
+    routePolylineRef.current?.setMap(null);
+    routePolylineRef.current = null;
   };
 
   // effect A: SDK 로드 + map 인스턴스 생성 (최초 1회)
@@ -136,6 +145,7 @@ export function KakaoMapView({
     return () => {
       disposed = true;
       clearMarkers();
+      clearRoutePolyline();
       mapRef.current = null;
       mapsRef.current = null;
       markerImageRef.current = null;
@@ -308,6 +318,37 @@ export function KakaoMapView({
   ]);
 
   useEffect(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current) {
+      return;
+    }
+
+    const maps = mapsRef.current;
+    const mapInstance = mapRef.current;
+    const path = routeCoordinates
+      .filter((coordinate) => isFiniteCoordinate(coordinate))
+      .map((coordinate) => new maps.LatLng(coordinate.latitude, coordinate.longitude));
+
+    clearRoutePolyline();
+
+    if (path.length < 2) {
+      return;
+    }
+
+    routePolylineRef.current = new maps.Polyline({
+      map: mapInstance,
+      path,
+      strokeWeight: 4,
+      strokeColor: "#f06f6b",
+      strokeOpacity: 0.88,
+      strokeStyle: "solid",
+    });
+
+    return () => {
+      clearRoutePolyline();
+    };
+  }, [loadState, routeCoordinates]);
+
+  useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !onMapClick) return;
 
     const maps = mapsRef.current;
@@ -463,4 +504,8 @@ export function KakaoMapView({
       ) : null}
     </div>
   );
+}
+
+function isFiniteCoordinate(coordinate: MapCoordinate): boolean {
+  return Number.isFinite(coordinate.latitude) && Number.isFinite(coordinate.longitude);
 }

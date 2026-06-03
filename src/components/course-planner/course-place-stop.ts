@@ -2,13 +2,19 @@ import type { CourseStop } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/map-home";
 
 export function courseStopFromSavedPlace(place: SavedPlace): CourseStop {
+  const roomPlaceId = place.roomPlaceId ?? Number(place.id);
+  if (!Number.isInteger(roomPlaceId)) {
+    throw new Error("roomPlaceId is required to add a place to a course");
+  }
+
   return {
-    id: `course-added-${place.id}`,
-    placeId: place.id,
+    id: String(roomPlaceId),
+    roomPlaceId,
     name: place.name,
     address: place.address,
     category: place.category,
-    walkingTime: "도보 시간 확인 필요",
-    hours: "영업시간 확인 필요",
+    categoryName: place.categoryName ?? null,
+    tagCode: place.tagKeys?.[0] ?? null,
+    tagName: place.tagNames?.[0] ?? null,
   };
 }

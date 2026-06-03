@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   type DateTimeSelection,
@@ -9,7 +9,6 @@ import {
 import {
   COURSE_DEFAULT_REGION,
   COURSE_FALLBACK_TITLE,
-  COURSE_GENERATION_DELAY_MS,
   COURSE_TOAST_DURATION_MS,
   COURSE_TOAST_TEXT,
   type CoursePlannerMode,
@@ -49,18 +48,6 @@ export function useCoursePlannerState({
   const [courseStops, setCourseStops] = useState<CourseStop[]>(() =>
     getCourseStops(defaultCourseId),
   );
-
-  useEffect(() => {
-    if (mode !== "loading") return;
-
-    const timerId = window.setTimeout(() => {
-      showToast(COURSE_TOAST_TEXT.generated, COURSE_TOAST_DURATION_MS);
-      setSelectedCourseId("");
-      setMode("result");
-    }, COURSE_GENERATION_DELAY_MS);
-
-    return () => window.clearTimeout(timerId);
-  }, [mode, showToast]);
 
   const applyDateTimeFromDrafts = useCallback(() => {
     if (!draftDate) {
@@ -110,14 +97,18 @@ export function useCoursePlannerState({
     setDraftDistrict(COURSE_DEFAULT_REGION.allDistrict);
   }, []);
 
-  const handleConfirmRegion = useCallback(() => {
-    setRegionValue(
-      draftDistrict === COURSE_DEFAULT_REGION.allDistrict
-        ? draftCity
-        : `${draftCity} ${draftDistrict}`,
-    );
-    setMode("form");
-  }, [draftCity, draftDistrict]);
+  const handleConfirmRegion = useCallback(
+    (displayLabel?: string) => {
+      setRegionValue(
+        displayLabel ??
+          (draftDistrict === COURSE_DEFAULT_REGION.allDistrict
+            ? draftCity
+            : `${draftCity} ${draftDistrict}`.trim()),
+      );
+      setMode("form");
+    },
+    [draftCity, draftDistrict],
+  );
 
   const handleResetPlanner = useCallback(() => {
     setRegionValue("");
@@ -181,6 +172,7 @@ export function useCoursePlannerState({
     selectedCourseId,
     courseTitle,
     courseStops,
+    dateTimeValue,
     dateTimeDisplayValue: getDateTimeDisplayValue(dateTimeValue),
     canGenerate,
     setMode,

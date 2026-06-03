@@ -14,14 +14,16 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ChevronLeft, MapPin, Pencil, PersonStanding, Plus } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ChevronLeft, MapPin, Pencil, Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
 import { CoursePlaceAddSheet } from "@/components/course-planner/CoursePlaceAddSheet";
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
+import { CourseStopTitle } from "@/components/course-planner/CourseStopTitle";
 import { PLACE_FLOW_LINK_CHIP_CLASS } from "@/components/place-flow/PlaceFlowOriginalLinkChipRow";
+import { normalizeDateCourseName } from "@/features/course-planner/constants";
 import { cn } from "@/lib/utils";
 import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/map-home";
@@ -36,7 +38,7 @@ type CoursePlaceInfoPanelProps = {
   stops: CourseStop[];
   roomId?: string | null;
   onBack: () => void;
-  onSave: (payload: CourseSavePayload) => void;
+  onSave: (payload: CourseSavePayload) => void | Promise<void>;
   /** true면 조회 모드에서 「데이트 코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
   hideNewCourseSaveButton?: boolean;
   className?: string;
@@ -60,6 +62,13 @@ export function CoursePlaceInfoPanel({
   const [saveConfirmKind, setSaveConfirmKind] = useState<SaveConfirmKind | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftTitle(courseTitle);
+    }
+  }, [courseTitle, isEditing]);
 
   const removeDraftStop = useCallback((stopId: string) => {
     setDraftStops((current) => current.filter((stop) => stop.id !== stopId));
@@ -101,7 +110,11 @@ export function CoursePlaceInfoPanel({
 
   const handleAddPlace = (place: SavedPlace) => {
     setDraftStops((current) => {
-      if (current.some((stop) => stop.placeId === place.id)) {
+      const placeRoomPlaceId = place.roomPlaceId ?? Number(place.id);
+      if (
+        Number.isInteger(placeRoomPlaceId) &&
+        current.some((stop) => stop.roomPlaceId === placeRoomPlaceId)
+      ) {
         return current;
       }
 
@@ -111,22 +124,30 @@ export function CoursePlaceInfoPanel({
     setIsAddPlaceOpen(false);
   };
 
-  const handleConfirmSave = () => {
-    if (!saveConfirmKind) {
+  const handleConfirmSave = async () => {
+    if (!saveConfirmKind || isSaving) {
       return;
     }
 
     const isEditSave = saveConfirmKind === "edit";
-    const nextTitle = (isEditSave ? draftTitle.trim() : courseTitle.trim()) || courseTitle;
+    const nextTitle =
+      normalizeDateCourseName(draftTitle.trim() || courseTitle.trim()) || courseTitle;
     const nextStops = isEditSave ? draftStops : stops;
-    onSave({
-      kind: saveConfirmKind,
-      title: nextTitle,
-      stops: nextStops,
-    });
-    setIsSaveConfirmOpen(false);
-    setIsEditing(false);
-    setSelectedStopId(null);
+    setIsSaving(true);
+    try {
+      await onSave({
+        kind: saveConfirmKind,
+        title: nextTitle,
+        stops: nextStops,
+      });
+      setIsSaveConfirmOpen(false);
+      setIsEditing(false);
+      setSelectedStopId(null);
+    } catch {
+      return;
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const displayStops = isEditing ? draftStops : stops;
@@ -220,23 +241,16 @@ export function CoursePlaceInfoPanel({
                 </div>
 
                 <article className="min-w-0">
-                  <h2 className="text-foreground text-sm font-bold">{stop.name}</h2>
+                  <CourseStopTitle stop={stop} asHeading />
                   <p className="text-muted-foreground mt-1 text-xs">{stop.address}</p>
                   <button
                     type="button"
-                    onClick={() => openDetail(stop.placeId)}
+                    onClick={() => openDetail(String(stop.roomPlaceId))}
                     className={cn(PLACE_FLOW_LINK_CHIP_CLASS, "mt-2 h-7 px-3 font-medium")}
                   >
                     <MapPin className="size-3" aria-hidden />
                     장소 정보
                   </button>
-
-                  {!isLast ? (
-                    <div className="text-muted-foreground mt-4 flex items-center gap-2 text-xs">
-                      <PersonStanding className="size-4" aria-hidden />
-                      <span>{stop.walkingTime}</span>
-                    </div>
-                  ) : null}
                 </article>
               </div>
             );
@@ -315,7 +329,7 @@ export function CoursePlaceInfoPanel({
       <CoursePlaceAddSheet
         open={isAddPlaceOpen}
         roomId={roomId}
-        excludedPlaceIds={draftStops.map((stop) => stop.placeId)}
+        excludedPlaceIds={draftStops.map((stop) => String(stop.roomPlaceId))}
         onClose={() => setIsAddPlaceOpen(false)}
         onConfirm={handleAddPlace}
       />
