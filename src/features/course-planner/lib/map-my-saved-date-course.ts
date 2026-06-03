@@ -11,7 +11,11 @@ function toCoordinateNumber(value: string | number | null | undefined) {
 }
 
 /** 캘린더 필터(`yyyy.MM.dd`)와 맞추기 위한 키 */
-export function toCourseDateKey(isoInstant: string) {
+export function toCourseDateKey(isoInstant: string | null | undefined) {
+  if (!isoInstant) {
+    return null;
+  }
+
   const date = new Date(isoInstant);
   if (Number.isNaN(date.getTime())) {
     return null;

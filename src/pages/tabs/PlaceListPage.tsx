@@ -41,7 +41,6 @@ import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { PLACE_LIST_TEXT } from "@/shared/config/text";
-import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
 import type { SavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -235,15 +234,6 @@ export default function PlaceListPage() {
     [effectiveRoomId, listPlacesBase],
   );
 
-  const savedCourses = useMemo(
-    () =>
-      seedSavedCourses.map((course) => ({
-        ...course,
-        savedFromRoomId: effectiveRoomId ?? course.savedFromRoomId ?? null,
-      })),
-    [effectiveRoomId],
-  );
-
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
@@ -327,14 +317,13 @@ export default function PlaceListPage() {
         : `${formatCount(shownCount)}개 / 전체 ${formatCount(regionTotal)}`;
   const roomName =
     selectedRoom?.id === effectiveRoomId ? selectedRoom.name : roomDetailQuery.data?.roomName;
-  const pageTitle = roomName ? `${roomName} 목록` : "목록";
+  const pageTitle = roomName;
 
   if (activeTab === "courses") {
     return (
       <PlaceListSavedCoursesPage
         roomId={effectiveRoomId}
-        roomName={roomName ?? "목록"}
-        courses={savedCourses}
+        roomName={roomName}
         savedPlaces={savedPlacesForCourses}
         toastMessage={toastMessage}
         toastPlacement={toastPlacement}
@@ -453,7 +442,7 @@ export default function PlaceListPage() {
         onBack={handleHeaderBack}
       >
         {!detailOpen ? (
-          <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-2")}>
+          <div className={cn(LIST_TOP_BAR_AFTER_TITLE_CLASS, "space-y-3")}>
             <div className="grid grid-cols-2 border-b border-[#ececec]">
               <button
                 type="button"

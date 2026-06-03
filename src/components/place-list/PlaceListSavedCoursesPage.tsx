@@ -1,12 +1,13 @@
-import { AlertCircle, Check, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
-import { type BottomNavId,BottomNavigationBar } from "@/components/common/BottomNavigationBar";
+import { type BottomNavId, BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
+import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
 import {
   MAP_CHIP_BASE_CLASS,
@@ -21,7 +22,9 @@ import {
 } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
-import { useRoomsQuery } from "@/features/room";
+import { useDateCourseDetailQuery } from "@/features/course-planner/hooks/use-date-course-detail-query";
+import { useRoomDateCoursesQuery } from "@/features/course-planner/hooks/use-room-date-courses-query";
+import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
@@ -35,13 +38,18 @@ const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
 
-type CourseFilter = "all" | "room" | "date";
+type CourseFilter = "all" | "member" | "date";
 type FilterPopup = Exclude<CourseFilter, "all"> | null;
+
+type MemberFilterOption = {
+  id: string;
+  nickname: string;
+  profileImageUrl: string | null;
+};
 
 type PlaceListSavedCoursesPageProps = {
   roomId?: string | null;
-  roomName: string;
-  courses: SavedCourse[];
+  roomName?: string;
   savedPlaces: SavedPlace[];
   toastMessage: string;
   toastPlacement?: BottomNavToastPlacement;
@@ -58,10 +66,13 @@ function filterChipClass(active: boolean) {
   return cn(MAP_CHIP_BASE_CLASS, active ? MAP_CHIP_SELECTED_CLASS : MAP_CHIP_UNSELECTED_CLASS);
 }
 
+function formatDateLabel(date: string | null) {
+  return date ?? "날짜";
+}
+
 export function PlaceListSavedCoursesPage({
   roomId = null,
   roomName,
-  courses,
   savedPlaces,
   toastMessage,
   toastPlacement = "bottom",
@@ -69,64 +80,110 @@ export function PlaceListSavedCoursesPage({
   onBackToMap,
   onSwitchTab,
 }: PlaceListSavedCoursesPageProps) {
-  const { data: roomsFromApi, isLoading: isRoomsLoading } = useRoomsQuery();
-  const [savedCourses, setSavedCourses] = useState(courses);
   const [selectedCourse, setSelectedCourse] = useState<SavedCourse | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<CourseFilter>("all");
+  const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
+  const [, setSelectedFilter] = useState<CourseFilter>("all");
   const [openPopup, setOpenPopup] = useState<FilterPopup>(null);
-  const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const roomDateCoursesQuery = useRoomDateCoursesQuery({
+    roomId,
+    enabled: Boolean(roomId),
+  });
+  const dateCourseDetailQuery = useDateCourseDetailQuery({
+    roomId,
+    dateCourseId: selectedCourse?.id ?? null,
+    enabled: Boolean(selectedCourse),
+  });
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
   const closeDetail = usePlaceDetailStore((s) => s.closeDetail);
   const filterChromeRef = useRef<HTMLDivElement>(null);
 
-  const roomChipApplied = selectedRoomIds.length > 0;
+  const memberChipApplied = selectedMemberIds.length > 0;
   const dateChipApplied = selectedDate !== null;
-  const allChipActive = !roomChipApplied && !dateChipApplied;
+  const allChipActive = !memberChipApplied && !dateChipApplied;
   const overlayMapOpen = Boolean(selectedCourse) || detailOpen;
 
   const closeFilterPopups = useCallback(() => {
     setOpenPopup(null);
     setSelectedFilter((prev) => {
       if (prev === "date" && selectedDate === null) return "all";
-      if (prev === "room" && selectedRoomIds.length === 0) return "all";
+      if (prev === "member" && selectedMemberIds.length === 0) return "all";
       return prev;
     });
-  }, [selectedDate, selectedRoomIds]);
+  }, [selectedDate, selectedMemberIds.length]);
 
   usePointerDownOutside(filterChromeRef, openPopup !== null && !overlayMapOpen, closeFilterPopups);
 
-  const roomsList = useMemo(() => {
-    const list = roomsFromApi ?? [];
-    return [...list].sort((a, b) => Number(b.pinned) - Number(a.pinned));
-  }, [roomsFromApi]);
+  const apiCourses = useMemo(
+    () =>
+      (roomDateCoursesQuery.data?.items ?? []).map((course) =>
+        mapRoomSavedDateCourseToSavedCourse(course, roomId),
+      ),
+    [roomDateCoursesQuery.data?.items, roomId],
+  );
+
+  const savedCourses = useMemo(
+    () => apiCourses.map((course) => courseOverrides[course.id] ?? course),
+    [apiCourses, courseOverrides],
+  );
+
+  const memberOptions = useMemo((): MemberFilterOption[] => {
+    const byId = new Map<string, MemberFilterOption>();
+
+    for (const course of savedCourses) {
+      if (course.savedByUserId == null) {
+        continue;
+      }
+
+      const nickname = course.savedByNickname?.trim();
+      if (!nickname) {
+        continue;
+      }
+
+      const id = String(course.savedByUserId);
+      if (!byId.has(id)) {
+        byId.set(id, {
+          id,
+          nickname,
+          profileImageUrl: course.savedByProfileImageUrl ?? null,
+        });
+      }
+    }
+
+    return [...byId.values()];
+  }, [savedCourses]);
+
+  const selectedCourseWithDetail = useMemo(() => {
+    if (!selectedCourse) {
+      return null;
+    }
+
+    const detailCourse = dateCourseDetailQuery.data
+      ? mapRoomSavedDateCourseToSavedCourse(dateCourseDetailQuery.data, roomId)
+      : selectedCourse;
+
+    return courseOverrides[detailCourse.id] ?? detailCourse;
+  }, [courseOverrides, dateCourseDetailQuery.data, roomId, selectedCourse]);
 
   const visibleCourses = useMemo(() => {
-    if (selectedFilter === "date" && selectedDate === "2025.04.26") {
-      return [];
-    }
+    return savedCourses.filter((course) => {
+      const matchesMember =
+        selectedMemberIds.length === 0 ||
+        (course.savedByUserId != null && selectedMemberIds.includes(String(course.savedByUserId)));
+      const matchesDate = selectedDate == null || course.courseDateKey === selectedDate;
 
-    if (selectedFilter === "date" && selectedDate) {
-      return savedCourses.filter((course) => course.executedAtLabel.includes("04.20")).slice(0, 8);
-    }
-
-    if (selectedFilter === "room" && selectedRoomIds.length > 0) {
-      return savedCourses.filter(
-        (course) =>
-          course.savedFromRoomId != null && selectedRoomIds.includes(course.savedFromRoomId),
-      );
-    }
-
-    return savedCourses;
-  }, [savedCourses, selectedDate, selectedFilter, selectedRoomIds]);
+      return matchesMember && matchesDate;
+    });
+  }, [savedCourses, selectedDate, selectedMemberIds]);
 
   const mapPins = useMemo(() => {
-    return selectedCourse
-      ? mapPlacesFromSavedCourses([selectedCourse], savedPlaces)
+    return selectedCourseWithDetail
+      ? mapPlacesFromSavedCourses([selectedCourseWithDetail], savedPlaces)
       : mapPlacesFromSavedCourses(visibleCourses, savedPlaces);
-  }, [savedPlaces, selectedCourse, visibleCourses]);
+  }, [savedPlaces, selectedCourseWithDetail, visibleCourses]);
 
   const mapCenter = useMemo(() => {
     if (detailOpen && selectedPlaceId) {
@@ -136,29 +193,31 @@ export function PlaceListSavedCoursesPage({
       }
     }
 
-    if (selectedCourse) {
-      const focusedPins = mapPlacesFromSavedCourses([selectedCourse], savedPlaces);
+    if (selectedCourseWithDetail) {
+      const focusedPins = mapPlacesFromSavedCourses([selectedCourseWithDetail], savedPlaces);
       if (focusedPins.length > 0) {
         return weightedMapCenter(focusedPins);
       }
     }
 
     return weightedMapCenter(mapPins);
-  }, [detailOpen, mapPins, savedPlaces, selectedCourse, selectedPlaceId]);
+  }, [detailOpen, mapPins, savedPlaces, selectedCourseWithDetail, selectedPlaceId]);
 
   const handleSelectAll = () => {
     setSelectedFilter("all");
     setOpenPopup(null);
-    setSelectedRoomIds([]);
+    setSelectedMemberIds([]);
     setSelectedDate(null);
   };
 
-  const handleToggleRoom = (nextRoomId: string) => {
-    const nextIds = selectedRoomIds.includes(nextRoomId)
-      ? selectedRoomIds.filter((item) => item !== nextRoomId)
-      : [...selectedRoomIds, nextRoomId];
-    setSelectedRoomIds(nextIds);
-    setSelectedFilter(nextIds.length === 0 ? "all" : "room");
+  const handleToggleMember = (memberId: string) => {
+    setSelectedMemberIds((current) => {
+      const nextIds = current.includes(memberId)
+        ? current.filter((item) => item !== memberId)
+        : [...current, memberId];
+      setSelectedFilter(nextIds.length === 0 && selectedDate == null ? "all" : "member");
+      return nextIds;
+    });
   };
 
   const handlePickCalendarDate = (date: string) => {
@@ -179,52 +238,33 @@ export function PlaceListSavedCoursesPage({
       return;
     }
 
-    setSavedCourses((current) =>
-      current.map((course) =>
-        course.id === prevCourseId
-          ? {
-              ...course,
-              title: payload.title,
-              stops: payload.stops.map((stop) => ({
-                id: stop.placeId,
-                name: stop.name,
-                address: stop.address,
-                walkingTime: stop.walkingTime,
-                hours: stop.hours,
-              })),
-            }
-          : course,
-      ),
-    );
+    const source = savedCourses.find((course) => course.id === prevCourseId) ?? selectedCourse;
+    if (!source) {
+      return;
+    }
 
-    setSelectedCourse((current) =>
-      current?.id === prevCourseId
-        ? {
-            ...current,
-            title: payload.title,
-            stops: payload.stops.map((stop) => ({
-              id: stop.placeId,
-              name: stop.name,
-              address: stop.address,
-              walkingTime: stop.walkingTime,
-              hours: stop.hours,
-            })),
-          }
-        : current,
-    );
+    const nextCourse: SavedCourse = {
+      ...source,
+      title: payload.title,
+      stops: payload.stops.map((stop) => ({
+        id: stop.id,
+        roomPlaceId: stop.roomPlaceId,
+        name: stop.name,
+        address: stop.address,
+        category: stop.category,
+        categoryName: stop.categoryName,
+        tagCode: stop.tagCode,
+        tagName: stop.tagName,
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        walkingTime: stop.walkingTime,
+        hours: stop.hours,
+      })),
+    };
+
+    setCourseOverrides((current) => ({ ...current, [prevCourseId]: nextCourse }));
+    setSelectedCourse(nextCourse);
   };
-
-  const titleNode = (
-    <button
-      type="button"
-      onClick={onBackToMap}
-      className="inline-flex max-w-full items-center gap-1"
-      aria-label="방 지도 화면으로 이동"
-    >
-      <span className="truncate">{roomName}</span>
-      <ChevronRight className="size-4 shrink-0" aria-hidden />
-    </button>
-  );
 
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -242,8 +282,8 @@ export function PlaceListSavedCoursesPage({
       ) : null}
 
       <ListTopBar
-        title={titleNode}
-        trailing={`총 ${formatCount(visibleCourses.length)}개`}
+        title={roomName}
+        trailing={`${formatCount(visibleCourses.length)}개`}
         variant={overlayMapOpen ? "overlay" : "sticky"}
         backLabel={
           detailOpen ? "장소 상세 닫기" : selectedCourse ? "코스 상세 닫기" : "지도로 이동"
@@ -295,59 +335,100 @@ export function PlaceListSavedCoursesPage({
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedFilter("room");
-                    setOpenPopup((current) => (current === "room" ? null : "room"));
+                    setSelectedFilter("member");
+                    setOpenPopup((current) => (current === "member" ? null : "member"));
                   }}
-                  className={cn(filterChipClass(roomChipApplied), "shrink-0 gap-1 px-3")}
-                  aria-expanded={openPopup === "room"}
+                  className={cn(filterChipClass(memberChipApplied), "shrink-0 gap-1 px-3")}
+                  aria-expanded={openPopup === "member"}
+                  aria-haspopup="listbox"
+                  aria-pressed={memberChipApplied}
                 >
-                  방
+                  멤버
                   <ChevronDown
                     className={cn(
                       "size-3.5 shrink-0 opacity-80 transition-transform duration-150",
-                      openPopup === "room" && "-rotate-180",
+                      openPopup === "member" && "-rotate-180",
+                      memberChipApplied ? "text-primary-foreground/90" : "text-muted-foreground",
                     )}
                     aria-hidden
                   />
                 </button>
 
-                {openPopup === "room" ? (
+                {openPopup === "member" ? (
                   <div
+                    role="listbox"
+                    aria-label="멤버 필터"
                     className={cn(
                       MAP_FILTER_PANEL_BASE_CLASS,
-                      "absolute left-0 z-40 mt-1! flex min-w-40 flex-col rounded-lg! p-1.5",
+                      "absolute left-0 z-40 mt-1! flex max-h-[min(18.5rem,calc(100vh-12rem))] w-[min(16.5rem,calc(100vw-4rem))] min-w-36 flex-col rounded-lg! backdrop-saturate-150",
                     )}
                   >
-                    {isRoomsLoading ? (
-                      <div className="px-3 py-4 text-xs text-[#8b8b8b]">방 목록 불러오는 중...</div>
-                    ) : roomsList.length === 0 ? (
-                      <div className="px-3 py-4 text-xs text-[#8b8b8b]">
-                        참여 중인 방이 없습니다.
+                    {roomDateCoursesQuery.isLoading ? (
+                      <div className="divide-border/35 divide-y px-1.5 py-0.5">
+                        {Array.from({ length: 3 }, (_, index) => (
+                          <div
+                            key={`member-skel-${index}`}
+                            className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 py-2"
+                          >
+                            <div className="bg-muted/70 size-9 shrink-0 animate-pulse rounded-full" />
+                            <div className="bg-muted/60 h-3 w-[55%] animate-pulse rounded-sm" />
+                            <div className="bg-muted/50 size-4.5 shrink-0 animate-pulse rounded-full" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : memberOptions.length === 0 ? (
+                      <div className="text-muted-foreground px-3 py-3 text-left text-xs font-medium">
+                        저장한 멤버가 없습니다
                       </div>
                     ) : (
-                      roomsList.map((room) => {
-                        const checked = selectedRoomIds.includes(room.roomId);
-                        return (
-                          <button
-                            key={room.roomId}
-                            type="button"
-                            onClick={() => handleToggleRoom(room.roomId)}
-                            className="flex items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-[#f6f6f6]"
-                          >
-                            <span
-                              className={cn(
-                                "flex size-4 items-center justify-center rounded border",
-                                checked
-                                  ? "border-[#303030] bg-[#303030] text-white"
-                                  : "border-[#d6d6d6] bg-white text-transparent",
-                              )}
+                      <ul
+                        className="scrollbar-hide flex min-h-0 w-full flex-1 flex-col overflow-y-auto pb-px"
+                        role="presentation"
+                      >
+                        {memberOptions.map((member) => {
+                          const checked = selectedMemberIds.includes(member.id);
+                          return (
+                            <li
+                              key={member.id}
+                              className="group hover:bg-muted/35 focus-within:bg-muted/30 active:bg-muted/45 flex w-full min-w-0 transition-colors"
                             >
-                              <Check className="size-3" aria-hidden />
-                            </span>
-                            <span className="truncate">{room.roomName}</span>
-                          </button>
-                        );
-                      })
+                              <label className="grid w-full min-w-0 cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 px-3 py-2.5 transition-colors focus-visible:outline-none">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => handleToggleMember(member.id)}
+                                  className="sr-only"
+                                  aria-checked={checked}
+                                />
+                                <MemberAvatar
+                                  imageUrl={member.profileImageUrl}
+                                  className="size-9"
+                                />
+                                <span className="text-foreground min-w-0 truncate text-xs leading-tight font-semibold">
+                                  {member.nickname}
+                                </span>
+                                <span
+                                  className={cn(
+                                    "flex size-4.5 shrink-0 items-center justify-center rounded-full border transition-colors duration-150",
+                                    checked
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-muted-foreground/35 bg-background group-hover:border-muted-foreground/55",
+                                  )}
+                                  aria-hidden
+                                >
+                                  <Check
+                                    className={cn(
+                                      "size-2.5 shrink-0",
+                                      checked ? "opacity-100" : "opacity-0",
+                                    )}
+                                    strokeWidth={3}
+                                  />
+                                </span>
+                              </label>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     )}
                   </div>
                 ) : null}
@@ -360,27 +441,30 @@ export function PlaceListSavedCoursesPage({
                     setSelectedFilter("date");
                     setOpenPopup((current) => (current === "date" ? null : "date"));
                   }}
-                  className={cn(filterChipClass(dateChipApplied), "shrink-0 gap-1 px-3")}
+                  className={cn(
+                    filterChipClass(dateChipApplied),
+                    "max-w-[min(11rem,calc(100vw-8rem))] shrink-0 gap-1 truncate px-3",
+                  )}
                   aria-expanded={openPopup === "date"}
+                  aria-haspopup="dialog"
+                  aria-pressed={dateChipApplied}
                 >
-                  {selectedDate ?? "날짜"}
+                  <span className="min-w-0 truncate">{formatDateLabel(selectedDate)}</span>
                   <ChevronDown
                     className={cn(
                       "size-3.5 shrink-0 opacity-80 transition-transform duration-150",
                       openPopup === "date" && "-rotate-180",
+                      dateChipApplied && "text-primary-foreground/90",
+                      !dateChipApplied && "text-muted-foreground",
                     )}
                     aria-hidden
                   />
                 </button>
 
                 {openPopup === "date" ? (
-                  <div
-                    className={cn(
-                      MAP_FILTER_PANEL_BASE_CLASS,
-                      "absolute right-0 z-40 mt-1! w-[16rem] rounded-lg! p-2",
-                    )}
-                  >
+                  <div className="absolute top-full left-0 z-40 mt-1 w-[min(20rem,calc(100vw-2rem))]">
                     <DateCalendarPanel
+                      className="rounded-lg border-0 shadow-[0_6px_20px_rgb(0_0_0/0.08)]"
                       selectedDate={selectedDate}
                       onSelectDate={handlePickCalendarDate}
                     />
@@ -394,37 +478,44 @@ export function PlaceListSavedCoursesPage({
 
       {!overlayMapOpen ? (
         <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
-          {visibleCourses.length > 0 ? (
+          {roomDateCoursesQuery.isLoading ? (
+            <EmptyState
+              icon={<AlertCircle className="size-5" aria-hidden />}
+              message="저장된 데이트 코스를 불러오는 중이에요."
+            />
+          ) : visibleCourses.length > 0 ? (
             <div className="space-y-2 pb-2">
               {visibleCourses.map((course) => (
-                <div
-                  key={course.id}
-                  className="rounded-xl border border-[#ededed] bg-white px-1 py-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-                >
-                  <SavedCourseCard course={course} onSelect={setSelectedCourse} />
-                </div>
+                <SavedCourseCard key={course.id} course={course} onSelect={setSelectedCourse} />
               ))}
             </div>
           ) : (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
-              message="해당하는 데이트 코스가 없습니다."
+              message={
+                roomDateCoursesQuery.isError
+                  ? "저장된 데이트 코스를 불러오지 못했어요."
+                  : "해당하는 데이트 코스가 없습니다."
+              }
             />
           )}
         </div>
       ) : null}
 
-      {selectedCourse ? (
-        <div className="relative z-10 mt-auto">
+      <CoursePlannerBottomSheet
+        open={Boolean(selectedCourse)}
+        onClose={() => setSelectedCourse(null)}
+      >
+        {selectedCourseWithDetail ? (
           <CoursePlaceInfoPanel
-            courseTitle={selectedCourse.title}
-            stops={savedCourseToPlannerStops(selectedCourse, savedPlaces)}
+            courseTitle={selectedCourseWithDetail.title}
+            stops={savedCourseToPlannerStops(selectedCourseWithDetail, savedPlaces)}
             onBack={() => setSelectedCourse(null)}
-            onSave={(payload) => handlePersistCourse(selectedCourse.id, payload)}
+            onSave={(payload) => handlePersistCourse(selectedCourseWithDetail.id, payload)}
             hideNewCourseSaveButton
           />
-        </div>
-      ) : null}
+        ) : null}
+      </CoursePlannerBottomSheet>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
@@ -433,5 +524,39 @@ export function PlaceListSavedCoursesPage({
 
       <PlaceDetailSheet roomId={roomId} savedPlaces={savedPlaces} />
     </div>
+  );
+}
+
+function MemberAvatar({ imageUrl, className }: { imageUrl?: string | null; className?: string }) {
+  const url = imageUrl?.trim() ?? "";
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const showImage = Boolean(url) && failedUrl !== url;
+
+  const handleImageError = useCallback(() => {
+    setFailedUrl(url);
+  }, [url]);
+
+  if (showImage) {
+    return (
+      <img
+        src={url}
+        alt=""
+        className={cn("shrink-0 rounded-full object-cover", className)}
+        referrerPolicy="no-referrer"
+        onError={handleImageError}
+      />
+    );
+  }
+
+  return (
+    <span
+      className={cn(
+        "bg-muted text-muted-foreground flex shrink-0 items-center justify-center rounded-full",
+        className,
+      )}
+      aria-hidden
+    >
+      <User className="size-4.5" strokeWidth={2} />
+    </span>
   );
 }
