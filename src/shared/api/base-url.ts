@@ -1,5 +1,6 @@
 /**
  * API baseURL — 웹 기본값은 **`/api`** (로컬: Vite 프록시, 프로덕션: Vercel `vercel.json` rewrite).
+ * path 상수(`API_PATHS`)는 `/v1/...` 형식 → 최종 URL `/api/v1/...`
  * 모바일(Capacitor 등)은 `VITE_MOBILE_API_BASE_URL`로 절대 URL 지정 가능.
  *
  * 프록시 뒤에서도 `Set-Cookie` Domain이 프론트 호스트와 맞지 않으면 쿠키·CSRF가 깨질 수 있음.

@@ -17,7 +17,7 @@ import {
 } from "@/features/place-flow/edit-place-navigation";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
-import { isApiError } from "@/shared/api/axios";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import { useEditPlaceStore } from "@/store/edit-place-store";
 
@@ -191,9 +191,9 @@ export default function EditPlacePage() {
             },
             onError: (error) => {
               setOverrideError(
-                isApiError(error)
-                  ? error.message
-                  : "장소 후보를 수정하지 못했어요. 다시 시도해 주세요.",
+                resolveGeneralApiErrorMessage(error, {
+                  fallback: "장소 후보를 수정하지 못했어요. 다시 시도해 주세요.",
+                }),
               );
             },
           },

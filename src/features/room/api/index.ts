@@ -7,7 +7,6 @@ export type {
   JoinRoomResponse,
   LinkAnalysisStatus,
   LinkSource,
-  ProblemJsonErrorResponse,
   RegisterLinkRequest,
   RegisterLinkResponse,
   RoomActionResult,

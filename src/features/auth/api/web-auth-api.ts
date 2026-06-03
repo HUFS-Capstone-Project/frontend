@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 
 import { API_PATHS } from "@/shared/api/api-paths";
+import { getErrorDetail } from "@/shared/api/error";
 import { ensureCsrfCookie, webAuthClient } from "@/shared/api/web-auth-client";
 import { getCookie, XSRF_COOKIE_NAME } from "@/shared/lib/cookie";
 import type { CommonResponse } from "@/shared/types/api-types";
@@ -43,12 +44,7 @@ export const webAuthApi = {
       await webAuthClient.post(API_PATHS.auth.logout);
     } catch (e) {
       if (isAxiosError(e)) {
-        const data = e.response?.data as { detail?: string; message?: string } | undefined;
-        const detail =
-          (typeof data?.detail === "string" && data.detail) ||
-          (typeof data?.message === "string" && data.message) ||
-          "";
-        throw new Error(detail || `Logout failed: ${e.response?.status ?? "unknown"}`);
+        throw new Error(getErrorDetail(e, `Logout failed: ${e.response?.status ?? "unknown"}`));
       }
       throw e;
     }

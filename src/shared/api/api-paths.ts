@@ -1,3 +1,9 @@
+/**
+ * 공개 REST API path 상수.
+ * axios `baseURL`(`/api`) + path(`/v1/...`) → `/api/v1/...`
+ */
+export const API_V1_PREFIX = "/v1" as const;
+
 export const API_PATHS = {
   auth: {
     csrf: "/v1/auth/csrf",

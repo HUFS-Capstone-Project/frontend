@@ -1,7 +1,4 @@
-﻿import type {
-  ApiFieldError,
-  CommonResponse as SharedCommonResponse,
-} from "@/shared/types/api-types";
+﻿import type { CommonResponse as SharedCommonResponse } from "@/shared/types/api-types";
 
 export type CommonResponse<T> = SharedCommonResponse<T>;
 
@@ -93,15 +90,4 @@ export type RegisterLinkRequest = {
 
 export type RoomActionResult = {
   message: string | null;
-};
-
-export type ProblemJsonErrorResponse = {
-  type?: string;
-  title?: string;
-  status?: number;
-  detail?: string;
-  instance?: string;
-  code?: string;
-  timestamp?: string;
-  fieldErrors?: ApiFieldError[];
 };

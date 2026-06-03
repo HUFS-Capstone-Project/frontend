@@ -20,6 +20,7 @@ export { useControlledMaxLengthWarning } from "./hooks/use-controlled-max-length
 export { useSubmitOnboardingMutation } from "./hooks/use-submit-onboarding-mutation";
 export { useTermsAgreement } from "./hooks/use-terms-agreement";
 export {
+  getFirstUnmappedOnboardingFieldError,
   mapOnboardingFieldErrors,
   pickFirstOnboardingFieldError,
 } from "./lib/map-onboarding-field-errors";

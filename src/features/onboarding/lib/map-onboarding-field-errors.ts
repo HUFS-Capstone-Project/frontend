@@ -1,31 +1,24 @@
-import type { ApiFieldError } from "@/shared/types/api-types";
+import { mapFieldErrorsToForm } from "@/shared/api/error";
+import type { FieldError } from "@/shared/types/api-types";
 
 import type { OnboardingFieldErrorMap, OnboardingFieldName } from "../types/onboarding";
 
-const FIELD_NAME_MAP: Record<string, OnboardingFieldName> = {
-  nickname: "nickname",
-  serviceTermsAgreed: "serviceTermsAgreed",
-  privacyPolicyAgreed: "privacyPolicyAgreed",
-  marketingNotificationAgreed: "marketingNotificationAgreed",
-};
+const ONBOARDING_FIELD_NAMES = new Set<OnboardingFieldName>([
+  "nickname",
+  "serviceTermsAgreed",
+  "privacyPolicyAgreed",
+  "marketingNotificationAgreed",
+]);
 
 export function mapOnboardingFieldErrors(
-  fieldErrors: ApiFieldError[] | undefined,
+  fieldErrors: FieldError[] | undefined,
 ): OnboardingFieldErrorMap {
-  if (!fieldErrors || fieldErrors.length === 0) {
-    return {};
-  }
+  const mapped = mapFieldErrorsToForm(fieldErrors);
 
-  return fieldErrors.reduce<OnboardingFieldErrorMap>((acc, item) => {
-    const mapped = FIELD_NAME_MAP[item.field];
-    if (!mapped) {
-      return acc;
+  return Object.entries(mapped).reduce<OnboardingFieldErrorMap>((acc, [field, message]) => {
+    if (ONBOARDING_FIELD_NAMES.has(field as OnboardingFieldName)) {
+      acc[field as OnboardingFieldName] = message;
     }
-
-    if (!acc[mapped]) {
-      acc[mapped] = item.message;
-    }
-
     return acc;
   }, {});
 }
@@ -41,6 +34,22 @@ export function pickFirstOnboardingFieldError(map: OnboardingFieldErrorMap): str
   for (const key of order) {
     if (map[key]) {
       return map[key] ?? null;
+    }
+  }
+
+  return null;
+}
+
+export function getFirstUnmappedOnboardingFieldError(
+  fieldErrors: FieldError[] | undefined,
+): string | null {
+  const mapped = mapOnboardingFieldErrors(fieldErrors);
+  const knownFields = Object.keys(mapped) as OnboardingFieldName[];
+
+  const allMapped = mapFieldErrorsToForm(fieldErrors);
+  for (const [field, message] of Object.entries(allMapped)) {
+    if (!knownFields.includes(field as OnboardingFieldName)) {
+      return message;
     }
   }
 

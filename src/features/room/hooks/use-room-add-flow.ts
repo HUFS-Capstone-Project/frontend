@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { isApiError } from "@/shared/api/axios";
+import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 
 import type { CreateRoomResponse } from "../api";
 import {
@@ -150,7 +150,6 @@ export function useRoomAddFlow({
     const validationError = validateRoomName(roomName);
     if (validationError) {
       setRoomNameError(validationError);
-      showToast?.(validationError);
       return;
     }
 
@@ -163,9 +162,17 @@ export function useRoomAddFlow({
       setStep("createInvite");
       showToast?.(CREATE_SUCCESS_TOAST);
     } catch (error) {
-      const message = resolveCreateRoomErrorMessage(error);
-      setRoomNameError(message);
-      showToast?.(message);
+      const formError = resolveFormApiError(error, { knownFields: ["name"] });
+
+      if (formError.hasFieldErrors) {
+        const nameError = formError.fieldErrors.name ?? formError.formError;
+        if (nameError) {
+          setRoomNameError(nameError);
+          return;
+        }
+      }
+
+      showToast?.(resolveCreateRoomErrorMessage(error));
     }
   }, [createRoomMutation, normalizedRoomName, roomName, showToast]);
 
@@ -173,7 +180,6 @@ export function useRoomAddFlow({
     const validationError = validateInviteCode(inviteCode);
     if (validationError) {
       setInviteCodeError(validationError);
-      showToast?.(validationError);
       return;
     }
 
@@ -182,9 +188,17 @@ export function useRoomAddFlow({
       showToast?.(JOIN_SUCCESS_TOAST);
       setStep("none");
     } catch (error) {
-      const message = resolveJoinRoomErrorMessage(error);
-      setInviteCodeError(message);
-      showToast?.(message);
+      const formError = resolveFormApiError(error, { knownFields: ["inviteCode"] });
+
+      if (formError.hasFieldErrors) {
+        const inviteError = formError.fieldErrors.inviteCode ?? formError.formError;
+        if (inviteError) {
+          setInviteCodeError(inviteError);
+          return;
+        }
+      }
+
+      showToast?.(resolveJoinRoomErrorMessage(error));
     }
   }, [inviteCode, joinRoomMutation, normalizedInviteCode, showToast]);
 
@@ -283,65 +297,43 @@ function validateInviteCode(value: string): string | null {
 }
 
 function resolveCreateRoomErrorMessage(error: unknown): string {
-  if (!isApiError(error)) {
-    return "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-  }
-
-  if (error.status === 400 || error.code === "E400_VALIDATION") {
-    return "방 이름을 다시 확인해 주세요.";
-  }
-
-  if (error.status === 401 || error.code === "E401_UNAUTHORIZED") {
-    return error.detail ?? "로그인이 필요합니다. 다시 시도해 주세요.";
-  }
-
-  if (error.status === 403 || error.code === "E403_FORBIDDEN") {
-    return error.detail ?? "요청 권한이 없습니다.";
-  }
-
-  if (error.status === 404 || error.code === "E404_NOT_FOUND") {
-    return error.detail ?? "요청한 리소스를 찾을 수 없습니다.";
-  }
-
-  if (error.status != null && error.status >= 500) {
-    return error.detail ?? "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-  }
-
-  return error.detail ?? error.message;
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    codeMessages: {
+      E401_UNAUTHORIZED: "로그인이 필요합니다. 다시 시도해 주세요.",
+      E403_FORBIDDEN: "요청 권한이 없습니다.",
+      E404_NOT_FOUND: "요청한 리소스를 찾을 수 없습니다.",
+    },
+    statusMessages: {
+      401: "로그인이 필요합니다. 다시 시도해 주세요.",
+      403: "요청 권한이 없습니다.",
+      404: "요청한 리소스를 찾을 수 없습니다.",
+      500: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      502: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  });
 }
 
 function resolveJoinRoomErrorMessage(error: unknown): string {
-  if (!isApiError(error)) {
-    return "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-  }
-
-  if (error.status === 400 || error.code === "E400_ILLEGAL_ARGUMENT") {
-    return "유효하지 않은 입장코드입니다.";
-  }
-
-  if (error.status === 409 || error.code === "E409_CONFLICT") {
-    return error.detail ?? "이미 참여한 방이거나 방 정원이 가득 찼습니다.";
-  }
-
-  if (error.status === 429 || error.code === "E429_TOO_MANY_REQUESTS") {
-    return "잠시 후 다시 시도해 주세요.";
-  }
-
-  if (error.status === 401 || error.code === "E401_UNAUTHORIZED") {
-    return error.detail ?? "로그인이 필요합니다. 다시 시도해 주세요.";
-  }
-
-  if (error.status === 403 || error.code === "E403_FORBIDDEN") {
-    return error.detail ?? "요청 권한이 없습니다.";
-  }
-
-  if (error.status === 404 || error.code === "E404_NOT_FOUND") {
-    return error.detail ?? "요청한 리소스를 찾을 수 없습니다.";
-  }
-
-  if (error.status != null && error.status >= 500) {
-    return error.detail ?? "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-  }
-
-  return error.detail ?? error.message;
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    codeMessages: {
+      E400_ILLEGAL_ARGUMENT: "유효하지 않은 입장코드입니다.",
+      E401_UNAUTHORIZED: "로그인이 필요합니다. 다시 시도해 주세요.",
+      E403_FORBIDDEN: "요청 권한이 없습니다.",
+      E404_NOT_FOUND: "요청한 리소스를 찾을 수 없습니다.",
+      E409_CONFLICT: "이미 참여한 방이거나 방 정원이 가득 찼습니다.",
+      E429_TOO_MANY_REQUESTS: "잠시 후 다시 시도해 주세요.",
+    },
+    statusMessages: {
+      400: "유효하지 않은 입장코드입니다.",
+      401: "로그인이 필요합니다. 다시 시도해 주세요.",
+      403: "요청 권한이 없습니다.",
+      404: "요청한 리소스를 찾을 수 없습니다.",
+      409: "이미 참여한 방이거나 방 정원이 가득 찼습니다.",
+      429: "잠시 후 다시 시도해 주세요.",
+      500: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      502: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  });
 }
