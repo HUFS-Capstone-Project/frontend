@@ -45,6 +45,8 @@ type DetailSavedPlace = MySavedPlace &
 type PlaceDetailSheetProps = {
   roomId?: string | null;
   savedPlaces?: DetailSavedPlace[];
+  /** false면 메모 목록만 표시하고 메모 작성 UI는 숨김 (데이트 코스 후보 확인 등) */
+  allowMemoEdit?: boolean;
   onSaveMemo?: (placeId: string, memo: string) => void | Promise<void>;
   onDeletePlace?: (placeId: string) => void | Promise<void>;
 };
@@ -52,6 +54,7 @@ type PlaceDetailSheetProps = {
 export function PlaceDetailSheet({
   roomId = null,
   savedPlaces,
+  allowMemoEdit = true,
   onSaveMemo,
   onDeletePlace,
 }: PlaceDetailSheetProps = {}): JSX.Element | null {
@@ -393,14 +396,16 @@ export function PlaceDetailSheet({
               >
                 <Share2 className="size-3 shrink-0" aria-hidden />
               </button>
-              <button
-                type="button"
-                className={PLACE_FLOW_LINK_CHIP_CLASS}
-                onClick={handleStartMemo}
-              >
-                <SquarePen className="size-3 shrink-0" aria-hidden />
-                <span>메모</span>
-              </button>
+              {allowMemoEdit ? (
+                <button
+                  type="button"
+                  className={PLACE_FLOW_LINK_CHIP_CLASS}
+                  onClick={handleStartMemo}
+                >
+                  <SquarePen className="size-3 shrink-0" aria-hidden />
+                  <span>메모</span>
+                </button>
+              ) : null}
             </div>
           </div>
 

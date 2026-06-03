@@ -14,7 +14,7 @@ import {
   OnboardingLayout,
   OnboardingTitle,
 } from "@/features/onboarding";
-import { isApiError } from "@/shared/api/axios";
+import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 
 type MyProfileInfoPageProps = {
@@ -96,7 +96,19 @@ export function MyProfileInfoPage({
       await onUpdateNickname(nextNickname);
       setView("info");
     } catch (error) {
-      setNicknameError(isApiError(error) ? error.message : "닉네임 변경에 실패했습니다.");
+      const formError = resolveFormApiError(error, { knownFields: ["nickname"] });
+      const nicknameFieldError = formError.fieldErrors.nickname ?? formError.formError;
+
+      if (formError.hasFieldErrors && nicknameFieldError) {
+        setNicknameError(nicknameFieldError);
+        return;
+      }
+
+      setNicknameError(
+        resolveGeneralApiErrorMessage(error, {
+          fallback: "닉네임 변경에 실패했습니다.",
+        }),
+      );
     }
   };
 

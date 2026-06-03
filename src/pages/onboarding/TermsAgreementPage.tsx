@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   AgreementList,
+  getFirstUnmappedOnboardingFieldError,
   hasClientValidationErrors,
   mapOnboardingFieldErrors,
   NICKNAME_MAX_LENGTH,
@@ -18,7 +19,7 @@ import {
   useTermsAgreement,
   validateOnboardingRequest,
 } from "@/features/onboarding";
-import { isApiError } from "@/shared/api/axios";
+import { getErrorDetail, isApiError } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -121,7 +122,13 @@ export default function TermsAgreementPage() {
             return;
           }
 
-          setSubmitError(error.message);
+          const unmappedFieldError = getFirstUnmappedOnboardingFieldError(error.fieldErrors);
+          if (unmappedFieldError) {
+            setSubmitError(unmappedFieldError);
+            return;
+          }
+
+          setSubmitError(getErrorDetail(error, "온보딩 처리 중 오류가 발생했습니다."));
           return;
         }
 

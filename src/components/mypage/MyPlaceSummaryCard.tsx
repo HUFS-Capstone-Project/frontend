@@ -1,5 +1,6 @@
 ﻿import { ChevronRight } from "lucide-react";
 
+import { PlaceCategoryIconChip } from "@/components/link-place/PlaceCategoryIconChip";
 import { cn } from "@/lib/utils";
 import type { RecentPlace } from "@/shared/types/my-page";
 
@@ -58,9 +59,19 @@ export function MyPlaceSummaryCard({
             <MyPlaceSummarySkeletonRows />
           ) : hasPlaces ? (
             recentPlaces.slice(0, 2).map((place) => (
-              <p key={place.id} className="text-foreground truncate py-2 text-xs font-medium">
-                {place.name}
-              </p>
+              <div
+                key={place.id}
+                className="flex min-w-0 items-center gap-1.5 py-2"
+              >
+                <PlaceCategoryIconChip
+                  place={{ category: place.category, categoryName: place.categoryName }}
+                  className="size-4"
+                  iconClassName="size-2.5 shrink-0 opacity-100"
+                />
+                <p className="text-foreground min-w-0 flex-1 truncate text-xs font-medium">
+                  {place.name}
+                </p>
+              </div>
             ))
           ) : (
             <p className="text-muted-foreground truncate py-2 text-xs font-medium">
@@ -76,10 +87,12 @@ export function MyPlaceSummaryCard({
 function MyPlaceSummarySkeletonRows() {
   return (
     <>
-      <div className="py-2">
+      <div className="flex items-center gap-1.5 py-2">
+        <div className="bg-muted/60 size-4 shrink-0 animate-pulse rounded-full" aria-hidden />
         <div className="bg-muted/60 h-3.5 w-32 animate-pulse rounded-md" />
       </div>
-      <div className="py-2">
+      <div className="flex items-center gap-1.5 py-2">
+        <div className="bg-muted/50 size-4 shrink-0 animate-pulse rounded-full" aria-hidden />
         <div className="bg-muted/50 h-3.5 w-24 animate-pulse rounded-md" />
       </div>
     </>

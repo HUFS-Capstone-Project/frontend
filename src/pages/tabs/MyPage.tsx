@@ -13,6 +13,8 @@ import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
+import { useMyDateCoursesQuery } from "@/features/course-planner/hooks/use-my-date-courses-query";
+import { mapMySavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-my-saved-date-course";
 import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import {
   useMyPlacesQuery,
@@ -23,7 +25,6 @@ import {
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
-import { savedCourses as seedSavedCourses } from "@/shared/mocks/course-mocks";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { useAuthStore } from "@/store/auth-store";
@@ -67,9 +68,20 @@ export default function MyPage() {
   const [savedCourseSheet, setSavedCourseSheet] = useState<SavedCourseSheetState>({
     kind: "closed",
   });
-  const [coursesList, setCoursesList] = useState<SavedCourse[]>(() => [...seedSavedCourses]);
+  const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
   const [places, setPlaces] = useState<SavedPlace[]>([]);
   const myPlacesQuery = useMyPlacesQuery({ params: MY_PAGE_PLACES_QUERY_PARAMS });
+  const myDateCoursesQuery = useMyDateCoursesQuery({
+    enabled: view === "main" || view === "courses",
+  });
+  const apiCourses = useMemo(
+    () => (myDateCoursesQuery.data?.items ?? []).map(mapMySavedDateCourseToSavedCourse),
+    [myDateCoursesQuery.data?.items],
+  );
+  const coursesList = useMemo(
+    () => apiCourses.map((course) => courseOverrides[course.id] ?? course),
+    [apiCourses, courseOverrides],
+  );
   const apiPlaces = useMemo(
     () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
     [myPlacesQuery.data?.items],
@@ -144,23 +156,33 @@ export default function MyPage() {
 
     const nextStopsMinimal = payload.stops.map((s) => ({
       id: s.id,
+      roomPlaceId: s.roomPlaceId,
       name: s.name,
       address: s.address,
+      category: s.category,
+      categoryName: s.categoryName,
+      tagCode: s.tagCode,
+      tagName: s.tagName,
+      latitude: s.latitude,
+      longitude: s.longitude,
       walkingTime: s.walkingTime === "—" ? undefined : s.walkingTime,
       hours: s.hours === "—" ? undefined : s.hours,
     }));
 
     if (payload.kind === "edit") {
-      const updated: SavedCourse | undefined = coursesList.find((c) => c.id === prevCourseId);
+      const updated = coursesList.find((c) => c.id === prevCourseId);
       if (!updated) return;
 
       const merged: SavedCourse = { ...updated, title: payload.title, stops: nextStopsMinimal };
-      setCoursesList((list) => list.map((c) => (c.id === prevCourseId ? merged : c)));
+      setCourseOverrides((current) => ({ ...current, [prevCourseId]: merged }));
       setSavedCourseSheet({ kind: "detail", course: merged });
     } else {
       setSavedCourseSheet({ kind: "closed" });
     }
   };
+
+  const activeCourseRoomId =
+    savedCourseSheet.kind === "detail" ? savedCourseSheet.course.savedFromRoomId : null;
 
   return (
     <div className="room-no-caret -m-page relative flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -228,7 +250,7 @@ export default function MyPage() {
                 className="border-border/40 bg-card"
               />
             </div>
-            <PlaceDetailSheet />
+            <PlaceDetailSheet roomId={activeCourseRoomId} />
           </motion.div>
         ) : view === "profile" ? (
           <motion.div
@@ -264,9 +286,12 @@ export default function MyPage() {
                 <div className="pt-3">
                   <MyPlaceSummaryCard
                     totalCount={summaryPlaceCount}
-                    recentPlaces={summaryPlaces
-                      .slice(0, 2)
-                      .map((place) => ({ id: place.id, name: place.name }))}
+                    recentPlaces={summaryPlaces.slice(0, 2).map((place) => ({
+                      id: place.id,
+                      name: place.name,
+                      category: place.category,
+                      categoryName: place.categoryName,
+                    }))}
                     isLoading={myPlacesQuery.isLoading && myPlacesQuery.data == null}
                     onOpenPlaces={() => {
                       closePlaceDetail();

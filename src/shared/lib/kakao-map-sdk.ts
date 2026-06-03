@@ -87,6 +87,19 @@ export type KakaoMarker = {
   setMap: (map: KakaoMapInstance | null) => void;
 };
 
+export type KakaoPolyline = {
+  setMap: (map: KakaoMapInstance | null) => void;
+};
+
+type KakaoPolylineOptions = {
+  map: KakaoMapInstance;
+  path: KakaoLatLng[];
+  strokeWeight?: number;
+  strokeColor?: string;
+  strokeOpacity?: number;
+  strokeStyle?: string;
+};
+
 type KakaoEvent = {
   addListener: (
     target: KakaoMarker | KakaoMapInstance,
@@ -113,6 +126,7 @@ export type KakaoMaps = {
     options?: KakaoMarkerImageOptions,
   ) => KakaoMarkerImage;
   Marker: new (options: KakaoMarkerOptions) => KakaoMarker;
+  Polyline: new (options: KakaoPolylineOptions) => KakaoPolyline;
   event: KakaoEvent;
   services?: KakaoServices;
 };

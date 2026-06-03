@@ -106,12 +106,8 @@ export function MySavedCoursesPage({
   );
 
   const visibleCourses = useMemo(() => {
-    if (selectedFilter === "date" && selectedDate === "2025.04.26") {
-      return [];
-    }
-
     if (selectedFilter === "date" && selectedDate) {
-      return courses.slice(0, 4);
+      return courses.filter((course) => course.courseDateKey === selectedDate);
     }
 
     if (selectedFilter === "room") {
@@ -445,6 +441,7 @@ export function MySavedCoursesPage({
           <CoursePlaceInfoPanel
             hideNewCourseSaveButton
             courseTitle={selectedCourse.title}
+            roomId={selectedCourse.savedFromRoomId}
             stops={savedCourseToPlannerStops(selectedCourse, savedPlaces)}
             onBack={onCloseCourseSheet}
             onSave={(payload) => onPersistCourse(selectedCourse.id, payload)}

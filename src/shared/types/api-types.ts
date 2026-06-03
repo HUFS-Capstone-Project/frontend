@@ -11,17 +11,21 @@ export type CommonResponse<T = undefined> = {
   timestamp: string;
 };
 
-export type ApiFieldError = {
+/** RFC 7807 ProblemDetail + 백엔드 확장 필드 */
+export type FieldError = {
   field: string;
   message: string;
-  rejectedValue?: string | null;
+  rejectedValue?: unknown;
 };
 
-export type ApiErrorResponse = {
+export type ProblemDetail = {
   title?: string;
-  status?: number;
+  status: number;
   detail?: string;
-  message?: string;
+  instance?: string;
   code?: string;
-  fieldErrors?: ApiFieldError[];
+  timestamp?: string;
+  fieldErrors?: FieldError[];
 };
+
+export type ApiErrorResponse = ProblemDetail;

@@ -25,7 +25,7 @@ import {
   PROMPT_FLOW_SCROLL_BODY_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
 import { LINK_PREVIEW_MOCK } from "@/features/place-link/constants";
-import { isApiError } from "@/shared/api/axios";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
 
@@ -142,7 +142,9 @@ export default function RoomPlaceSearchPage() {
         },
         onError: (error) => {
           setSaveError(
-            isApiError(error) ? error.message : "장소 저장에 실패했어요. 다시 시도해 주세요.",
+            resolveGeneralApiErrorMessage(error, {
+              fallback: "장소 저장에 실패했어요. 다시 시도해 주세요.",
+            }),
           );
         },
       },

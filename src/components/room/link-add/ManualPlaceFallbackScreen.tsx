@@ -10,7 +10,7 @@ import {
 } from "@/features/place-candidates";
 import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import type { LinkAnalysisResult } from "@/features/room/link-add";
-import { isApiError } from "@/shared/api/axios";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 
 type ManualPlaceFallbackScreenProps = {
   roomId: string;
@@ -83,7 +83,9 @@ export function ManualPlaceFallbackScreen({
         onSuccess: onSaved,
         onError: (error) => {
           setSaveError(
-            isApiError(error) ? error.message : "장소 저장에 실패했어요. 다시 시도해 주세요.",
+            resolveGeneralApiErrorMessage(error, {
+              fallback: "장소 저장에 실패했어요. 다시 시도해 주세요.",
+            }),
           );
         },
       },

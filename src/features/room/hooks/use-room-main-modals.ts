@@ -1,8 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
-import type { ApiError } from "@/shared/api/axios";
-import { isApiError } from "@/shared/api/axios";
+import { isApiError, resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import type { RoomListRow } from "@/shared/types/room";
 
 import { roomQueryKeys } from "../query-keys";
@@ -28,7 +27,6 @@ const UNPINNED_SUCCESS_TOAST = "방 상단 고정을 해제했습니다";
 
 const ROOM_NOT_FOUND_TOAST = "이미 삭제되었거나 존재하지 않는 방입니다";
 const ROOM_FORBIDDEN_TOAST = "방 접근 권한이 없습니다";
-const ROOM_NAME_INVALID_TOAST = "방 이름을 다시 확인해 주세요";
 const ROOM_NAME_REQUIRED_TOAST = "방 이름을 입력해 주세요";
 const ROOM_NAME_MAX_LENGTH_TOAST = "방 이름은 최대 20자까지 입력할 수 있어요";
 
@@ -167,7 +165,6 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       const trimmedName = nextRoomName.trim();
       const validationMessage = validateRoomName(trimmedName);
       if (validationMessage) {
-        showToast?.(validationMessage);
         return { success: false, fieldError: validationMessage };
       }
 
@@ -180,10 +177,13 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
         showToast?.(result.message ?? RENAME_SUCCESS_TOAST);
         return { success: true };
       } catch (error) {
-        if (isRoomNameValidationError(error)) {
-          const message = resolveRoomNameValidationMessage(error);
-          showToast?.(message);
-          return { success: false, fieldError: message };
+        const formError = resolveFormApiError(error, { knownFields: ["name"] });
+
+        if (formError.hasFieldErrors) {
+          const fieldMessage = formError.fieldErrors.name ?? formError.formError;
+          if (fieldMessage) {
+            return { success: false, fieldError: fieldMessage };
+          }
         }
 
         if (isNotFoundRoomError(error)) {
@@ -294,7 +294,7 @@ function validateRoomName(value: string): string | null {
   return null;
 }
 
-function isForbiddenRoomError(error: unknown): error is ApiError {
+function isForbiddenRoomError(error: unknown): boolean {
   if (!isApiError(error)) {
     return false;
   }
@@ -302,7 +302,7 @@ function isForbiddenRoomError(error: unknown): error is ApiError {
   return error.status === 403 || error.code === "E403_FORBIDDEN";
 }
 
-function isNotFoundRoomError(error: unknown): error is ApiError {
+function isNotFoundRoomError(error: unknown): boolean {
   if (!isApiError(error)) {
     return false;
   }
@@ -310,41 +310,20 @@ function isNotFoundRoomError(error: unknown): error is ApiError {
   return error.status === 404 || error.code === "E404_NOT_FOUND";
 }
 
-function isRoomNameValidationError(error: unknown): error is ApiError {
-  if (!isApiError(error)) {
-    return false;
-  }
-
-  if (error.status !== 400) {
-    return false;
-  }
-
-  return error.code === "E400_VALIDATION" || error.code === "E400_ILLEGAL_ARGUMENT";
+function resolveNotFoundMessage(error: unknown): string {
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: ROOM_NOT_FOUND_TOAST,
+  });
 }
 
-function resolveRoomNameValidationMessage(error: ApiError): string {
-  const fieldError = error.fieldErrors?.find((item) => item.field === "name")?.message;
-  if (fieldError) {
-    return fieldError;
-  }
-
-  return error.detail ?? ROOM_NAME_INVALID_TOAST;
-}
-
-function resolveNotFoundMessage(error: ApiError): string {
-  return error.detail ?? ROOM_NOT_FOUND_TOAST;
-}
-
-function resolveForbiddenMessage(error: ApiError): string {
-  return error.detail ?? ROOM_FORBIDDEN_TOAST;
+function resolveForbiddenMessage(error: unknown): string {
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: ROOM_FORBIDDEN_TOAST,
+  });
 }
 
 function resolveFallbackMessage(error: unknown, fallback: string): string {
-  if (!isApiError(error)) {
-    return fallback;
-  }
-
-  return error.detail ?? error.message ?? fallback;
+  return resolveGeneralApiErrorMessage(error, { fallback });
 }
 
 async function invalidateRoomQueries(

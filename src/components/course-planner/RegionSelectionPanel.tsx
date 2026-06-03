@@ -17,8 +17,13 @@ type RegionSelectionPanelProps = {
   isCityLoading?: boolean;
   isDistrictLoading?: boolean;
   cityErrorMessage?: string | null;
+  cityEmptyMessage?: string | null;
   districtErrorMessage?: string | null;
+  districtEmptyMessage?: string | null;
   searchKeyword?: string;
+  /** 방 저장 장소 기준 시군구만 선택 (데이트 코스 전용 API) */
+  sigunguOnly?: boolean;
+  className?: string;
   onSearchKeywordChange?: (keyword: string) => void;
   onSelectCity: (city: string, option?: RegionSelectionOption) => void;
   onSelectDistrict: (district: string, option?: RegionSelectionOption) => void;
@@ -34,8 +39,12 @@ export function RegionSelectionPanel({
   isCityLoading = false,
   isDistrictLoading = false,
   cityErrorMessage = null,
+  cityEmptyMessage = null,
   districtErrorMessage = null,
+  districtEmptyMessage = null,
   searchKeyword,
+  sigunguOnly = false,
+  className,
   onSearchKeywordChange,
   onSelectCity,
   onSelectDistrict,
@@ -108,7 +117,7 @@ export function RegionSelectionPanel({
   };
 
   return (
-    <section className="bg-background px-6 pt-8 pb-0">
+    <section className={cn("bg-background px-6 pt-8 pb-0", className)}>
       <div className="flex items-center justify-between">
         <h1 className="text-foreground text-base font-bold">지역설정</h1>
         <button
@@ -130,44 +139,53 @@ export function RegionSelectionPanel({
         aria-label="지역명 검색"
       />
 
-      <div className="border-border mt-4 grid h-[21rem] max-h-[42dvh] grid-cols-2 overflow-hidden rounded-lg border">
-        <div className="border-border flex min-h-0 flex-col border-r">
-          <div className="border-border text-muted-foreground shrink-0 border-b py-2 text-center text-xs font-medium">
-            시/도
+      <div
+        className={cn(
+          "border-border mt-4 grid h-[21rem] max-h-[42dvh] overflow-hidden rounded-lg border",
+          sigunguOnly ? "grid-cols-1" : "grid-cols-2",
+        )}
+      >
+        {!sigunguOnly ? (
+          <div className="border-border flex min-h-0 flex-col border-r">
+            <div className="border-border text-muted-foreground shrink-0 border-b py-2 text-center text-xs font-medium">
+              시/도
+            </div>
+            <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
+              {!isCityLoading && cityErrorMessage ? (
+                <p className="text-muted-foreground px-4 py-3 text-sm">{cityErrorMessage}</p>
+              ) : null}
+              {!isCityLoading && !cityErrorMessage
+                ? filteredCityOptions.map((city) => {
+                    const selected = city.name === selectedCity;
+                    return (
+                      <button
+                        key={city.code}
+                        type="button"
+                        onClick={() => handleSelectCity(city)}
+                        className={cn(
+                          "h-11 px-4 text-left text-sm transition-colors",
+                          selected
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground hover:bg-muted/35",
+                        )}
+                      >
+                        {city.name}
+                      </button>
+                    );
+                  })
+                : null}
+              {!isCityLoading && !cityErrorMessage && !hasCitySearchResult ? (
+                <p className="text-muted-foreground px-4 py-3 text-sm">
+                  {cityEmptyMessage ?? "검색 결과가 없어요"}
+                </p>
+              ) : null}
+            </div>
           </div>
-          <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
-            {!isCityLoading && cityErrorMessage ? (
-              <p className="text-muted-foreground px-4 py-3 text-sm">{cityErrorMessage}</p>
-            ) : null}
-            {!isCityLoading && !cityErrorMessage
-              ? filteredCityOptions.map((city) => {
-                  const selected = city.name === selectedCity;
-                  return (
-                    <button
-                      key={city.code}
-                      type="button"
-                      onClick={() => handleSelectCity(city)}
-                      className={cn(
-                        "h-11 px-4 text-left text-sm transition-colors",
-                        selected
-                          ? "bg-primary/10 text-primary font-semibold"
-                          : "text-muted-foreground hover:bg-muted/35",
-                      )}
-                    >
-                      {city.name}
-                    </button>
-                  );
-                })
-              : null}
-            {!isCityLoading && !cityErrorMessage && !hasCitySearchResult ? (
-              <p className="text-muted-foreground px-4 py-3 text-sm">검색 결과가 없어요</p>
-            ) : null}
-          </div>
-        </div>
+        ) : null}
 
         <div className="flex min-h-0 flex-col">
           <div className="border-border text-muted-foreground shrink-0 border-b py-2 text-center text-xs font-medium">
-            시/구/군
+            {sigunguOnly ? "시/군/구" : "시/구/군"}
           </div>
           <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
             {!isDistrictLoading && districtErrorMessage ? (
@@ -194,7 +212,9 @@ export function RegionSelectionPanel({
                 })
               : null}
             {!isDistrictLoading && !districtErrorMessage && !hasDistrictSearchResult ? (
-              <p className="text-muted-foreground px-4 py-3 text-sm">검색 결과가 없어요</p>
+              <p className="text-muted-foreground px-4 py-3 text-sm">
+                {districtEmptyMessage ?? "검색 결과가 없어요"}
+              </p>
             ) : null}
           </div>
         </div>

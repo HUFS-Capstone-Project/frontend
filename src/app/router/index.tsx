@@ -19,6 +19,7 @@ import TermsAgreementPage from "@/pages/onboarding/TermsAgreementPage";
 import RoomLinkCandidatesPage from "@/pages/rooms/RoomLinkCandidatesPage";
 import RoomPlaceFromLinkPage from "@/pages/rooms/RoomPlaceFromLinkPage";
 import RoomPlaceSearchPage from "@/pages/rooms/RoomPlaceSearchPage";
+import CoursePlannerPagePreview from "@/pages/tabs/CoursePlannerPage";
 
 const MapHomePage = lazy(() => import("@/pages/MapHomePage"));
 const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: "login", element: <LoginPage /> },
       { path: "privacys", element: <PrivacyPolicyPage /> },
       { path: "terms", element: <TermsOfServicePage /> },
+      { path: "dev/course", element: <CoursePlannerPagePreview skipRoomGuard /> },
       {
         path: "auth/callback",
         element: <AuthCallbackPage />,

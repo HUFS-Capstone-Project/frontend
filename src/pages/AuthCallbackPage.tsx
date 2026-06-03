@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { userQueryKeys, usersApi } from "@/features/users";
-import type { ApiError } from "@/shared/api/axios";
+import { getErrorDetail } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -82,8 +82,7 @@ export default function AuthCallbackPage() {
     };
 
     processCallback().catch((err: unknown) => {
-      const apiError = err as Partial<ApiError>;
-      setErrorMessage(apiError.message ?? FALLBACK_ERROR_MESSAGE);
+      setErrorMessage(getErrorDetail(err, FALLBACK_ERROR_MESSAGE));
     });
   }, [initialTicket, signIn, navigate, queryClient]);
 

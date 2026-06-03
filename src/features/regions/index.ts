@@ -7,4 +7,5 @@ export {
   REGION_ALL_OPTION,
   type RegionOption,
   type RegionSelectionOption,
+  toRegionSelectionOption,
 } from "./types/region.types";

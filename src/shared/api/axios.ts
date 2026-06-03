@@ -5,11 +5,14 @@ import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import type { TokenResponse } from "@/features/auth/types";
 import { API_PATHS } from "@/shared/api/api-paths";
-import type { ApiErrorResponse, ApiFieldError, CommonResponse } from "@/shared/types/api-types";
+import { normalizeAxiosError } from "@/shared/api/error";
+import type { ApiErrorResponse, CommonResponse } from "@/shared/types/api-types";
 import { useAuthStore } from "@/store/auth-store";
 
 import { getApiBaseURL } from "./base-url";
 import { ensureCsrfCookie, webAuthClient } from "./web-auth-client";
+
+export { type ApiError, isApiError } from "@/shared/api/error";
 
 const hasProdApiEnv = Boolean(import.meta.env.VITE_MOBILE_API_BASE_URL?.trim());
 
@@ -124,81 +127,4 @@ async function refreshMobileAccessToken(): Promise<string> {
     useAuthStore.getState().setRefreshToken(tr.refreshToken);
   }
   return tr.accessToken;
-}
-
-export type ApiError = {
-  status?: number;
-  code?: string;
-  message: string;
-  detail?: string;
-  fieldErrors?: ApiFieldError[];
-  original: unknown;
-};
-
-export function isApiError(error: unknown): error is ApiError {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "message" in error &&
-    "original" in error &&
-    "status" in error,
-  );
-}
-
-function normalizeAxiosError(error: AxiosError<ApiErrorResponse>): ApiError {
-  const data = error.response?.data;
-  const detail =
-    typeof data?.detail === "string" && data.detail.length > 0 ? data.detail : undefined;
-  const fallbackMessage = "요청 처리 중 오류가 발생했습니다.";
-  const message =
-    detail ||
-    (typeof data?.message === "string" && data.message) ||
-    error.message ||
-    fallbackMessage;
-
-  return {
-    status: error.response?.status,
-    code:
-      (typeof data?.code === "string" && data.code) ||
-      (typeof data?.title === "string" && data.title) ||
-      undefined,
-    message,
-    detail,
-    fieldErrors: normalizeFieldErrors(data?.fieldErrors),
-    original: error,
-  };
-}
-
-function normalizeFieldErrors(fieldErrors: unknown): ApiFieldError[] | undefined {
-  if (!Array.isArray(fieldErrors)) {
-    return undefined;
-  }
-
-  const normalized: ApiFieldError[] = [];
-
-  for (const item of fieldErrors) {
-    if (!item || typeof item !== "object") {
-      continue;
-    }
-
-    const field = (item as { field?: unknown }).field;
-    const message = (item as { message?: unknown }).message;
-    const rejectedValue = (item as { rejectedValue?: unknown }).rejectedValue;
-
-    if (typeof field !== "string" || typeof message !== "string") {
-      continue;
-    }
-
-    const normalizedItem: ApiFieldError = { field, message };
-    if (rejectedValue !== undefined && rejectedValue !== null) {
-      normalizedItem.rejectedValue =
-        typeof rejectedValue === "string" ? rejectedValue : String(rejectedValue);
-    } else if (rejectedValue === null) {
-      normalizedItem.rejectedValue = null;
-    }
-
-    normalized.push(normalizedItem);
-  }
-
-  return normalized.length > 0 ? normalized : undefined;
 }

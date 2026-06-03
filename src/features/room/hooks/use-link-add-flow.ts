@@ -10,7 +10,7 @@ import {
   useRetryLinkAnalysisMutation,
   useSaveCandidatePlacesMutation,
 } from "@/features/link-analysis";
-import { isApiError } from "@/shared/api/axios";
+import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import type { RoomListRow } from "@/shared/types/room";
 import type { LinkAddDraft } from "@/store/link-add-draft-store";
 import { useLinkAddDraftStore } from "@/store/link-add-draft-store";
@@ -304,6 +304,13 @@ export function useLinkAddFlow({
         return;
       }
 
+      const inputFieldError = resolveLinkInputFieldError(error);
+      if (inputFieldError) {
+        setOriginalUrlError(inputFieldError);
+        setStep("input");
+        return;
+      }
+
       setRequestErrorResult({
         analysisRequestId: null,
         linkId: null,
@@ -360,6 +367,13 @@ export function useLinkAddFlow({
       }
     } catch (error) {
       if (submitSequenceRef.current !== submitSequence) {
+        return;
+      }
+
+      const inputFieldError = resolveLinkInputFieldError(error);
+      if (inputFieldError) {
+        setOriginalUrlError(inputFieldError);
+        setStep("input");
         return;
       }
 
@@ -516,66 +530,59 @@ function shouldRenderRequestResultImmediately(status: LinkAnalysisStatus): boole
   return isLinkAnalysisTerminal(status) && status !== "SUCCEEDED";
 }
 
-function resolveRegisterLinkErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 400) {
-      return error.message || "입력한 링크를 확인해 주세요.";
-    }
-
-    if (error.status === 403 || error.code === "E403_FORBIDDEN") {
-      return "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.";
-    }
-
-    if (error.status === 500 || error.status === 502) {
-      return "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
-    }
-
-    return error.message;
+function resolveLinkInputFieldError(error: unknown): string | null {
+  const formError = resolveFormApiError(error, { knownFields: ["originalUrl"] });
+  if (!formError.hasFieldErrors) {
+    return null;
   }
 
-  return "링크 분석 요청에 실패했습니다. 다시 시도해 주세요.";
+  return formError.fieldErrors.originalUrl ?? formError.formError;
+}
+
+function resolveRegisterLinkErrorMessage(error: unknown): string {
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: "링크 분석 요청에 실패했습니다. 다시 시도해 주세요.",
+    codeMessages: {
+      E403_FORBIDDEN: "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
+      E502_EXTERNAL_API:
+        "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+    statusMessages: {
+      403: "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
+      500: "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      502: "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  });
 }
 
 function resolveLinkStatusErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 400) {
-      return "분석 결과 요청 정보를 확인해 주세요.";
-    }
-
-    if (error.status === 403 || error.code === "E403_FORBIDDEN") {
-      return "분석 결과를 조회할 권한이 없습니다.";
-    }
-
-    if (error.status === 500 || error.status === 502 || error.code === "E502_EXTERNAL_API") {
-      return "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
-    }
-
-    return error.message;
-  }
-
-  return "링크 분석 상태를 확인하지 못했습니다. 다시 시도해 주세요.";
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: "링크 분석 상태를 확인하지 못했습니다. 다시 시도해 주세요.",
+    codeMessages: {
+      E403_FORBIDDEN: "분석 결과를 조회할 권한이 없습니다.",
+      E502_EXTERNAL_API: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+    statusMessages: {
+      400: "분석 결과 요청 정보를 확인해 주세요.",
+      403: "분석 결과를 조회할 권한이 없습니다.",
+      500: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      502: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  });
 }
 
 function resolveSaveCandidatePlacesErrorMessage(error: unknown): string {
-  if (isApiError(error)) {
-    if (error.status === 400) {
-      return error.message || "선택한 장소 후보를 확인해 주세요.";
-    }
-
-    if (error.status === 403 || error.code === "E403_FORBIDDEN") {
-      return "장소를 저장할 권한이 없습니다. 방 참여 상태를 확인해 주세요.";
-    }
-
-    if (error.status === 409) {
-      return "분석이 완료된 링크만 장소를 저장할 수 있어요.";
-    }
-
-    if (error.status === 500 || error.status === 502) {
-      return "서버에서 장소 저장 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
-    }
-
-    return error.message;
-  }
-
-  return "장소 저장에 실패했습니다. 다시 시도해 주세요.";
+  return resolveGeneralApiErrorMessage(error, {
+    fallback: "장소 저장에 실패했습니다. 다시 시도해 주세요.",
+    codeMessages: {
+      E403_FORBIDDEN: "장소를 저장할 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
+    },
+    statusMessages: {
+      400: "선택한 장소 후보를 확인해 주세요.",
+      403: "장소를 저장할 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
+      409: "분석이 완료된 링크만 장소를 저장할 수 있어요.",
+      500: "서버에서 장소 저장 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      502: "서버에서 장소 저장 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    },
+  });
 }
