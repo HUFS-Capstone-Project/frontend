@@ -18,6 +18,10 @@ export type KakaoMarkerImage = {
   readonly __kakaoMarkerImageBrand?: never;
 };
 
+export type KakaoCustomOverlay = {
+  setMap: (map: KakaoMapInstance | null) => void;
+};
+
 export type KakaoMapInstance = {
   setCenter: (position: KakaoLatLng) => void;
   panTo: (position: KakaoLatLng) => void;
@@ -29,6 +33,7 @@ export type KakaoMapInstance = {
     paddingLeft?: number,
   ) => void;
   setLevel: (level: number) => void;
+  getLevel: () => number;
   setDraggable: (draggable: boolean) => void;
   relayout: () => void;
 };
@@ -83,8 +88,18 @@ type KakaoMarkerOptions = {
   image?: KakaoMarkerImage;
 };
 
+type KakaoCustomOverlayOptions = {
+  map: KakaoMapInstance;
+  position: KakaoLatLng;
+  content: HTMLElement | string;
+  xAnchor?: number;
+  yAnchor?: number;
+  zIndex?: number;
+};
+
 export type KakaoMarker = {
   setMap: (map: KakaoMapInstance | null) => void;
+  setImage: (image: KakaoMarkerImage) => void;
 };
 
 export type KakaoPolyline = {
@@ -126,6 +141,7 @@ export type KakaoMaps = {
     options?: KakaoMarkerImageOptions,
   ) => KakaoMarkerImage;
   Marker: new (options: KakaoMarkerOptions) => KakaoMarker;
+  CustomOverlay: new (options: KakaoCustomOverlayOptions) => KakaoCustomOverlay;
   Polyline: new (options: KakaoPolylineOptions) => KakaoPolyline;
   event: KakaoEvent;
   services?: KakaoServices;

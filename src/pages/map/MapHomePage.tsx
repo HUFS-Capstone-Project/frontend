@@ -17,7 +17,7 @@ import {
   isMapLocationSearch,
 } from "@/features/map/utils/map-search";
 import { useRoomMembersQuery } from "@/features/room";
-import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
+import { roomPlaceToSavedPlace, useAllRoomPlaces } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { MAP_INITIAL_CENTER, MAP_KOREA_BOUNDS, MAP_SEARCH_PLACEHOLDER } from "@/shared/config/map";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
@@ -81,9 +81,9 @@ export function MapHomePageContent({
       ? selectedMemberFilter.userId
       : null;
   const roomMembersQuery = useRoomMembersQuery(selectedRoom?.id ?? null);
-  const roomPlacesQuery = useRoomPlaces({
+  const roomPlacesQuery = useAllRoomPlaces({
     roomId: selectedRoom?.id ?? null,
-    params: { page: 0, size: 20, createdBy: selectedMemberId },
+    params: { createdBy: selectedMemberId },
   });
   const savedPlaces = useMemo(
     () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),

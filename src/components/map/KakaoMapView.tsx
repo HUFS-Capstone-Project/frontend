@@ -1,12 +1,11 @@
 import { LocateFixed } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import {
+  type KakaoCustomOverlay,
   type KakaoMapInstance,
   type KakaoMaps,
-  type KakaoMarker,
-  type KakaoMarkerImage,
   type KakaoPolyline,
   loadKakaoMapSdk,
 } from "@/shared/lib/kakao-map-sdk";
@@ -32,6 +31,24 @@ export type KakaoMapViewProps = {
 
 type MapLoadState = "loading" | "ready" | "error";
 
+type PlaceCluster = {
+  id: string;
+  places: SavedPlace[];
+  latitude: number;
+  longitude: number;
+};
+
+type PlaceMarkerItem =
+  | {
+      type: "place";
+      place: SavedPlace;
+      selected: boolean;
+    }
+  | {
+      type: "cluster";
+      cluster: PlaceCluster;
+    };
+
 const FIT_BOUNDS_PADDING = {
   top: 120,
   right: 36,
@@ -45,6 +62,13 @@ const FIT_COORDINATE_BOUNDS_PADDING = {
   bottom: 24,
   left: 16,
 } as const;
+
+const CLUSTER_MIN_SIZE = 3;
+const CLUSTER_DETAIL_LEVEL = 3;
+const CLUSTER_BASE_RADIUS_METERS = 140;
+const PLACE_MARKER_CATEGORY_CODES = ["FOOD", "CAFE", "ACTIVITY"] as const;
+
+type PlaceMarkerCategoryCode = (typeof PLACE_MARKER_CATEGORY_CODES)[number];
 
 /**
  * Kakao JS SDK 로딩과 지도/마커 렌더링을 담당.
@@ -73,21 +97,32 @@ export function KakaoMapView({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<KakaoMapInstance | null>(null);
   const mapsRef = useRef<KakaoMaps | null>(null);
-  const markerImageRef = useRef<KakaoMarkerImage | null>(null);
-  const selectedMarkerImageRef = useRef<KakaoMarkerImage | null>(null);
-  const markerInstancesRef = useRef<KakaoMarker[]>([]);
+  const placeOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
+  const clusterOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
   const routePolylineRef = useRef<KakaoPolyline | null>(null);
+  const onPlaceMarkerClickRef = useRef(onPlaceMarkerClick);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
+  const [currentMapLevel, setCurrentMapLevel] = useState(level);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const detailSelectedPlaceId = usePlaceDetailStore((state) =>
     state.isOpen ? state.selectedPlaceId : null,
   );
   const selectedPlaceId = selectedPlaceIdOverride ?? detailSelectedPlaceId;
+  const markerItems = useMemo(
+    () => buildPlaceMarkerItems(places, selectedPlaceId, currentMapLevel),
+    [currentMapLevel, places, selectedPlaceId],
+  );
+
+  useEffect(() => {
+    onPlaceMarkerClickRef.current = onPlaceMarkerClick;
+  }, [onPlaceMarkerClick]);
 
   const clearMarkers = () => {
-    markerInstancesRef.current.forEach((marker) => marker.setMap(null));
-    markerInstancesRef.current = [];
+    placeOverlayInstancesRef.current.forEach((overlay) => overlay.setMap(null));
+    placeOverlayInstancesRef.current = [];
+    clusterOverlayInstancesRef.current.forEach((overlay) => overlay.setMap(null));
+    clusterOverlayInstancesRef.current = [];
   };
 
   const clearRoutePolyline = () => {
@@ -124,16 +159,7 @@ export function KakaoMapView({
 
         mapsRef.current = kakao.maps;
         mapRef.current = mapInstance;
-        markerImageRef.current = new kakao.maps.MarkerImage(
-          "/assets/map-marker.svg",
-          new kakao.maps.Size(26, 35),
-          { offset: new kakao.maps.Point(13, 34) },
-        );
-        selectedMarkerImageRef.current = new kakao.maps.MarkerImage(
-          "/assets/map-marker-selected.png",
-          new kakao.maps.Size(36, 48),
-          { offset: new kakao.maps.Point(18, 47) },
-        );
+        setCurrentMapLevel(mapInstance.getLevel());
 
         setLoadState("ready");
       })
@@ -148,10 +174,42 @@ export function KakaoMapView({
       clearRoutePolyline();
       mapRef.current = null;
       mapsRef.current = null;
-      markerImageRef.current = null;
-      selectedMarkerImageRef.current = null;
     };
   }, [hasMapKey, mapKey]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current) return;
+
+    const maps = mapsRef.current;
+    const mapInstance = mapRef.current;
+    let frameId: number | null = null;
+    const updateCurrentLevel = () => {
+      if (frameId != null) {
+        return;
+      }
+
+      frameId = requestAnimationFrame(() => {
+        const nextLevel = mapInstance.getLevel();
+        setCurrentMapLevel((previousLevel) =>
+          previousLevel === nextLevel ? previousLevel : nextLevel,
+        );
+        frameId = null;
+      });
+    };
+
+    setCurrentMapLevel((previousLevel) => {
+      const nextLevel = mapInstance.getLevel();
+      return previousLevel === nextLevel ? previousLevel : nextLevel;
+    });
+    maps.event.addListener(mapInstance, "zoom_changed", updateCurrentLevel);
+
+    return () => {
+      if (frameId != null) {
+        cancelAnimationFrame(frameId);
+      }
+      maps.event.removeListener(mapInstance, "zoom_changed", updateCurrentLevel);
+    };
+  }, [loadState]);
 
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !mapContainerRef.current) {
@@ -418,33 +476,46 @@ export function KakaoMapView({
 
   // effect C: places 변경 시 marker만 갱신
   useEffect(() => {
-    if (
-      loadState !== "ready" ||
-      !mapRef.current ||
-      !mapsRef.current ||
-      !markerImageRef.current ||
-      !selectedMarkerImageRef.current
-    ) {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current) {
       return;
     }
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
-    const markerImage = markerImageRef.current;
-    const selectedMarkerImage = selectedMarkerImageRef.current;
 
     clearMarkers();
-    markerInstancesRef.current = places.map((place) => {
-      const marker = new maps.Marker({
-        map: mapInstance,
-        title: place.name,
-        position: new maps.LatLng(place.latitude, place.longitude),
-        image: place.id === selectedPlaceId ? selectedMarkerImage : markerImage,
-      });
+    const nextPlaceOverlays: KakaoCustomOverlay[] = [];
+    const nextClusterOverlays: KakaoCustomOverlay[] = [];
 
-      maps.event.addListener(marker, "click", () => {
-        mapInstance.panTo(new maps.LatLng(place.latitude, place.longitude));
-        if (onPlaceMarkerClick) {
-          onPlaceMarkerClick(place);
+    markerItems.forEach((item) => {
+      if (item.type === "cluster") {
+        const { cluster } = item;
+        const position = new maps.LatLng(cluster.latitude, cluster.longitude);
+        const content = createClusterOverlayElement(cluster.places.length, () => {
+          mapInstance.setLevel(Math.max(CLUSTER_DETAIL_LEVEL, mapInstance.getLevel() - 2));
+          mapInstance.panTo(position);
+        });
+        const overlay = new maps.CustomOverlay({
+          map: mapInstance,
+          position,
+          content,
+          xAnchor: 0.5,
+          yAnchor: 0.5,
+          zIndex: 20,
+        });
+
+        nextClusterOverlays.push(overlay);
+        return;
+      }
+
+      const { place } = item;
+      const isSelectedPlace = item.selected;
+      const position = new maps.LatLng(place.latitude, place.longitude);
+      const content = createPlaceMarkerOverlayElement(place, isSelectedPlace, (element) => {
+        element.classList.add("map-place-marker--selected");
+        mapInstance.panTo(position);
+        const handlePlaceMarkerClick = onPlaceMarkerClickRef.current;
+        if (handlePlaceMarkerClick) {
+          handlePlaceMarkerClick(place);
           return;
         }
         window.dispatchEvent(
@@ -453,14 +524,25 @@ export function KakaoMapView({
           }),
         );
       });
+      const overlay = new maps.CustomOverlay({
+        map: mapInstance,
+        position,
+        content,
+        xAnchor: 0.5,
+        yAnchor: 1,
+        zIndex: isSelectedPlace ? 15 : 10,
+      });
 
-      return marker;
+      nextPlaceOverlays.push(overlay);
     });
+
+    placeOverlayInstancesRef.current = nextPlaceOverlays;
+    clusterOverlayInstancesRef.current = nextClusterOverlays;
 
     return () => {
       clearMarkers();
     };
-  }, [loadState, onPlaceMarkerClick, places, selectedPlaceId]);
+  }, [loadState, markerItems]);
 
   return (
     <div className={cn("bg-muted relative h-full w-full", className)}>
@@ -508,4 +590,288 @@ export function KakaoMapView({
 
 function isFiniteCoordinate(coordinate: MapCoordinate): boolean {
   return Number.isFinite(coordinate.latitude) && Number.isFinite(coordinate.longitude);
+}
+
+function buildPlaceMarkerItems(
+  places: SavedPlace[],
+  selectedPlaceId: string | null,
+  mapLevel: number,
+): PlaceMarkerItem[] {
+  const finitePlaces = places.filter((place) => isFiniteCoordinate(place));
+  const selectedPlaces = finitePlaces.filter((place) => place.id === selectedPlaceId);
+  const clusterablePlaces = finitePlaces.filter((place) => place.id !== selectedPlaceId);
+
+  if (mapLevel <= CLUSTER_DETAIL_LEVEL || clusterablePlaces.length < CLUSTER_MIN_SIZE) {
+    return finitePlaces.map((place) => ({
+      type: "place",
+      place,
+      selected: place.id === selectedPlaceId,
+    }));
+  }
+
+  const radiusMeters = getClusterRadiusMeters(mapLevel);
+  const clusters: PlaceCluster[] = [];
+
+  clusterablePlaces.forEach((place) => {
+    const nearestCluster = findNearestCluster(clusters, place, radiusMeters);
+
+    if (!nearestCluster) {
+      clusters.push({
+        id: place.id,
+        places: [place],
+        latitude: place.latitude,
+        longitude: place.longitude,
+      });
+      return;
+    }
+
+    const nextPlaces = [...nearestCluster.places, place];
+    nearestCluster.places = nextPlaces;
+    nearestCluster.latitude =
+      nextPlaces.reduce((sum, clusterPlace) => sum + clusterPlace.latitude, 0) / nextPlaces.length;
+    nearestCluster.longitude =
+      nextPlaces.reduce((sum, clusterPlace) => sum + clusterPlace.longitude, 0) / nextPlaces.length;
+  });
+
+  return [
+    ...clusters.flatMap((cluster): PlaceMarkerItem[] =>
+      cluster.places.length >= CLUSTER_MIN_SIZE
+        ? [{ type: "cluster", cluster }]
+        : cluster.places.map((place) => ({ type: "place", place, selected: false })),
+    ),
+    ...selectedPlaces.map((place): PlaceMarkerItem => ({ type: "place", place, selected: true })),
+  ];
+}
+
+function findNearestCluster(
+  clusters: PlaceCluster[],
+  place: SavedPlace,
+  radiusMeters: number,
+): PlaceCluster | null {
+  let nearestCluster: PlaceCluster | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  clusters.forEach((cluster) => {
+    const distance = getDistanceMeters(place, cluster);
+    if (distance <= radiusMeters && distance < nearestDistance) {
+      nearestCluster = cluster;
+      nearestDistance = distance;
+    }
+  });
+
+  return nearestCluster;
+}
+
+function getClusterRadiusMeters(mapLevel: number): number {
+  const zoomOutSteps = Math.max(0, mapLevel - 4);
+  return CLUSTER_BASE_RADIUS_METERS * 2 ** zoomOutSteps;
+}
+
+function getDistanceMeters(
+  a: Pick<MapCoordinate, "latitude" | "longitude">,
+  b: Pick<MapCoordinate, "latitude" | "longitude">,
+): number {
+  const earthRadiusMeters = 6_371_000;
+  const lat1 = degreesToRadians(a.latitude);
+  const lat2 = degreesToRadians(b.latitude);
+  const deltaLat = degreesToRadians(b.latitude - a.latitude);
+  const deltaLng = degreesToRadians(b.longitude - a.longitude);
+
+  const haversine =
+    Math.sin(deltaLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+
+  return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function degreesToRadians(degrees: number): number {
+  return (degrees * Math.PI) / 180;
+}
+
+function createPlaceMarkerOverlayElement(
+  place: SavedPlace,
+  selected: boolean,
+  onClick: (element: HTMLElement) => void,
+): HTMLElement {
+  const button = document.createElement("button");
+  const defaultImage = document.createElement("img");
+  const selectedImage = document.createElement("img");
+  const categoryBadge = createPlaceMarkerCategoryBadge(place);
+
+  button.type = "button";
+  button.className = "map-place-marker";
+  button.setAttribute("aria-label", place.name);
+
+  defaultImage.src = "/assets/map-marker.svg";
+  defaultImage.alt = "";
+  defaultImage.draggable = false;
+  defaultImage.className = "map-place-marker__image map-place-marker__image--default";
+
+  selectedImage.src = "/assets/map-marker-selected.png";
+  selectedImage.alt = "";
+  selectedImage.draggable = false;
+  selectedImage.className = "map-place-marker__image map-place-marker__image--selected";
+
+  if (categoryBadge) {
+    button.append(defaultImage, selectedImage, categoryBadge);
+  } else {
+    button.append(defaultImage, selectedImage);
+  }
+  if (selected) {
+    requestAnimationFrame(() => {
+      button.classList.add("map-place-marker--selected");
+    });
+  }
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClick(button);
+  });
+
+  return button;
+}
+
+function createPlaceMarkerCategoryBadge(place: SavedPlace): HTMLElement | null {
+  const category = getPlaceMarkerCategoryCode(place);
+  if (!category) {
+    return null;
+  }
+
+  const badge = document.createElement("span");
+  badge.className = `map-place-marker__category-badge map-place-marker__category-badge--${category.toLowerCase()}`;
+  badge.setAttribute("aria-hidden", "true");
+  badge.append(createPlaceMarkerCategoryIcon(category));
+
+  return badge;
+}
+
+function getPlaceMarkerCategoryCode(place: SavedPlace): PlaceMarkerCategoryCode | null {
+  const category = place.category.trim().toUpperCase();
+  if (isPlaceMarkerCategoryCode(category)) {
+    return category;
+  }
+
+  const categoryName = place.categoryName?.trim().toUpperCase() ?? "";
+  return isPlaceMarkerCategoryCode(categoryName) ? categoryName : null;
+}
+
+function isPlaceMarkerCategoryCode(value: string): value is PlaceMarkerCategoryCode {
+  return PLACE_MARKER_CATEGORY_CODES.includes(value as PlaceMarkerCategoryCode);
+}
+
+function createPlaceMarkerCategoryIcon(category: PlaceMarkerCategoryCode): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const fill = getPlaceMarkerCategoryIconFill(category);
+
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", fill.color);
+  svg.setAttribute("fill-opacity", fill.opacity);
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2.3");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.classList.add("map-place-marker__category-icon");
+
+  getPlaceMarkerCategoryIconPaths(category).forEach((pathData) => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
+    svg.append(path);
+  });
+
+  return svg;
+}
+
+function getPlaceMarkerCategoryIconFill(category: PlaceMarkerCategoryCode): {
+  color: string;
+  opacity: string;
+} {
+  switch (category) {
+    case "FOOD":
+      return { color: "#f3f4f6", opacity: "0.65" };
+    case "CAFE":
+      return { color: "currentColor", opacity: "0.2" };
+    case "ACTIVITY":
+      return { color: "currentColor", opacity: "0.35" };
+  }
+}
+
+function getPlaceMarkerCategoryIconPaths(category: PlaceMarkerCategoryCode): string[] {
+  switch (category) {
+    case "FOOD":
+      return [
+        "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2",
+        "M7 2v20",
+        "M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7",
+      ];
+    case "CAFE":
+      return [
+        "M10 2v2",
+        "M14 2v2",
+        "M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1",
+        "M6 2v2",
+      ];
+    case "ACTIVITY":
+      return [
+        "M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z",
+        "M20 3v4",
+        "M22 5h-4",
+        "M4 17v2",
+        "M5 18H3",
+      ];
+  }
+}
+
+function createClusterOverlayElement(count: number, onClick: () => void): HTMLElement {
+  const size = getClusterMarkerSize(count);
+  const label = count > 999 ? "999+" : String(count);
+  const button = document.createElement("button");
+  const body = document.createElement("span");
+  const countLabel = document.createElement("span");
+  const shine = document.createElement("span");
+  const badge = document.createElement("span");
+  const heart = document.createElement("span");
+
+  button.type = "button";
+  button.setAttribute("aria-label", `${count} places`);
+  button.className = "map-place-cluster";
+  button.style.setProperty("--cluster-size", `${size}px`);
+  button.style.setProperty("--cluster-count-size", getClusterCountFontSize(count));
+
+  body.className = "map-place-cluster__body";
+
+  countLabel.className = "map-place-cluster__count";
+  countLabel.textContent = label;
+
+  shine.className = "map-place-cluster__shine";
+  shine.setAttribute("aria-hidden", "true");
+
+  badge.className = "map-place-cluster__badge";
+  badge.setAttribute("aria-hidden", "true");
+
+  heart.className = "map-place-cluster__heart";
+  heart.setAttribute("aria-hidden", "true");
+
+  badge.append(heart);
+  body.append(shine, countLabel);
+  button.append(body, badge);
+
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClick();
+  });
+
+  return button;
+}
+
+function getClusterMarkerSize(count: number): number {
+  if (count >= 100) return 60;
+  if (count >= 50) return 58;
+  if (count >= 10) return 54;
+  return 48;
+}
+
+function getClusterCountFontSize(count: number): string {
+  if (count >= 100) return "1.35rem";
+  if (count >= 10) return "1.55rem";
+  return "1.45rem";
 }
