@@ -58,7 +58,8 @@ function formatCount(count: number) {
 export default function PlaceListPage() {
   const navigate = useNavigate();
   const { roomId: routeRoomId } = useParams<{ roomId?: string }>();
-  const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
+  const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
+    useBottomNavController();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
   const selectRoom = useRoomSelectionStore((state) => state.selectRoom);
   const effectiveRoomId = routeRoomId ?? selectedRoom?.id ?? null;
@@ -327,6 +328,7 @@ export default function PlaceListPage() {
         savedPlaces={savedPlacesForCourses}
         toastMessage={toastMessage}
         toastPlacement={toastPlacement}
+        onShowToast={showToast}
         onSelectBottomNav={handleSelectBottomNav}
         onBackToMap={() => navigate(APP_ROUTES.map)}
         onSwitchTab={setActiveTab}

@@ -22,12 +22,16 @@ import {
 } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
 import { useDateCourseDetailQuery } from "@/features/course-planner/hooks/use-date-course-detail-query";
 import { useRoomDateCoursesQuery } from "@/features/course-planner/hooks/use-room-date-courses-query";
+import { useUpdateDateCourseMutation } from "@/features/course-planner/hooks/use-update-date-course-mutation";
+import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -53,6 +57,7 @@ type PlaceListSavedCoursesPageProps = {
   savedPlaces: SavedPlace[];
   toastMessage: string;
   toastPlacement?: BottomNavToastPlacement;
+  onShowToast?: (message: string, durationMs?: number) => void;
   onSelectBottomNav: (id: BottomNavId) => void;
   onBackToMap: () => void;
   onSwitchTab: (tab: "places" | "courses") => void;
@@ -76,10 +81,12 @@ export function PlaceListSavedCoursesPage({
   savedPlaces,
   toastMessage,
   toastPlacement = "bottom",
+  onShowToast,
   onSelectBottomNav,
   onBackToMap,
   onSwitchTab,
 }: PlaceListSavedCoursesPageProps) {
+  const updateDateCourseMutation = useUpdateDateCourseMutation();
   const [selectedCourse, setSelectedCourse] = useState<SavedCourse | null>(null);
   const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
   const [, setSelectedFilter] = useState<CourseFilter>("all");
@@ -233,37 +240,48 @@ export function PlaceListSavedCoursesPage({
     setOpenPopup(null);
   };
 
-  const handlePersistCourse = (prevCourseId: string, payload: CourseSavePayload) => {
+  const handlePersistCourse = async (prevCourseId: string, payload: CourseSavePayload) => {
     if (payload.kind !== "edit") {
       return;
     }
 
     const source = savedCourses.find((course) => course.id === prevCourseId) ?? selectedCourse;
-    if (!source) {
-      return;
+    if (!source || !roomId) {
+      onShowToast?.("코스 수정에 필요한 방 정보를 찾지 못했어요.", COURSE_TOAST_DURATION_MS);
+      throw new Error("roomId is required to update date course");
     }
 
-    const nextCourse: SavedCourse = {
-      ...source,
-      title: payload.title,
-      stops: payload.stops.map((stop) => ({
-        id: stop.id,
-        roomPlaceId: stop.roomPlaceId,
-        name: stop.name,
-        address: stop.address,
-        category: stop.category,
-        categoryName: stop.categoryName,
-        tagCode: stop.tagCode,
-        tagName: stop.tagName,
-        latitude: stop.latitude,
-        longitude: stop.longitude,
-        walkingTime: stop.walkingTime,
-        hours: stop.hours,
-      })),
-    };
+    const roomPlaceIds = payload.stops.map((stop) => stop.roomPlaceId);
+    if (roomPlaceIds.length === 0) {
+      onShowToast?.("코스에는 장소가 1개 이상 필요해요.", COURSE_TOAST_DURATION_MS);
+      throw new Error("roomPlaceIds is required to update date course");
+    }
 
-    setCourseOverrides((current) => ({ ...current, [prevCourseId]: nextCourse }));
-    setSelectedCourse(nextCourse);
+    try {
+      const updatedDetail = await updateDateCourseMutation.mutateAsync({
+        roomId,
+        dateCourseId: prevCourseId,
+        courseName: payload.title,
+        roomPlaceIds,
+      });
+
+      const updatedCourse = mapRoomSavedDateCourseToSavedCourse(updatedDetail, roomId);
+      const nextCourse: SavedCourse = {
+        ...source,
+        ...updatedCourse,
+        savedFromRoomName: source.savedFromRoomName,
+      };
+
+      setCourseOverrides((current) => ({ ...current, [prevCourseId]: nextCourse }));
+      setSelectedCourse(nextCourse);
+      onShowToast?.("코스가 수정되었습니다.", COURSE_TOAST_DURATION_MS);
+    } catch (error) {
+      if (isDateCourseConflictError(error)) {
+        throw error;
+      }
+      onShowToast?.(resolveGeneralApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+      throw error;
+    }
   };
 
   return (
@@ -509,6 +527,7 @@ export function PlaceListSavedCoursesPage({
         {selectedCourseWithDetail ? (
           <CoursePlaceInfoPanel
             courseTitle={selectedCourseWithDetail.title}
+            roomId={roomId}
             stops={savedCourseToPlannerStops(selectedCourseWithDetail, savedPlaces)}
             onBack={() => setSelectedCourse(null)}
             onSave={(payload) => handlePersistCourse(selectedCourseWithDetail.id, payload)}

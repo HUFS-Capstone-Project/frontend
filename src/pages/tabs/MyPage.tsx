@@ -13,8 +13,12 @@ import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
+import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
 import { useMyDateCoursesQuery } from "@/features/course-planner/hooks/use-my-date-courses-query";
+import { useUpdateDateCourseMutation } from "@/features/course-planner/hooks/use-update-date-course-mutation";
+import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { mapMySavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-my-saved-date-course";
+import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import { useRoomsQuery } from "@/features/room";
 import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import {
@@ -25,6 +29,7 @@ import {
 } from "@/features/users";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -57,6 +62,7 @@ export default function MyPage() {
     useBottomNavController();
   const { handleLogout } = useLogout();
   const updateNicknameMutation = useUpdateNicknameMutation();
+  const updateDateCourseMutation = useUpdateDateCourseMutation();
   const nicknameFromAuth = useAuthStore((s) => s.nickname);
   const { data: me } = useUserMeQuery();
   const profileNickname =
@@ -167,33 +173,49 @@ export default function MyPage() {
     await updateNicknameMutation.mutateAsync({ nickname });
   };
 
-  const handleSavedCoursePersist = (prevCourseId: string, payload: CourseSavePayload) => {
-    showToast("코스가 저장되었습니다", 3200);
+  const handleSavedCoursePersist = async (prevCourseId: string, payload: CourseSavePayload) => {
+    if (payload.kind !== "edit") {
+      setSavedCourseSheet({ kind: "closed" });
+      return;
+    }
 
-    const nextStopsMinimal = payload.stops.map((s) => ({
-      id: s.id,
-      roomPlaceId: s.roomPlaceId,
-      name: s.name,
-      address: s.address,
-      category: s.category,
-      categoryName: s.categoryName,
-      tagCode: s.tagCode,
-      tagName: s.tagName,
-      latitude: s.latitude,
-      longitude: s.longitude,
-      walkingTime: s.walkingTime === "—" ? undefined : s.walkingTime,
-      hours: s.hours === "—" ? undefined : s.hours,
-    }));
+    const source = coursesList.find((c) => c.id === prevCourseId);
+    const roomId = source?.savedFromRoomId;
+    if (!source || !roomId) {
+      showToast("코스 수정에 필요한 방 정보를 찾지 못했어요.", COURSE_TOAST_DURATION_MS);
+      throw new Error("roomId is required to update date course");
+    }
 
-    if (payload.kind === "edit") {
-      const updated = coursesList.find((c) => c.id === prevCourseId);
-      if (!updated) return;
+    const roomPlaceIds = payload.stops.map((stop) => stop.roomPlaceId);
+    if (roomPlaceIds.length === 0) {
+      showToast("코스에는 장소가 1개 이상 필요해요.", COURSE_TOAST_DURATION_MS);
+      throw new Error("roomPlaceIds is required to update date course");
+    }
 
-      const merged: SavedCourse = { ...updated, title: payload.title, stops: nextStopsMinimal };
+    try {
+      const updatedDetail = await updateDateCourseMutation.mutateAsync({
+        roomId,
+        dateCourseId: prevCourseId,
+        courseName: payload.title,
+        roomPlaceIds,
+      });
+
+      const updatedCourse = mapRoomSavedDateCourseToSavedCourse(updatedDetail, roomId);
+      const merged: SavedCourse = {
+        ...source,
+        ...updatedCourse,
+        savedFromRoomName: source.savedFromRoomName,
+        savedFromRoomAvatarSeed: source.savedFromRoomAvatarSeed,
+      };
       setCourseOverrides((current) => ({ ...current, [prevCourseId]: merged }));
       setSavedCourseSheet({ kind: "detail", course: merged });
-    } else {
-      setSavedCourseSheet({ kind: "closed" });
+      showToast("코스가 수정되었습니다.", COURSE_TOAST_DURATION_MS);
+    } catch (error) {
+      if (isDateCourseConflictError(error)) {
+        throw error;
+      }
+      showToast(resolveGeneralApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+      throw error;
     }
   };
 

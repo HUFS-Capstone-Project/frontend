@@ -1,13 +1,20 @@
-import { useMemo, useState } from "react";
+import { AlertCircle } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
-import type { PlaceCandidate } from "@/features/place-candidates";
+import { EmptyState } from "@/components/common/EmptyState";
+import { SearchField } from "@/components/common/SearchField";
+import { TwoButtonFooter } from "@/components/common/TwoButtonFooter";
+import { EditPlaceResultCard } from "@/components/link-place/EditPlaceResultCard";
+import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
+import { PillButton } from "@/components/ui/PillButton";
 import {
-  canSubmitPlaceCandidate,
-  placeCandidateToSavedPlace,
-  usePlaceCandidates,
-} from "@/features/place-candidates";
+  PROMPT_FLOW_BELOW_HEADLINES_CLASS,
+  PROMPT_FLOW_HEADER_CLASS,
+  PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
+} from "@/features/place-flow/prompt-flow-layout";
+import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
 import { cn } from "@/lib/utils";
 import type { SavedPlace } from "@/shared/types/map-home";
 import {
@@ -23,8 +30,6 @@ type CoursePlaceAddSheetProps = {
   onConfirm: (place: SavedPlace) => void;
 };
 
-const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
-
 export function CoursePlaceAddSheet({
   open,
   roomId = null,
@@ -32,65 +37,26 @@ export function CoursePlaceAddSheet({
   onClose,
   onConfirm,
 }: CoursePlaceAddSheetProps) {
-  const [keyword, setKeyword] = useState("");
-  const [submittedKeyword, setSubmittedKeyword] = useState("");
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-  const excludedPlaceIdSet = useMemo(() => new Set(excludedPlaceIds), [excludedPlaceIds]);
-  const trimmedKeyword = keyword.trim();
-  const submittedTrimmedKeyword = submittedKeyword.trim();
-  const isSubmittedKeywordCurrent = submittedTrimmedKeyword === trimmedKeyword;
-
-  const placeCandidatesQuery = usePlaceCandidates({
-    roomId: roomId ?? null,
-    params: {
-      keyword: submittedTrimmedKeyword,
-      limit: 10,
-    },
-    enabled: open && Boolean(roomId) && submittedTrimmedKeyword.length > 0,
+  const {
+    keyword,
+    submittedTrimmedKeyword,
+    selectedPlaceId,
+    selectedPlace,
+    availablePlaces,
+    roomPlacesQuery,
+    changeKeyword,
+    submitSearch,
+    selectPlace,
+    resetSelection,
+  } = useRoomPlacePicker({
+    open,
+    roomId,
+    excludedPlaceIds,
   });
-  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
 
-  const availableResults = useMemo(() => {
-    if (!isSubmittedKeywordCurrent || submittedTrimmedKeyword.length === 0) {
-      return [];
-    }
-
-    return placeCandidates
-      .map((place, index) => ({
-        candidate: place,
-        savedPlace: placeCandidateToSavedPlace(place, index),
-      }))
-      .filter(({ candidate, savedPlace }) => {
-        if (!canSubmitPlaceCandidate(candidate)) {
-          return false;
-        }
-
-        return (
-          !excludedPlaceIdSet.has(savedPlace.id) &&
-          !(savedPlace.kakaoPlaceId && excludedPlaceIdSet.has(savedPlace.kakaoPlaceId))
-        );
-      });
-  }, [excludedPlaceIdSet, isSubmittedKeywordCurrent, placeCandidates, submittedTrimmedKeyword]);
-
-  const selectedPlace =
-    availableResults.find(({ savedPlace }) => savedPlace.id === selectedPlaceId)?.savedPlace ??
-    null;
-  const searchResults = availableResults.map(({ savedPlace }) => savedPlace);
-
-  const resetAndClose = () => {
-    setKeyword("");
-    setSubmittedKeyword("");
-    setSelectedPlaceId(null);
+  const handleClose = () => {
+    resetSelection();
     onClose();
-  };
-
-  const handleSubmitSearch = () => {
-    if (trimmedKeyword.length === 0) {
-      return;
-    }
-
-    setSubmittedKeyword(trimmedKeyword);
-    setSelectedPlaceId(null);
   };
 
   const handleConfirm = () => {
@@ -99,9 +65,7 @@ export function CoursePlaceAddSheet({
     }
 
     onConfirm(selectedPlace);
-    setKeyword("");
-    setSubmittedKeyword("");
-    setSelectedPlaceId(null);
+    resetSelection();
   };
 
   if (!open) {
@@ -110,30 +74,153 @@ export function CoursePlaceAddSheet({
 
   return createPortal(
     <div className={cn(FULLSCREEN_FLOW_ROUTE_OUTER_CLASSES, "z-[80]")}>
-      <section className={FULLSCREEN_FLOW_PANEL_CLASSES}>
-        <PlaceSearchMapSheet
-          title="장소 추가하기"
-          subtitle="코스에 추가할 장소를 검색해 주세요."
-          initialMode="search"
-          keyword={keyword}
-          selectedPlaceId={selectedPlaceId}
-          searchResults={searchResults}
-          isSearching={placeCandidatesQuery.isFetching}
-          isSearchError={placeCandidatesQuery.isError && isSubmittedKeywordCurrent}
-          showEmptyResult={submittedTrimmedKeyword.length > 0 && isSubmittedKeywordCurrent}
-          canConfirm={selectedPlace != null}
-          onKeywordChange={(next) => {
-            setKeyword(next);
-            setSelectedPlaceId(null);
-          }}
-          onSubmitSearch={handleSubmitSearch}
-          onSelectPlace={setSelectedPlaceId}
-          onClearSelectedPlace={() => setSelectedPlaceId(null)}
-          onCancel={resetAndClose}
-          onConfirm={handleConfirm}
+      <section className={cn(FULLSCREEN_FLOW_PANEL_CLASSES, "bg-background")}>
+        <header className={PROMPT_FLOW_HEADER_CLASS}>
+          <div className="space-y-1">
+            <h2 className="text-foreground text-xl leading-tight font-bold">장소 추가하기</h2>
+            <p className="text-muted-foreground text-sm">
+              방에 저장된 장소 중에서 코스에 넣을 장소를 선택해 주세요.
+            </p>
+          </div>
+
+          <SearchField
+            value={keyword}
+            onChange={(event) => {
+              changeKeyword(event.target.value);
+            }}
+            onSubmitSearch={submitSearch}
+            placeholder="방 안 장소 검색"
+            searchButtonLabel="장소 검색"
+            className={PROMPT_FLOW_BELOW_HEADLINES_CLASS}
+          />
+        </header>
+
+        <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+          {!roomId ? (
+            <EmptyState
+              icon={<AlertCircle className="size-5" aria-hidden />}
+              message="방을 선택한 뒤 장소를 추가해 주세요."
+            />
+          ) : roomPlacesQuery.isLoading || roomPlacesQuery.isFetching ? (
+            <div className="flex justify-center px-5 py-10">
+              <BrandMarkerLoader />
+            </div>
+          ) : roomPlacesQuery.isError ? (
+            <EmptyState
+              icon={<AlertCircle className="size-5" aria-hidden />}
+              message="방 장소 목록을 불러오지 못했어요."
+            />
+          ) : availablePlaces.length > 0 ? (
+            <ul className={cn(PROMPT_FLOW_LIST_TOP_BORDER_CLASS, "mt-1")}>
+              {availablePlaces.map((place) => (
+                <EditPlaceResultCard
+                  key={place.id}
+                  place={place}
+                  selected={selectedPlaceId === place.id}
+                  onSelect={() => selectPlace(place.id)}
+                />
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              icon={<AlertCircle className="size-5" aria-hidden />}
+              message={
+                submittedTrimmedKeyword
+                  ? "검색 결과 중 추가할 수 있는 장소가 없어요."
+                  : "추가할 수 있는 방 장소가 없어요."
+              }
+            />
+          )}
+        </div>
+
+        <TwoButtonFooter
+          left={<PlaceFlowCancelPillButton onClick={handleClose}>취소</PlaceFlowCancelPillButton>}
+          right={
+            <PillButton
+              type="button"
+              variant={selectedPlace ? "onboarding" : "onboardingMuted"}
+              disabled={!selectedPlace}
+              onClick={handleConfirm}
+            >
+              추가하기
+            </PillButton>
+          }
         />
       </section>
     </div>,
     document.body,
   );
+}
+
+function useRoomPlacePicker({
+  open,
+  roomId,
+  excludedPlaceIds,
+}: {
+  open: boolean;
+  roomId: string | null;
+  excludedPlaceIds: string[];
+}) {
+  const [keyword, setKeyword] = useState("");
+  const [submittedKeyword, setSubmittedKeyword] = useState("");
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const excludedPlaceIdSet = useMemo(() => new Set(excludedPlaceIds), [excludedPlaceIds]);
+  const trimmedKeyword = keyword.trim();
+  const submittedTrimmedKeyword = submittedKeyword.trim();
+
+  const roomPlacesQuery = useRoomPlaces({
+    roomId,
+    params: {
+      keyword: submittedTrimmedKeyword,
+      page: 0,
+      limit: 20,
+    },
+    enabled: open && Boolean(roomId),
+  });
+
+  const availablePlaces = useMemo(() => {
+    return (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace).filter((place) => {
+      const roomPlaceId = place.roomPlaceId ?? Number(place.id);
+      return (
+        Number.isInteger(roomPlaceId) &&
+        !excludedPlaceIdSet.has(String(roomPlaceId)) &&
+        !excludedPlaceIdSet.has(place.id)
+      );
+    });
+  }, [excludedPlaceIdSet, roomPlacesQuery.data?.items]);
+
+  const selectedPlace = availablePlaces.find((place) => place.id === selectedPlaceId) ?? null;
+
+  const changeKeyword = useCallback((nextKeyword: string) => {
+    setKeyword(nextKeyword);
+    setSelectedPlaceId(null);
+  }, []);
+
+  const submitSearch = useCallback(() => {
+    setSubmittedKeyword(trimmedKeyword);
+    setSelectedPlaceId(null);
+  }, [trimmedKeyword]);
+
+  const selectPlace = useCallback((placeId: string) => {
+    setSelectedPlaceId((current) => (current === placeId ? null : placeId));
+  }, []);
+
+  const resetSelection = useCallback(() => {
+    setKeyword("");
+    setSubmittedKeyword("");
+    setSelectedPlaceId(null);
+  }, []);
+
+  return {
+    keyword,
+    submittedTrimmedKeyword,
+    selectedPlaceId,
+    selectedPlace,
+    availablePlaces,
+    roomPlacesQuery,
+    changeKeyword,
+    submitSearch,
+    selectPlace,
+    resetSelection,
+  };
 }

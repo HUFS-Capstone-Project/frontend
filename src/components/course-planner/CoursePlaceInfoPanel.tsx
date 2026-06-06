@@ -15,7 +15,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { ChevronLeft, MapPin, Pencil, Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
@@ -23,7 +24,9 @@ import { CoursePlaceAddSheet } from "@/components/course-planner/CoursePlaceAddS
 import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow";
 import { CourseStopTitle } from "@/components/course-planner/CourseStopTitle";
 import { PLACE_FLOW_LINK_CHIP_CLASS } from "@/components/place-flow/PlaceFlowOriginalLinkChipRow";
+import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { normalizeDateCourseName } from "@/features/course-planner/constants";
+import { getDateCourseConflictModalCopy } from "@/features/course-planner/lib/date-course-errors";
 import { cn } from "@/lib/utils";
 import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/map-home";
@@ -32,6 +35,10 @@ import { usePlaceDetailStore } from "@/store/place-detail-store";
 export type { CourseStop };
 
 type SaveConfirmKind = "create" | "edit";
+type CourseConflictModalCopy = {
+  message: string;
+  description: string;
+};
 
 type CoursePlaceInfoPanelProps = {
   courseTitle: string;
@@ -54,26 +61,25 @@ export function CoursePlaceInfoPanel({
   className,
 }: CoursePlaceInfoPanelProps) {
   const openDetail = usePlaceDetailStore((s) => s.openDetail);
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftTitle, setDraftTitle] = useState(courseTitle);
-  const [draftStops, setDraftStops] = useState<CourseStop[]>(stops);
-  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const {
+    isEditing,
+    draftTitle,
+    draftStops,
+    selectedStopId,
+    setDraftTitle,
+    setSelectedStopId,
+    setIsEditing,
+    startEdit,
+    cancelEdit,
+    addDraftPlace,
+    removeDraftStop,
+    moveDraftStop,
+  } = useCourseEditDraft({ courseTitle, stops });
   const [saveConfirmKind, setSaveConfirmKind] = useState<SaveConfirmKind | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (!isEditing) {
-      setDraftTitle(courseTitle);
-    }
-  }, [courseTitle, isEditing]);
-
-  const removeDraftStop = useCallback((stopId: string) => {
-    setDraftStops((current) => current.filter((stop) => stop.id !== stopId));
-    setSelectedStopId((id) => (id === stopId ? null : id));
-  }, []);
+  const [conflictModalCopy, setConflictModalCopy] = useState<CourseConflictModalCopy | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 10 } }),
@@ -85,42 +91,20 @@ export function CoursePlaceInfoPanel({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    setDraftStops((items) => {
-      const oldIndex = items.findIndex((item) => item.id === active.id);
-      const newIndex = items.findIndex((item) => item.id === over.id);
-      if (oldIndex < 0 || newIndex < 0) return items;
-      return arrayMove(items, oldIndex, newIndex);
-    });
-  }, []);
+    moveDraftStop(active.id, over.id);
+  }, [moveDraftStop]);
 
   const handleStartEdit = () => {
-    setDraftTitle(courseTitle);
-    setDraftStops([...stops]);
-    setSelectedStopId(null);
-    setIsEditing(true);
+    startEdit();
   };
 
   const handleCancelEdit = () => {
-    setDraftTitle(courseTitle);
-    setDraftStops(stops);
-    setSelectedStopId(null);
+    cancelEdit();
     setIsAddPlaceOpen(false);
-    setIsEditing(false);
   };
 
   const handleAddPlace = (place: SavedPlace) => {
-    setDraftStops((current) => {
-      const placeRoomPlaceId = place.roomPlaceId ?? Number(place.id);
-      if (
-        Number.isInteger(placeRoomPlaceId) &&
-        current.some((stop) => stop.roomPlaceId === placeRoomPlaceId)
-      ) {
-        return current;
-      }
-
-      return [...current, courseStopFromSavedPlace(place)];
-    });
-    setSelectedStopId(null);
+    addDraftPlace(place);
     setIsAddPlaceOpen(false);
   };
 
@@ -143,7 +127,12 @@ export function CoursePlaceInfoPanel({
       setIsSaveConfirmOpen(false);
       setIsEditing(false);
       setSelectedStopId(null);
-    } catch {
+    } catch (error) {
+      const nextConflictModalCopy = getDateCourseConflictModalCopy(error);
+      if (nextConflictModalCopy) {
+        setIsSaveConfirmOpen(false);
+        setConflictModalCopy(nextConflictModalCopy);
+      }
       return;
     } finally {
       setIsSaving(false);
@@ -333,6 +322,100 @@ export function CoursePlaceInfoPanel({
         onClose={() => setIsAddPlaceOpen(false)}
         onConfirm={handleAddPlace}
       />
+
+      <CourseConflictModal
+        copy={conflictModalCopy}
+        onClose={() => setConflictModalCopy(null)}
+      />
     </section>
+  );
+}
+
+function useCourseEditDraft({ courseTitle, stops }: { courseTitle: string; stops: CourseStop[] }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(courseTitle);
+  const [draftStops, setDraftStops] = useState<CourseStop[]>(stops);
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+
+  const startEdit = useCallback(() => {
+    setDraftTitle(courseTitle);
+    setDraftStops([...stops]);
+    setSelectedStopId(null);
+    setIsEditing(true);
+  }, [courseTitle, stops]);
+
+  const cancelEdit = useCallback(() => {
+    setDraftTitle(courseTitle);
+    setDraftStops(stops);
+    setSelectedStopId(null);
+    setIsEditing(false);
+  }, [courseTitle, stops]);
+
+  const addDraftPlace = useCallback((place: SavedPlace) => {
+    setDraftStops((current) => {
+      const placeRoomPlaceId = place.roomPlaceId ?? Number(place.id);
+      if (
+        Number.isInteger(placeRoomPlaceId) &&
+        current.some((stop) => stop.roomPlaceId === placeRoomPlaceId)
+      ) {
+        return current;
+      }
+
+      return [...current, courseStopFromSavedPlace(place)];
+    });
+    setSelectedStopId(null);
+  }, []);
+
+  const removeDraftStop = useCallback((stopId: string) => {
+    setDraftStops((current) => current.filter((stop) => stop.id !== stopId));
+    setSelectedStopId((id) => (id === stopId ? null : id));
+  }, []);
+
+  const moveDraftStop = useCallback((activeId: string | number, overId: string | number) => {
+    setDraftStops((items) => {
+      const oldIndex = items.findIndex((item) => item.id === activeId);
+      const newIndex = items.findIndex((item) => item.id === overId);
+      if (oldIndex < 0 || newIndex < 0) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  }, []);
+
+  return {
+    isEditing,
+    draftTitle,
+    draftStops,
+    selectedStopId,
+    setDraftTitle,
+    setSelectedStopId,
+    setIsEditing,
+    startEdit,
+    cancelEdit,
+    addDraftPlace,
+    removeDraftStop,
+    moveDraftStop,
+  };
+}
+
+function CourseConflictModal({
+  copy,
+  onClose,
+}: {
+  copy: CourseConflictModalCopy | null;
+  onClose: () => void;
+}) {
+  if (!copy) {
+    return null;
+  }
+
+  return createPortal(
+    <RoomConfirmModal
+      open
+      message={copy.message}
+      description={copy.description}
+      confirmLabel="확인"
+      className="z-90"
+      onConfirm={onClose}
+    />,
+    document.body,
   );
 }

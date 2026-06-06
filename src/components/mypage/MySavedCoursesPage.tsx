@@ -54,7 +54,7 @@ type MySavedCoursesPageProps = {
   onSelectCourse: (course: SavedCourse) => void;
   onCloseCourseSheet: () => void;
   onBack: () => void;
-  onPersistCourse: (prevCourseId: string, payload: CourseSavePayload) => void;
+  onPersistCourse: (prevCourseId: string, payload: CourseSavePayload) => void | Promise<void>;
 };
 
 export function MySavedCoursesPage({

@@ -31,6 +31,7 @@ import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-cou
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
 import { useDateCourseSidosQuery } from "@/features/course-planner/hooks/use-date-course-sidos-query";
 import { useDateCourseSigungusQuery } from "@/features/course-planner/hooks/use-date-course-sigungus-query";
+import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { dateCourseQueryKeys } from "@/features/course-planner/query-keys";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { type RegionSelectionOption, toRegionSelectionOption } from "@/features/regions";
@@ -46,9 +47,12 @@ const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
 
+let nextCourseOrderId = 0;
+
 function createOrder(category: PlaceTypeId): CourseCategoryOrder {
+  nextCourseOrderId += 1;
   return {
-    id: Date.now() + Math.floor(Math.random() * 1000),
+    id: nextCourseOrderId,
     category,
     tags: [],
   };
@@ -492,10 +496,17 @@ export default function CoursePlannerPage() {
       }
 
       try {
-        await saveCourse(selectedCourseId, payload.title);
+        await saveCourse(
+          selectedCourseId,
+          payload.title,
+          payload.stops.map((stop) => stop.roomPlaceId),
+        );
         await queryClient.invalidateQueries({ queryKey: dateCourseQueryKeys.all });
         handleSaveCourse(payload);
       } catch (error) {
+        if (isDateCourseConflictError(error)) {
+          throw error;
+        }
         showToast(resolveCoursePlannerApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
         throw error;
       }

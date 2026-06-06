@@ -22,16 +22,14 @@ type UseCoursePlannerCoursesResult = {
   getCourseMapPlaces: (courseId: string | null) => SavedPlace[];
   getCourseRouteCoordinates: (courseId: string | null) => MapCoordinate[];
   generateCourses: (payload: GenerateDateCourseRequest) => Promise<void>;
-  saveCourse: (dateCourseId: string, courseName: string) => Promise<void>;
+  saveCourse: (dateCourseId: string, courseName: string, roomPlaceIds?: number[]) => Promise<void>;
   clearCourses: () => void;
   isGenerating: boolean;
-  isSaving: boolean;
 };
 
 export function useCoursePlannerCourses(roomId: string | null): UseCoursePlannerCoursesResult {
   const [generatedCourses, setGeneratedCourses] = useState<DateCourseCandidateResponse[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const courses = useMemo(
     () =>
@@ -101,7 +99,7 @@ export function useCoursePlannerCourses(roomId: string | null): UseCoursePlanner
   );
 
   const saveCourse = useCallback(
-    async (dateCourseId: string, courseName: string) => {
+    async (dateCourseId: string, courseName: string, roomPlaceIds?: number[]) => {
       if (!roomId) {
         throw new Error("roomId is required");
       }
@@ -111,14 +109,10 @@ export function useCoursePlannerCourses(roomId: string | null): UseCoursePlanner
         throw new Error("courseName is required");
       }
 
-      setIsSaving(true);
-      try {
-        await dateCourseApi.saveDateCourse(roomId, dateCourseId, {
-          courseName: normalizedCourseName,
-        });
-      } finally {
-        setIsSaving(false);
-      }
+      await dateCourseApi.saveDateCourse(roomId, dateCourseId, {
+        courseName: normalizedCourseName,
+        ...(roomPlaceIds ? { roomPlaceIds } : {}),
+      });
     },
     [roomId],
   );
@@ -137,7 +131,6 @@ export function useCoursePlannerCourses(roomId: string | null): UseCoursePlanner
     saveCourse,
     clearCourses,
     isGenerating,
-    isSaving,
   };
 }
 

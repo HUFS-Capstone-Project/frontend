@@ -63,6 +63,12 @@ export type DateCourseCandidateResponse = {
 
 export type SaveDateCourseRequest = {
   courseName: string;
+  roomPlaceIds?: number[];
+};
+
+export type UpdateDateCourseRequest = {
+  courseName: string;
+  roomPlaceIds: number[];
 };
 
 export type GenerateDateCoursesResponse = {
@@ -185,6 +191,24 @@ export const dateCourseApi = {
           headers: getXsrfHeader(),
         },
       );
+    });
+  },
+
+  updateDateCourse: async (
+    roomId: string,
+    dateCourseId: string,
+    payload: UpdateDateCourseRequest,
+  ): Promise<DateCourseDetailResponse> => {
+    return withCsrfRetry(async () => {
+      const response = await api.put<CommonResponse<DateCourseDetailResponse>>(
+        API_PATHS.rooms.dateCourse(roomId, dateCourseId),
+        payload,
+        {
+          withCredentials: true,
+          headers: getXsrfHeader(),
+        },
+      );
+      return response.data.data;
     });
   },
 

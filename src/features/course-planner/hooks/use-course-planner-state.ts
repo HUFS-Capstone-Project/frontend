@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   type DateTimeSelection,
@@ -27,6 +27,11 @@ type UseCoursePlannerStateParams = {
 const COURSE_DEFAULT_START_TIME = "13:00";
 const COURSE_DEFAULT_END_TIME = "18:00";
 
+type CourseDraftOverride = {
+  title: string;
+  stops: CourseStop[];
+};
+
 export function useCoursePlannerState({
   courses,
   defaultCourseId,
@@ -44,9 +49,25 @@ export function useCoursePlannerState({
   const [draftStartTime, setDraftStartTime] = useState<string | null>(COURSE_DEFAULT_START_TIME);
   const [draftEndTime, setDraftEndTime] = useState<string | null>(COURSE_DEFAULT_END_TIME);
   const [selectedCourseId, setSelectedCourseId] = useState("");
-  const [courseTitle, setCourseTitle] = useState(courses[0]?.title ?? COURSE_FALLBACK_TITLE);
-  const [courseStops, setCourseStops] = useState<CourseStop[]>(() =>
-    getCourseStops(defaultCourseId),
+  const [courseOverrides, setCourseOverrides] = useState<Record<string, CourseDraftOverride>>({});
+
+  const selectedCourse = useMemo(
+    () => courses.find((course) => course.id === selectedCourseId) ?? null,
+    [courses, selectedCourseId],
+  );
+  const courseTitle = useMemo(
+    () =>
+      selectedCourseId
+        ? (courseOverrides[selectedCourseId]?.title ?? selectedCourse?.title ?? COURSE_FALLBACK_TITLE)
+        : (courses[0]?.title ?? COURSE_FALLBACK_TITLE),
+    [courseOverrides, courses, selectedCourse, selectedCourseId],
+  );
+  const courseStops = useMemo(
+    () =>
+      selectedCourseId
+        ? (courseOverrides[selectedCourseId]?.stops ?? getCourseStops(selectedCourseId))
+        : getCourseStops(defaultCourseId),
+    [courseOverrides, defaultCourseId, getCourseStops, selectedCourseId],
   );
 
   const applyDateTimeFromDrafts = useCallback(() => {
@@ -120,10 +141,9 @@ export function useCoursePlannerState({
     setDraftEndTime(COURSE_DEFAULT_END_TIME);
     resetCategorySelection();
     setSelectedCourseId("");
-    setCourseTitle(courses[0]?.title ?? COURSE_FALLBACK_TITLE);
-    setCourseStops(getCourseStops(defaultCourseId));
+    setCourseOverrides({});
     setMode("form");
-  }, [courses, defaultCourseId, getCourseStops, resetCategorySelection]);
+  }, [resetCategorySelection]);
 
   const canGenerate = regionValue.trim().length > 0;
 
@@ -134,13 +154,10 @@ export function useCoursePlannerState({
 
   const handleSelectCourse = useCallback(
     (courseId: string) => {
-      const selectedCourse = courses.find((course) => course.id === courseId);
       setSelectedCourseId(courseId);
-      setCourseTitle(selectedCourse?.title ?? COURSE_FALLBACK_TITLE);
-      setCourseStops(getCourseStops(courseId));
       setMode("detail");
     },
-    [courses, getCourseStops],
+    [],
   );
 
   const handleBackToCourseResults = useCallback(() => {
@@ -152,13 +169,20 @@ export function useCoursePlannerState({
     (payload: CourseSavePayload) => {
       showToast(COURSE_TOAST_TEXT.saved, COURSE_TOAST_DURATION_MS);
       if (payload.kind === "edit") {
-        setCourseTitle(payload.title);
-        setCourseStops(payload.stops);
+        if (selectedCourseId) {
+          setCourseOverrides((current) => ({
+            ...current,
+            [selectedCourseId]: {
+              title: payload.title,
+              stops: payload.stops,
+            },
+          }));
+        }
         return;
       }
       handleResetPlanner();
     },
-    [handleResetPlanner, showToast],
+    [handleResetPlanner, selectedCourseId, showToast],
   );
 
   return {

@@ -58,7 +58,7 @@ export const roomPlaceApi = {
 function toRoomPlaceListQueryParams(params: NormalizedRoomPlaceListParams) {
   const queryParams: Record<string, string | number> = {
     page: params.page,
-    size: params.size,
+    limit: params.size,
   };
 
   if (params.keyword.trim().length > 0) {
