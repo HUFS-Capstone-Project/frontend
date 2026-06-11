@@ -38,7 +38,7 @@ export const PLACE_FLOW_COPY = {
   saving: "저장 중...",
   save: "저장하기",
   pickPlaces: "장소 선택",
-  noneToSave: "장소 없음",
+  noneToSave: "저장 완료",
   retry: "다시 시도",
   reenterLink: "다시 넣기",
   linkFromUrl: {
