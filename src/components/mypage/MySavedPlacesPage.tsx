@@ -159,7 +159,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   }, [mapPins, selectedPlaceId]);
 
   const emptyMessage =
-    activeCategories.length === 0 ? "나의 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
+    activeCategories.length === 0 ? "방에서 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
   const statusMessage = myPlacesQuery.isError
     ? "나의 장소를 불러오지 못했습니다."
     : myPlacesQuery.isLoading

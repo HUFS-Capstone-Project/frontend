@@ -72,7 +72,7 @@ export function MyPlaceSummaryCard({
             ))
           ) : (
             <p className="text-muted-foreground truncate py-2 text-xs font-medium">
-              나의 장소를 저장해보세요!
+              방에서 장소를 저장해보세요!
             </p>
           )}
         </div>
