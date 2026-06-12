@@ -3,6 +3,7 @@ import { CalendarDays, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { CoursePlannerField } from "@/components/course-planner/CoursePlannerField";
 import { CategoryChipGrid, CategoryChipSkeletonList } from "@/components/map/CategoryChipGrid";
 import { TagChipGroup } from "@/components/map/TagChipGroup";
+import { RoomAvatar } from "@/components/room/RoomAvatar";
 import { isDefaultGroup, isEmptyGroup } from "@/features/map/utils/filter-panel-group";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,9 @@ export type CourseCategoryOrder = {
 const MAX_COURSE_ORDER_COUNT = 5;
 
 type CoursePlannerPanelProps = {
+  roomName: string;
+  roomAvatarSeed?: string;
+  roomMemberCount?: number;
   regionValue: string;
   dateTimeValue: string;
   courseOrders: CourseCategoryOrder[];
@@ -52,6 +56,9 @@ type CoursePlannerPanelProps = {
 };
 
 export function CoursePlannerPanel({
+  roomName,
+  roomAvatarSeed,
+  roomMemberCount,
   regionValue,
   dateTimeValue,
   courseOrders,
@@ -68,6 +75,7 @@ export function CoursePlannerPanel({
   onRetryLoadCategories,
 }: CoursePlannerPanelProps) {
   const categoryCodes = categoryOptions.map((category) => category.id);
+  const resolvedRoomAvatarSeed = roomAvatarSeed ?? roomName;
   const showAddButton =
     courseOrders.length < MAX_COURSE_ORDER_COUNT &&
     !isCategoryLoading &&
@@ -78,6 +86,21 @@ export function CoursePlannerPanel({
       <h1 className="text-foreground text-[1.25rem] leading-tight font-semibold">
         맞춤 데이트 코스 만들기
       </h1>
+
+      <div className="border-border/55 bg-background mt-4 flex items-center gap-3 rounded-2xl border px-3.5 py-3">
+        <div className="ring-muted/50 size-10 shrink-0 overflow-hidden rounded-full ring-2">
+          <RoomAvatar avatarSeed={resolvedRoomAvatarSeed} size="100%" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-muted-foreground text-[0.72rem] font-semibold">선택한 방</p>
+          <p className="text-foreground truncate text-sm font-semibold">{roomName}</p>
+        </div>
+        {typeof roomMemberCount === "number" ? (
+          <span className="bg-background text-muted-foreground shrink-0 rounded-full px-2.5 py-1 text-[0.72rem] font-semibold">
+            {roomMemberCount}명
+          </span>
+        ) : null}
+      </div>
 
       <div className="mt-6 grid gap-5">
         <CoursePlannerField
@@ -168,6 +191,9 @@ export function CoursePlannerPanel({
                       <CategoryChipGrid
                         categories={categoryCodes}
                         isLoading={false}
+                        className="flex flex-wrap gap-2"
+                        itemClassName="flex-none"
+                        chipClassName="w-auto min-w-fit justify-start"
                         getCategoryLabel={(category) =>
                           categoryOptions.find((option) => option.id === category)?.label ??
                           category

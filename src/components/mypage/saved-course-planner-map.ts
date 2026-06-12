@@ -1,5 +1,6 @@
 import type { CourseStop as PlannerCourseStop, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace as MapSavedPlace } from "@/shared/types/map-home";
+import type { MapCoordinate } from "@/shared/types/map-home";
 import type { SavedPlace } from "@/shared/types/my-page";
 
 function resolveRoomPlaceId(
@@ -103,4 +104,22 @@ export function mapPlacesFromSavedCourses(
   }
 
   return result;
+}
+
+export function getSavedCourseRouteMapData(course: SavedCourse, savedPlaces: SavedPlace[]) {
+  const places = mapPlacesFromSavedCourses([course], savedPlaces);
+  const routeCoordinates: MapCoordinate[] = places.map((place) => ({
+    latitude: place.latitude,
+    longitude: place.longitude,
+  }));
+  const markerLabelByPlaceId = places.reduce<Record<string, string>>((labels, place, index) => {
+    labels[place.id] = String(index + 1);
+    return labels;
+  }, {});
+
+  return {
+    places,
+    routeCoordinates,
+    markerLabelByPlaceId,
+  };
 }

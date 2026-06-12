@@ -18,6 +18,8 @@ export type BottomSheetProps = {
   panelClassName?: string;
   contentClassName?: string;
   hideHandle?: boolean;
+  onHandleClick?: () => void;
+  onDragDismiss?: () => void;
   enableHistory?: boolean;
   /**
    * true면 시트 패널 높이가 콘텐츠만큼 올라가고(max까지), 넘치는 부분만 본문에서 스크롤한다.
@@ -35,6 +37,8 @@ export function BottomSheet({
   panelClassName,
   contentClassName,
   hideHandle = false,
+  onHandleClick,
+  onDragDismiss,
   enableHistory = true,
   intrinsicPanelHeight = false,
 }: BottomSheetProps) {
@@ -48,6 +52,8 @@ export function BottomSheet({
 
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const touchStartYRef = useRef<number | null>(null);
+  const handleTouchStartYRef = useRef<number | null>(null);
+  const suppressNextHandleClickRef = useRef(false);
   const shouldDragSheetRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -94,7 +100,11 @@ export function BottomSheet({
     shouldDragSheetRef.current = false;
 
     if (dragOffsetY >= DRAG_CLOSE_THRESHOLD) {
-      requestClose();
+      if (onDragDismiss) {
+        onDragDismiss();
+      } else {
+        requestClose();
+      }
       queueMicrotask(() => {
         setDragOffsetY(0);
       });
@@ -102,7 +112,42 @@ export function BottomSheet({
     }
 
     setDragOffsetY(0);
-  }, [dragOffsetY, requestClose]);
+  }, [dragOffsetY, onDragDismiss, requestClose]);
+
+  const handleHandleTouchStart = useCallback((event: TouchEvent<HTMLElement>) => {
+    handleTouchStartYRef.current = event.touches[0]?.clientY ?? null;
+  }, []);
+
+  const handleHandleTouchEnd = useCallback(
+    (event: TouchEvent<HTMLElement>) => {
+      const startY = handleTouchStartYRef.current;
+      handleTouchStartYRef.current = null;
+
+      if (startY == null || !onHandleClick) {
+        return;
+      }
+
+      const endY = event.changedTouches[0]?.clientY ?? startY;
+      if (startY - endY >= 24) {
+        suppressNextHandleClickRef.current = true;
+        onHandleClick();
+      }
+    },
+    [onHandleClick],
+  );
+
+  const handleHandleClick = useCallback(() => {
+    if (!onHandleClick) {
+      return;
+    }
+
+    if (suppressNextHandleClickRef.current) {
+      suppressNextHandleClickRef.current = false;
+      return;
+    }
+
+    onHandleClick();
+  }, [onHandleClick]);
 
   if (!isRendered) {
     return null;
@@ -133,7 +178,9 @@ export function BottomSheet({
           "shadow-sheet",
           BOTTOM_SHEET_PANEL_MAX_HEIGHT_CLASS,
           intrinsicPanelHeight && "h-fit",
-          isDragging ? "transition-none" : "transition-[transform,opacity] duration-240 ease-out",
+          isDragging
+            ? "transition-none"
+            : "transition-[transform,opacity,height,max-height] duration-240 ease-out",
           panelClassName,
         )}
         style={{
@@ -148,7 +195,20 @@ export function BottomSheet({
       >
         {!hideHandle ? (
           <div className="px-6 pt-2 pb-2">
-            <div className="bg-muted-foreground/25 mx-auto h-1 w-16 rounded-full" />
+            {onHandleClick ? (
+              <button
+                type="button"
+                className="focus-visible:ring-ring/50 mx-auto flex h-5 w-20 items-center justify-center rounded-full focus-visible:ring-3 focus-visible:outline-none"
+                aria-label="바텀시트 열고 닫기"
+                onClick={handleHandleClick}
+                onTouchStart={handleHandleTouchStart}
+                onTouchEnd={handleHandleTouchEnd}
+              >
+                <span className="bg-muted-foreground/25 h-1 w-16 rounded-full" />
+              </button>
+            ) : (
+              <div className="bg-muted-foreground/25 mx-auto h-1 w-16 rounded-full" />
+            )}
           </div>
         ) : null}
 

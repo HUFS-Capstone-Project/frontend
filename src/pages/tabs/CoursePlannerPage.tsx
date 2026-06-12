@@ -1,9 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Route } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
+import { ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
@@ -19,6 +21,7 @@ import {
 import { CourseResultPanel } from "@/components/course-planner/CourseResultPanel";
 import { DateTimeSelectionScreen } from "@/components/course-planner/DateTimeSelectionScreen";
 import { RegionSelectionPanel } from "@/components/course-planner/RegionSelectionPanel";
+import { MAP_CHIP_BASE_CLASS, MAP_CHIP_UNSELECTED_CLASS } from "@/components/map/chip-style";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import type { GenerateDateCourseRequest } from "@/features/course-planner/api/date-course-api";
@@ -36,6 +39,7 @@ import { dateCourseQueryKeys } from "@/features/course-planner/query-keys";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { type RegionSelectionOption, toRegionSelectionOption } from "@/features/regions";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { cn } from "@/lib/utils";
 import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import { APP_ROUTES } from "@/shared/config/routes";
@@ -46,6 +50,13 @@ const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
+
+const COURSE_ROUTE_FIT_BOUNDS_PADDING = {
+  top: 88,
+  right: 32,
+  bottom: 260,
+  left: 32,
+} as const;
 
 let nextCourseOrderId = 0;
 
@@ -144,6 +155,8 @@ export default function CoursePlannerPage() {
   const [draftSidoCode, setDraftSidoCode] = useState("");
   const [draftSigunguCode, setDraftSigunguCode] = useState("");
   const [selectedSigunguCode, setSelectedSigunguCode] = useState("");
+  const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
+  const [routeViewportKey, setRouteViewportKey] = useState(0);
 
   const {
     mode,
@@ -476,6 +489,14 @@ export default function CoursePlannerPage() {
     () => getCourseRouteCoordinates(selectedCourseId || defaultCourseId),
     [defaultCourseId, getCourseRouteCoordinates, selectedCourseId],
   );
+  const selectedCourseMarkerLabelByPlaceId = useMemo(
+    () =>
+      selectedCourseMapPins.reduce<Record<string, string>>((labels, place, index) => {
+        labels[place.id] = String(index + 1);
+        return labels;
+      }, {}),
+    [selectedCourseMapPins],
+  );
   const selectedCourseMapCenter = useMemo(
     () =>
       selectedCourseMapPins.length > 0
@@ -514,6 +535,25 @@ export default function CoursePlannerPage() {
     [handleSaveCourse, queryClient, saveCourse, selectedCourseId, showToast],
   );
 
+  const handleSelectCourseRoute = useCallback(
+    (courseId: string) => {
+      setIsCourseSheetExpanded(false);
+      setRouteViewportKey((current) => current + 1);
+      handleSelectCourse(courseId);
+    },
+    [handleSelectCourse],
+  );
+
+  const handleBackToCourseResultsRoute = useCallback(() => {
+    setIsCourseSheetExpanded(false);
+    handleBackToCourseResults();
+  }, [handleBackToCourseResults]);
+
+  const handleShowRoute = useCallback(() => {
+    setIsCourseSheetExpanded(false);
+    setRouteViewportKey((current) => current + 1);
+  }, []);
+
   if (!selectedRoom) {
     return <Navigate to={APP_ROUTES.room} replace />;
   }
@@ -527,71 +567,107 @@ export default function CoursePlannerPage() {
               appKey={KAKAO_MAP_APP_KEY}
               places={selectedCourseMapPins}
               center={selectedCourseMapCenter}
-              fitBoundsPlaces={selectedCourseMapPins}
+              fitBoundsCoordinates={selectedCourseRouteCoordinates}
+              fitBoundsPadding={COURSE_ROUTE_FIT_BOUNDS_PADDING}
               routeCoordinates={selectedCourseRouteCoordinates}
-              viewportKey={`course-detail-${selectedCourseId ?? "default"}`}
+              markerLabelByPlaceId={selectedCourseMarkerLabelByPlaceId}
+              viewportKey={`course-detail-${selectedCourseId ?? "default"}-${routeViewportKey}`}
               className="h-full w-full"
             />
           </Suspense>
         </MapBackdropLayer>
       ) : null}
 
-      <main className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto pb-[max(7rem,calc(env(safe-area-inset-bottom)+7rem))]">
-        <div className="flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col">
-          {mode === "form" || mode === "region" || mode === "datetime" ? (
-            <>
-              <CoursePlannerPanel
-                regionValue={regionValue}
-                dateTimeValue={dateTimeDisplayValue}
-                courseOrders={displayedCourseOrders}
-                categoryOptions={categoryOptions}
-                isCategoryLoading={isCategoryLoading}
-                isCategoryError={isCategoryError}
-                className="pt-16 pb-0"
-                onOpenRegionSelect={() => setMode("region")}
-                onOpenDateTimeSelect={handleOpenDateTimeSelect}
-                onAddOrder={handleAddOrder}
-                onRemoveOrder={handleRemoveOrder}
-                onSelectOrderCategory={handleSelectOrderCategory}
-                onToggleOrderTag={handleToggleOrderTag}
-                onRetryLoadCategories={() => {
-                  void retryLoadCategories();
-                }}
-              />
+      {mode === "detail" ? (
+        <ListTopBar
+          title={selectedRoom.name}
+          trailing={`${selectedCourseMapPins.length}개 장소`}
+          variant="overlay"
+          backLabel="코스 목록으로 돌아가기"
+          onBack={handleBackToCourseResultsRoute}
+        />
+      ) : null}
 
-              <div className="bg-background px-6 pt-6 pb-[max(5rem,calc(env(safe-area-inset-bottom)+5rem))]">
-                <CoursePlannerActions
-                  canGenerate={canAttemptGenerate}
-                  onGenerate={handleGenerateCourse}
-                  onReset={handleResetPlanner}
-                  className="mt-0"
-                />
-              </div>
-            </>
-          ) : null}
-
-          {mode === "loading" ? (
-            <CourseGenerationLoadingPanel
-              roomName={selectedRoom?.name ?? COURSE_LOADING_ROOM_FALLBACK}
-              className="pt-16 pb-8"
-            />
-          ) : null}
-
-          {mode === "result" ? (
-            <CourseResultPanel
-              courses={courses}
-              selectedCourseId={selectedCourseId}
-              onSelectCourse={handleSelectCourse}
-              className="pt-16 pb-8"
-            />
-          ) : null}
+      {mode === "detail" ? (
+        <div className="pointer-events-none absolute top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+          <button
+            type="button"
+            onClick={handleShowRoute}
+            className={cn(
+              MAP_CHIP_BASE_CLASS,
+              MAP_CHIP_UNSELECTED_CLASS,
+              "hover:bg-muted/70 active:bg-muted pointer-events-auto h-9 px-3 font-semibold transition-colors",
+            )}
+          >
+            <Route className="size-3.5" aria-hidden />
+            경로 보기
+          </button>
         </div>
-      </main>
+      ) : null}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
-        <BottomNavToast message={toastMessage} placement={toastPlacement} />
-        <BottomNavigationBar activeId="course" onSelect={handleSelectBottomNav} />
-      </div>
+      {mode !== "detail" ? (
+        <main className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto pb-[max(7rem,calc(env(safe-area-inset-bottom)+7rem))]">
+          <div className="flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col">
+            {mode === "form" || mode === "region" || mode === "datetime" ? (
+              <>
+                <CoursePlannerPanel
+                  roomName={selectedRoom.name}
+                  roomAvatarSeed={selectedRoom.avatarSeed}
+                  roomMemberCount={selectedRoom.memberCount}
+                  regionValue={regionValue}
+                  dateTimeValue={dateTimeDisplayValue}
+                  courseOrders={displayedCourseOrders}
+                  categoryOptions={categoryOptions}
+                  isCategoryLoading={isCategoryLoading}
+                  isCategoryError={isCategoryError}
+                  className="pt-16 pb-0"
+                  onOpenRegionSelect={() => setMode("region")}
+                  onOpenDateTimeSelect={handleOpenDateTimeSelect}
+                  onAddOrder={handleAddOrder}
+                  onRemoveOrder={handleRemoveOrder}
+                  onSelectOrderCategory={handleSelectOrderCategory}
+                  onToggleOrderTag={handleToggleOrderTag}
+                  onRetryLoadCategories={() => {
+                    void retryLoadCategories();
+                  }}
+                />
+
+                <div className="bg-background px-6 pt-6 pb-[max(5rem,calc(env(safe-area-inset-bottom)+5rem))]">
+                  <CoursePlannerActions
+                    canGenerate={canAttemptGenerate}
+                    onGenerate={handleGenerateCourse}
+                    onReset={handleResetPlanner}
+                    className="mt-0"
+                  />
+                </div>
+              </>
+            ) : null}
+
+            {mode === "loading" ? (
+              <CourseGenerationLoadingPanel
+                roomName={selectedRoom?.name ?? COURSE_LOADING_ROOM_FALLBACK}
+                className="pt-16 pb-8"
+              />
+            ) : null}
+
+            {mode === "result" ? (
+              <CourseResultPanel
+                courses={courses}
+                selectedCourseId={selectedCourseId}
+                onSelectCourse={handleSelectCourseRoute}
+                className="pt-16 pb-8"
+              />
+            ) : null}
+          </div>
+        </main>
+      ) : null}
+
+      {mode !== "detail" ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
+          <BottomNavToast message={toastMessage} placement={toastPlacement} />
+          <BottomNavigationBar activeId="course" onSelect={handleSelectBottomNav} />
+        </div>
+      ) : null}
 
       <CoursePlannerBottomSheet open={mode === "region"} onClose={handleCloseRegionPanel}>
         <RegionSelectionPanel
@@ -633,13 +709,27 @@ export default function CoursePlannerPage() {
         />
       </CoursePlannerBottomSheet>
 
-      <CoursePlannerBottomSheet open={mode === "detail"} onClose={handleBackToCourseResults}>
+      <CoursePlannerBottomSheet
+        open={mode === "detail"}
+        onClose={handleBackToCourseResultsRoute}
+        className="pointer-events-none"
+        overlayClassName="pointer-events-none bg-transparent"
+        panelClassName={cn(
+          "pointer-events-auto",
+          !isCourseSheetExpanded && "h-[24dvh] min-h-[9.5rem] max-h-[12rem]",
+        )}
+        contentClassName={!isCourseSheetExpanded ? "h-full overflow-hidden!" : undefined}
+        onHandleClick={() => setIsCourseSheetExpanded((current) => !current)}
+        onDragDismiss={() => setIsCourseSheetExpanded(false)}
+      >
         <CoursePlaceInfoPanel
           courseTitle={courseTitle}
           stops={courseStops}
           roomId={selectedRoom?.id}
-          onBack={handleBackToCourseResults}
+          onBack={handleBackToCourseResultsRoute}
           onSave={handleSaveSelectedCourse}
+          collapsed={!isCourseSheetExpanded}
+          onExpand={() => setIsCourseSheetExpanded(true)}
         />
       </CoursePlannerBottomSheet>
 

@@ -3,6 +3,7 @@ import { create } from "zustand";
 export type SelectedRoom = {
   id: string;
   name: string;
+  avatarSeed?: string;
   /** 방 멤버 수 — 지도 FAB 프로필 스택 개수 등에 사용 */
   memberCount: number;
 };

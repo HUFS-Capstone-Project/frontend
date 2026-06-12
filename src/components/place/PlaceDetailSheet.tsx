@@ -2,10 +2,7 @@ import { MapPin, MoreVertical, Share2, SquarePen } from "lucide-react";
 import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { renderMapPrimaryCategoryIcon } from "@/components/map/filters/map-category-icons";
-import {
-  MAX_MEMO_LENGTH,
-  SavedPlaceMemoEditor,
-} from "@/components/mypage/SavedPlaceMemoEditor";
+import { MAX_MEMO_LENGTH, SavedPlaceMemoEditor } from "@/components/mypage/SavedPlaceMemoEditor";
 import {
   BusinessHoursAccordion,
   BusinessHoursStatusSummary,

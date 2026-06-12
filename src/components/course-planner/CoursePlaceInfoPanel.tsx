@@ -14,9 +14,9 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ChevronLeft, MapPin, Pencil, Plus } from "lucide-react";
-import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
-import { useCallback, useState } from "react";
+import { MapPin, Pencil, Plus } from "lucide-react";
+import type { ClipboardEvent, FormEvent, KeyboardEvent, TouchEvent } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
@@ -46,6 +46,8 @@ type CourseConflictModalCopy = {
   description: string;
 };
 
+const COLLAPSED_ROUTE_SUMMARY_MAX_ITEMS = 3;
+
 type CoursePlaceInfoPanelProps = {
   courseTitle: string;
   stops: CourseStop[];
@@ -54,6 +56,8 @@ type CoursePlaceInfoPanelProps = {
   onSave: (payload: CourseSavePayload) => void | Promise<void>;
   /** true면 조회 모드에서 「데이트 코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
   hideNewCourseSaveButton?: boolean;
+  collapsed?: boolean;
+  onExpand?: () => void;
   className?: string;
 };
 
@@ -61,9 +65,10 @@ export function CoursePlaceInfoPanel({
   courseTitle,
   stops,
   roomId = null,
-  onBack,
   onSave,
   hideNewCourseSaveButton = false,
+  collapsed = false,
+  onExpand,
   className,
 }: CoursePlaceInfoPanelProps) {
   const openDetail = usePlaceDetailStore((s) => s.openDetail);
@@ -88,6 +93,7 @@ export function CoursePlaceInfoPanel({
   const [conflictModalCopy, setConflictModalCopy] = useState<CourseConflictModalCopy | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [titleLimitAttempted, setTitleLimitAttempted] = useState(false);
+  const collapsedTouchStartYRef = useRef<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 10 } }),
@@ -200,6 +206,24 @@ export function CoursePlaceInfoPanel({
     }
   };
 
+  const handleCollapsedTouchStart = (event: TouchEvent<HTMLElement>) => {
+    collapsedTouchStartYRef.current = event.touches[0]?.clientY ?? null;
+  };
+
+  const handleCollapsedTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    const startY = collapsedTouchStartYRef.current;
+    collapsedTouchStartYRef.current = null;
+
+    if (startY == null) {
+      return;
+    }
+
+    const endY = event.changedTouches[0]?.clientY ?? startY;
+    if (startY - endY >= 36) {
+      onExpand?.();
+    }
+  };
+
   const handleRequestEditSave = () => {
     if (!validateDraftTitle()) {
       return;
@@ -253,6 +277,41 @@ export function CoursePlaceInfoPanel({
   const displayStops = isEditing ? draftStops : stops;
   const currentSaveConfirmKind = saveConfirmKind ?? "create";
 
+  if (collapsed && !isEditing) {
+    return (
+      <section
+        className={cn(
+          "bg-background flex h-full min-w-0 flex-col overflow-hidden px-6 pt-8 pb-[max(1rem,env(safe-area-inset-bottom))]",
+          className,
+        )}
+        onTouchStart={handleCollapsedTouchStart}
+        onTouchEnd={handleCollapsedTouchEnd}
+        onClick={onExpand}
+      >
+        <header className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1">
+            <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
+              {courseTitle}
+            </h1>
+            <button
+              type="button"
+              onClick={() => {
+                onExpand?.();
+                handleStartEdit();
+              }}
+              className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+              aria-label="코스 편집하기"
+            >
+              <Pencil className="size-3.5" aria-hidden />
+            </button>
+          </div>
+        </header>
+
+        <CourseRouteSummary stops={stops} className="mt-4" />
+      </section>
+    );
+  }
+
   return (
     <section
       className={cn(
@@ -297,15 +356,6 @@ export function CoursePlaceInfoPanel({
         </header>
       ) : (
         <header className="flex w-full items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-            aria-label="코스 목록으로 돌아가기"
-          >
-            <ChevronLeft className="size-4" aria-hidden />
-          </button>
-
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
               {courseTitle}
@@ -354,10 +404,12 @@ export function CoursePlaceInfoPanel({
             return (
               <div key={stop.id} className="grid grid-cols-[1.25rem_1fr] items-stretch gap-x-3">
                 <div className="flex h-full min-h-0 flex-col items-center pt-1" aria-hidden>
-                  <span className="border-muted-foreground bg-background size-3 shrink-0 rounded-full border-2" />
+                  <span className="bg-primary text-primary-foreground inline-flex size-6 shrink-0 items-center justify-center rounded-full text-xs leading-none font-bold shadow-[0_2px_6px_rgb(194_92_86/0.22)]">
+                    {index + 1}
+                  </span>
                   {!isLast ? (
                     <div className="mt-2 flex min-h-8 min-w-0 flex-1 flex-col items-center">
-                      <span className="border-muted-foreground/70 w-px flex-1 border-l border-dashed" />
+                      <span className="border-primary/45 w-px flex-1 border-l border-dashed" />
                     </div>
                   ) : null}
                 </div>
@@ -455,6 +507,50 @@ export function CoursePlaceInfoPanel({
 
       <CourseConflictModal copy={conflictModalCopy} onClose={() => setConflictModalCopy(null)} />
     </section>
+  );
+}
+
+function CourseRouteSummary({ stops, className }: { stops: CourseStop[]; className?: string }) {
+  if (stops.length === 0) {
+    return null;
+  }
+
+  const hasHiddenStops = stops.length > COLLAPSED_ROUTE_SUMMARY_MAX_ITEMS;
+  const visibleStops = hasHiddenStops ? stops.slice(0, COLLAPSED_ROUTE_SUMMARY_MAX_ITEMS) : stops;
+  const hiddenStopCount = stops.length - visibleStops.length;
+
+  return (
+    <ol
+      className={cn(
+        "flex w-full max-w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-2 overflow-hidden px-1 py-1",
+        className,
+      )}
+    >
+      {visibleStops.map((stop, index) => {
+        const isLastVisibleStop = index === visibleStops.length - 1;
+
+        return (
+          <Fragment key={stop.id}>
+            <li className="text-foreground flex max-w-[8.5rem] min-w-0 items-center gap-1.5 text-sm font-semibold">
+              <span className="bg-primary text-primary-foreground inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.7rem] leading-none font-bold">
+                {index + 1}
+              </span>
+              <span className="min-w-0 truncate">{stop.name}</span>
+            </li>
+            {isLastVisibleStop && !hasHiddenStops ? null : (
+              <span className="text-muted-foreground/65 shrink-0 text-sm font-semibold" aria-hidden>
+                →
+              </span>
+            )}
+          </Fragment>
+        );
+      })}
+      {hasHiddenStops ? (
+        <li className="text-muted-foreground shrink-0 text-sm font-semibold">
+          +{hiddenStopCount}곳
+        </li>
+      ) : null}
+    </ol>
   );
 }
 

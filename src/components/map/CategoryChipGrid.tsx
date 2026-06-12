@@ -43,6 +43,8 @@ type CategoryChipGridProps = {
   getSelectedTagCount: (category: MapCategoryFilterChip) => number;
   onToggleCategory: (category: MapCategoryFilterChip) => void;
   className?: string;
+  itemClassName?: string;
+  chipClassName?: string;
 };
 
 export function CategoryChipGrid({
@@ -54,11 +56,13 @@ export function CategoryChipGrid({
   getSelectedTagCount,
   onToggleCategory,
   className,
+  itemClassName,
+  chipClassName,
 }: CategoryChipGridProps) {
   return (
     <ul className={cn(CATEGORY_CHIP_GRID_CLASS, className)} role="list" aria-busy={isLoading}>
       {categories.map((category) => (
-        <li key={category} className="min-w-0">
+        <li key={category} className={cn("min-w-0", itemClassName)}>
           <CategoryChip
             categoryCode={category}
             categoryLabel={
@@ -70,7 +74,7 @@ export function CategoryChipGrid({
             panelFocused={isPanelFocused(category)}
             selectedTagCount={getSelectedTagCount(category)}
             onClick={() => onToggleCategory(category)}
-            className="w-full min-w-0 justify-center"
+            className={cn("w-full min-w-0 justify-center", chipClassName)}
           />
         </li>
       ))}

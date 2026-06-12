@@ -36,6 +36,7 @@ export type KakaoMapInstance = {
   setLevel: (level: number) => void;
   getLevel: () => number;
   setDraggable: (draggable: boolean) => void;
+  setZoomable?: (zoomable: boolean) => void;
   relayout: () => void;
 };
 

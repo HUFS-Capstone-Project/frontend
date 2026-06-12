@@ -119,6 +119,7 @@ export default function PlaceListPage() {
     selectRoom({
       id: roomDetail.roomId,
       name: roomDetail.roomName,
+      avatarSeed: roomDetail.avatarSeed,
       memberCount: roomDetail.memberCount,
     });
   }, [roomDetailQuery.data, selectRoom, selectedRoom?.id]);

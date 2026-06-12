@@ -34,12 +34,12 @@ export function SavedCourseCard({ course, onSelect, className }: SavedCourseCard
         className,
       )}
     >
-      {hasSaver ? (
-        <SaverAvatar imageUrl={course.savedByProfileImageUrl} />
-      ) : roomAvatarSeed ? (
+      {roomAvatarSeed ? (
         <span className="size-9 shrink-0 overflow-hidden rounded-full">
           <RoomAvatar avatarSeed={roomAvatarSeed} size="100%" />
         </span>
+      ) : hasSaver ? (
+        <SaverAvatar imageUrl={course.savedByProfileImageUrl} />
       ) : (
         <span className="bg-brand-coral-soft text-primary flex size-9 shrink-0 items-center justify-center rounded-full">
           {isFriendCourse ? (

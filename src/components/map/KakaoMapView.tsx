@@ -18,7 +18,9 @@ export type KakaoMapViewProps = {
   center: MapCoordinate;
   fitBoundsPlaces?: SavedPlace[];
   fitBoundsCoordinates?: MapCoordinate[];
+  fitBoundsPadding?: Partial<FitBoundsPadding>;
   routeCoordinates?: MapCoordinate[];
+  markerLabelByPlaceId?: Record<string, string>;
   geocodeKeyword?: string;
   viewportKey?: string;
   level?: number;
@@ -39,6 +41,12 @@ export type KakaoMapViewport = {
 };
 
 type MapLoadState = "loading" | "ready" | "error";
+type FitBoundsPadding = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
 
 type PlaceCluster = {
   id: string;
@@ -58,14 +66,14 @@ type PlaceMarkerItem =
       cluster: PlaceCluster;
     };
 
-const FIT_BOUNDS_PADDING = {
+const FIT_BOUNDS_PADDING: FitBoundsPadding = {
   top: 120,
   right: 36,
   bottom: 140,
   left: 36,
 } as const;
 
-const FIT_COORDINATE_BOUNDS_PADDING = {
+const FIT_COORDINATE_BOUNDS_PADDING: FitBoundsPadding = {
   top: 56,
   right: 16,
   bottom: 24,
@@ -89,7 +97,9 @@ export function KakaoMapView({
   center,
   fitBoundsPlaces = [],
   fitBoundsCoordinates = [],
+  fitBoundsPadding,
   routeCoordinates = [],
+  markerLabelByPlaceId = {},
   geocodeKeyword = "",
   viewportKey = "initial",
   level = 4,
@@ -109,7 +119,8 @@ export function KakaoMapView({
   const mapsRef = useRef<KakaoMaps | null>(null);
   const placeOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
   const clusterOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
-  const routePolylineRef = useRef<KakaoPolyline | null>(null);
+  const routePolylineRefs = useRef<KakaoPolyline[]>([]);
+  const lastViewportRequestSignatureRef = useRef<string | null>(null);
   const onPlaceMarkerClickRef = useRef(onPlaceMarkerClick);
   const onViewportIdleRef = useRef(onViewportIdle);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
@@ -121,8 +132,35 @@ export function KakaoMapView({
   );
   const selectedPlaceId = selectedPlaceIdOverride ?? detailSelectedPlaceId;
   const markerItems = useMemo(
-    () => buildPlaceMarkerItems(places, selectedPlaceId, currentMapLevel),
-    [currentMapLevel, places, selectedPlaceId],
+    () =>
+      buildPlaceMarkerItems(
+        places,
+        selectedPlaceId,
+        currentMapLevel,
+        Object.keys(markerLabelByPlaceId).length > 0,
+      ),
+    [currentMapLevel, markerLabelByPlaceId, places, selectedPlaceId],
+  );
+  const viewportRequestSignature = useMemo(
+    () =>
+      createViewportRequestSignature({
+        center,
+        fitBoundsCoordinates,
+        fitBoundsPadding,
+        fitBoundsPlaces,
+        geocodeKeyword,
+        level,
+        viewportKey,
+      }),
+    [
+      center,
+      fitBoundsCoordinates,
+      fitBoundsPadding,
+      fitBoundsPlaces,
+      geocodeKeyword,
+      level,
+      viewportKey,
+    ],
   );
 
   useEffect(() => {
@@ -141,8 +179,8 @@ export function KakaoMapView({
   };
 
   const clearRoutePolyline = () => {
-    routePolylineRef.current?.setMap(null);
-    routePolylineRef.current = null;
+    routePolylineRefs.current.forEach((polyline) => polyline.setMap(null));
+    routePolylineRefs.current = [];
   };
 
   // effect A: SDK 로드 + map 인스턴스 생성 (최초 1회)
@@ -171,6 +209,7 @@ export function KakaoMapView({
           level: initialLevelRef.current,
         });
         mapInstance.setDraggable(true);
+        mapInstance.setZoomable?.(true);
 
         mapsRef.current = kakao.maps;
         mapRef.current = mapInstance;
@@ -233,7 +272,6 @@ export function KakaoMapView({
 
     const mapContainer = mapContainerRef.current;
     const mapInstance = mapRef.current;
-    const maps = mapsRef.current;
     let frameId: number | null = null;
 
     const relayoutMap = () => {
@@ -243,7 +281,6 @@ export function KakaoMapView({
 
       frameId = requestAnimationFrame(() => {
         mapInstance.relayout();
-        mapInstance.setCenter(new maps.LatLng(center.latitude, center.longitude));
         frameId = null;
       });
     };
@@ -262,19 +299,22 @@ export function KakaoMapView({
       resizeObserver?.disconnect();
       window.removeEventListener("resize", relayoutMap);
     };
-  }, [center.latitude, center.longitude, loadState]);
+  }, [loadState]);
 
   // effect B: requested viewport changes.
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current) return;
+    if (lastViewportRequestSignatureRef.current === viewportRequestSignature) return;
+    lastViewportRequestSignatureRef.current = viewportRequestSignature;
+
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
 
     const shouldFitCoordinateBounds = fitBoundsCoordinates.length > 0;
     const fitBoundsTargets = shouldFitCoordinateBounds ? fitBoundsCoordinates : fitBoundsPlaces;
-    const fitBoundsPadding = shouldFitCoordinateBounds
-      ? FIT_COORDINATE_BOUNDS_PADDING
-      : FIT_BOUNDS_PADDING;
+    const resolvedFitBoundsPadding = shouldFitCoordinateBounds
+      ? { ...FIT_COORDINATE_BOUNDS_PADDING, ...fitBoundsPadding }
+      : { ...FIT_BOUNDS_PADDING, ...fitBoundsPadding };
 
     if (fitBoundsTargets.length > 1) {
       const bounds = new maps.LatLngBounds();
@@ -283,10 +323,10 @@ export function KakaoMapView({
       });
       mapInstance.setBounds(
         bounds,
-        fitBoundsPadding.top,
-        fitBoundsPadding.right,
-        fitBoundsPadding.bottom,
-        fitBoundsPadding.left,
+        resolvedFitBoundsPadding.top,
+        resolvedFitBoundsPadding.right,
+        resolvedFitBoundsPadding.bottom,
+        resolvedFitBoundsPadding.left,
       );
       return;
     }
@@ -383,11 +423,13 @@ export function KakaoMapView({
     center.latitude,
     center.longitude,
     fitBoundsCoordinates,
+    fitBoundsPadding,
     fitBoundsPlaces,
     geocodeKeyword,
     level,
     loadState,
     viewportKey,
+    viewportRequestSignature,
   ]);
 
   useEffect(() => {
@@ -407,14 +449,23 @@ export function KakaoMapView({
       return;
     }
 
-    routePolylineRef.current = new maps.Polyline({
+    const outlinePolyline = new maps.Polyline({
       map: mapInstance,
       path,
-      strokeWeight: 4,
-      strokeColor: "#f06f6b",
-      strokeOpacity: 0.88,
+      strokeWeight: 9,
+      strokeColor: "#ffffff",
+      strokeOpacity: 0.92,
       strokeStyle: "solid",
     });
+    const routePolyline = new maps.Polyline({
+      map: mapInstance,
+      path,
+      strokeWeight: 5,
+      strokeColor: "#f06f6b",
+      strokeOpacity: 0.94,
+      strokeStyle: "solid",
+    });
+    routePolylineRefs.current = [outlinePolyline, routePolyline];
 
     return () => {
       clearRoutePolyline();
@@ -534,7 +585,6 @@ export function KakaoMapView({
     }
     const maps = mapsRef.current;
     const mapInstance = mapRef.current;
-
     clearMarkers();
     const nextPlaceOverlays: KakaoCustomOverlay[] = [];
     const nextClusterOverlays: KakaoCustomOverlay[] = [];
@@ -562,27 +612,33 @@ export function KakaoMapView({
 
       const { place } = item;
       const isSelectedPlace = item.selected;
+      const routeMarkerLabel = markerLabelByPlaceId[place.id];
       const position = new maps.LatLng(place.latitude, place.longitude);
-      const content = createPlaceMarkerOverlayElement(place, isSelectedPlace, (element) => {
-        element.classList.add("map-place-marker--selected");
-        mapInstance.panTo(position);
-        const handlePlaceMarkerClick = onPlaceMarkerClickRef.current;
-        if (handlePlaceMarkerClick) {
-          handlePlaceMarkerClick(place);
-          return;
-        }
-        window.dispatchEvent(
-          new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
-            detail: { placeId: place.id },
-          }),
-        );
-      });
+      const content = createPlaceMarkerOverlayElement(
+        place,
+        isSelectedPlace,
+        routeMarkerLabel,
+        (element) => {
+          element.classList.add("map-place-marker--selected");
+          mapInstance.panTo(position);
+          const handlePlaceMarkerClick = onPlaceMarkerClickRef.current;
+          if (handlePlaceMarkerClick) {
+            handlePlaceMarkerClick(place);
+            return;
+          }
+          window.dispatchEvent(
+            new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
+              detail: { placeId: place.id },
+            }),
+          );
+        },
+      );
       const overlay = new maps.CustomOverlay({
         map: mapInstance,
         position,
         content,
         xAnchor: 0.5,
-        yAnchor: 1,
+        yAnchor: routeMarkerLabel ? 0.5 : 1,
         zIndex: isSelectedPlace ? 15 : 10,
       });
 
@@ -595,11 +651,11 @@ export function KakaoMapView({
     return () => {
       clearMarkers();
     };
-  }, [loadState, markerItems]);
+  }, [loadState, markerItems, markerLabelByPlaceId]);
 
   return (
     <div className={cn("bg-muted relative h-full w-full", className)}>
-      <div ref={mapContainerRef} className="relative z-0 h-full w-full" />
+      <div ref={mapContainerRef} className="relative z-0 h-full w-full touch-auto" />
 
       {hasMapKey && loadState === "loading" ? (
         <div className="bg-background/30 pointer-events-none absolute inset-0" aria-hidden />
@@ -645,16 +701,62 @@ function isFiniteCoordinate(coordinate: MapCoordinate): boolean {
   return Number.isFinite(coordinate.latitude) && Number.isFinite(coordinate.longitude);
 }
 
+function createViewportRequestSignature({
+  center,
+  fitBoundsCoordinates,
+  fitBoundsPadding,
+  fitBoundsPlaces,
+  geocodeKeyword,
+  level,
+  viewportKey,
+}: {
+  center: MapCoordinate;
+  fitBoundsCoordinates: MapCoordinate[];
+  fitBoundsPadding?: Partial<FitBoundsPadding>;
+  fitBoundsPlaces: MapCoordinate[];
+  geocodeKeyword: string;
+  level: number;
+  viewportKey: string;
+}) {
+  const shouldFitCoordinateBounds = fitBoundsCoordinates.length > 0;
+  const fitBoundsTargets = shouldFitCoordinateBounds ? fitBoundsCoordinates : fitBoundsPlaces;
+  const targetSignature = fitBoundsTargets
+    .map((coordinate) => `${coordinate.latitude.toFixed(7)},${coordinate.longitude.toFixed(7)}`)
+    .join("|");
+  const paddingSignature = [
+    fitBoundsPadding?.top ?? "",
+    fitBoundsPadding?.right ?? "",
+    fitBoundsPadding?.bottom ?? "",
+    fitBoundsPadding?.left ?? "",
+  ].join(",");
+
+  return [
+    viewportKey,
+    level,
+    center.latitude.toFixed(7),
+    center.longitude.toFixed(7),
+    geocodeKeyword.trim(),
+    shouldFitCoordinateBounds ? "coordinates" : "places",
+    targetSignature,
+    paddingSignature,
+  ].join(";");
+}
+
 function buildPlaceMarkerItems(
   places: SavedPlace[],
   selectedPlaceId: string | null,
   mapLevel: number,
+  disableClustering = false,
 ): PlaceMarkerItem[] {
   const finitePlaces = places.filter((place) => isFiniteCoordinate(place));
   const selectedPlaces = finitePlaces.filter((place) => place.id === selectedPlaceId);
   const clusterablePlaces = finitePlaces.filter((place) => place.id !== selectedPlaceId);
 
-  if (mapLevel <= CLUSTER_DETAIL_LEVEL || clusterablePlaces.length < CLUSTER_MIN_SIZE) {
+  if (
+    disableClustering ||
+    mapLevel <= CLUSTER_DETAIL_LEVEL ||
+    clusterablePlaces.length < CLUSTER_MIN_SIZE
+  ) {
     return finitePlaces.map((place) => ({
       type: "place",
       place,
@@ -743,42 +845,57 @@ function degreesToRadians(degrees: number): number {
 function createPlaceMarkerOverlayElement(
   place: SavedPlace,
   selected: boolean,
+  label: string | undefined,
   onClick: (element: HTMLElement) => void,
 ): HTMLElement {
   const button = document.createElement("button");
-  const defaultImage = document.createElement("img");
-  const selectedImage = document.createElement("img");
   const categoryBadge = createPlaceMarkerCategoryBadge(place);
 
   button.type = "button";
   button.className = "map-place-marker";
   button.setAttribute("aria-label", place.name);
 
-  defaultImage.src = "/assets/map-marker.svg";
-  defaultImage.alt = "";
-  defaultImage.draggable = false;
-  defaultImage.className = "map-place-marker__image map-place-marker__image--default";
-
-  selectedImage.src = "/assets/map-marker-selected.png";
-  selectedImage.alt = "";
-  selectedImage.draggable = false;
-  selectedImage.className = "map-place-marker__image map-place-marker__image--selected";
-
-  if (categoryBadge) {
-    button.append(defaultImage, selectedImage, categoryBadge);
+  if (label) {
+    const nameElement = document.createElement("span");
+    const labelElement = document.createElement("span");
+    nameElement.className = "map-place-marker__route-name";
+    nameElement.textContent = place.name;
+    labelElement.className = "map-place-marker__route-label";
+    labelElement.textContent = label;
+    button.classList.add("map-place-marker--numbered");
+    button.append(nameElement, labelElement);
   } else {
-    button.append(defaultImage, selectedImage);
+    const defaultImage = document.createElement("img");
+    const selectedImage = document.createElement("img");
+
+    defaultImage.src = "/assets/map-marker.svg";
+    defaultImage.alt = "";
+    defaultImage.draggable = false;
+    defaultImage.className = "map-place-marker__image map-place-marker__image--default";
+
+    selectedImage.src = "/assets/map-marker-selected.png";
+    selectedImage.alt = "";
+    selectedImage.draggable = false;
+    selectedImage.className = "map-place-marker__image map-place-marker__image--selected";
+
+    if (categoryBadge) {
+      button.append(defaultImage, selectedImage, categoryBadge);
+    } else {
+      button.append(defaultImage, selectedImage);
+    }
   }
   if (selected) {
     requestAnimationFrame(() => {
       button.classList.add("map-place-marker--selected");
     });
   }
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    onClick(button);
-  });
+  if (!label) {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onClick(button);
+    });
+  }
 
   return button;
 }

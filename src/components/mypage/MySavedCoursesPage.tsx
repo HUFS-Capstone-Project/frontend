@@ -1,4 +1,4 @@
-import { AlertCircle, Check, ChevronDown, Pin } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, Pin, Route } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
@@ -14,6 +14,7 @@ import {
 } from "@/components/map/chip-style";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import {
+  getSavedCourseRouteMapData,
   mapPlacesFromSavedCourses,
   savedCourseToPlannerStops,
 } from "@/components/mypage/saved-course-planner-map";
@@ -32,6 +33,13 @@ const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
+
+const COURSE_ROUTE_FIT_BOUNDS_PADDING = {
+  top: 88,
+  right: 32,
+  bottom: 260,
+  left: 32,
+} as const;
 
 type CourseFilter = "all" | "room" | "date";
 type FilterPopup = Exclude<CourseFilter, "all"> | null;
@@ -80,6 +88,8 @@ export function MySavedCoursesPage({
   const [openPopup, setOpenPopup] = useState<FilterPopup>(null);
   const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
+  const [routeViewportKey, setRouteViewportKey] = useState(0);
 
   const roomChipApplied = selectedRoomIds.length > 0;
   const dateChipApplied = selectedDate !== null;
@@ -149,6 +159,13 @@ export function MySavedCoursesPage({
       ? mapPlacesFromSavedCourses([selectedCourse], savedPlaces)
       : mapPlacesFromSavedCourses(visibleCourses, savedPlaces);
   }, [savedPlaces, selectedCourse, visibleCourses]);
+  const selectedCourseRouteMapData = useMemo(
+    () =>
+      selectedCourse
+        ? getSavedCourseRouteMapData(selectedCourse, savedPlaces)
+        : { places: [], routeCoordinates: [], markerLabelByPlaceId: {} },
+    [savedPlaces, selectedCourse],
+  );
 
   const mapCenter = useMemo(() => {
     if (detailOpen && selectedPlaceId) {
@@ -167,6 +184,12 @@ export function MySavedCoursesPage({
     setOpenPopup(null);
     setSelectedRoomIds([]);
     setSelectedDate(null);
+  };
+
+  const handleSelectCourse = (course: SavedCourse) => {
+    setIsCourseSheetExpanded(false);
+    setRouteViewportKey((current) => current + 1);
+    onSelectCourse(course);
   };
 
   const handleToggleRoom = (roomId: string) => {
@@ -201,6 +224,11 @@ export function MySavedCoursesPage({
     onBack();
   };
 
+  const handleShowRoute = () => {
+    setIsCourseSheetExpanded(false);
+    setRouteViewportKey((current) => current + 1);
+  };
+
   return (
     <div
       className={cn(
@@ -215,6 +243,19 @@ export function MySavedCoursesPage({
               appKey={KAKAO_MAP_APP_KEY}
               places={mapPins}
               center={mapPins.length > 0 ? mapCenter : MAP_INITIAL_CENTER}
+              fitBoundsCoordinates={
+                selectedCourse ? selectedCourseRouteMapData.routeCoordinates : []
+              }
+              fitBoundsPadding={selectedCourse ? COURSE_ROUTE_FIT_BOUNDS_PADDING : undefined}
+              routeCoordinates={selectedCourse ? selectedCourseRouteMapData.routeCoordinates : []}
+              markerLabelByPlaceId={
+                selectedCourse ? selectedCourseRouteMapData.markerLabelByPlaceId : {}
+              }
+              viewportKey={
+                selectedCourse
+                  ? `saved-course-route-${selectedCourse.id}-${routeViewportKey}`
+                  : "my-courses"
+              }
               className="h-full w-full"
             />
           </Suspense>
@@ -222,8 +263,16 @@ export function MySavedCoursesPage({
       ) : null}
 
       <ListTopBar
-        title="저장된 데이트 코스"
-        trailing={`${formatCount(totalCourseCount)}개`}
+        title={
+          selectedCourse
+            ? (selectedCourse.savedFromRoomName ?? "저장된 데이트 코스")
+            : "저장된 데이트 코스"
+        }
+        trailing={
+          selectedCourse
+            ? `${selectedCourseRouteMapData.places.length}개 장소`
+            : `${formatCount(totalCourseCount)}개`
+        }
         variant={overlayMapOpen ? "overlay" : "sticky"}
         backLabel={
           detailOpen
@@ -431,6 +480,23 @@ export function MySavedCoursesPage({
         ) : null}
       </ListTopBar>
 
+      {selectedCourse ? (
+        <div className="pointer-events-none absolute top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+          <button
+            type="button"
+            onClick={handleShowRoute}
+            className={cn(
+              MAP_CHIP_BASE_CLASS,
+              MAP_CHIP_UNSELECTED_CLASS,
+              "hover:bg-muted/70 active:bg-muted pointer-events-auto h-9 px-3 font-semibold transition-colors",
+            )}
+          >
+            <Route className="size-3.5" aria-hidden />
+            경로 보기
+          </button>
+        </div>
+      ) : null}
+
       {!overlayMapOpen ? (
         <div
           ref={listScrollRef}
@@ -439,7 +505,7 @@ export function MySavedCoursesPage({
           {visibleCourses.length > 0 ? (
             <div className="space-y-2 pb-2">
               {visibleCourses.map((course) => (
-                <SavedCourseCard key={course.id} course={course} onSelect={onSelectCourse} />
+                <SavedCourseCard key={course.id} course={course} onSelect={handleSelectCourse} />
               ))}
               <div ref={loadMoreCoursesRef} className="h-1" aria-hidden />
               {isFetchingNextPage ? (
@@ -461,7 +527,19 @@ export function MySavedCoursesPage({
         </div>
       ) : null}
 
-      <CoursePlannerBottomSheet open={Boolean(selectedCourse)} onClose={onCloseCourseSheet}>
+      <CoursePlannerBottomSheet
+        open={Boolean(selectedCourse)}
+        onClose={onCloseCourseSheet}
+        className="pointer-events-none"
+        overlayClassName="pointer-events-none bg-transparent"
+        panelClassName={cn(
+          "pointer-events-auto",
+          !isCourseSheetExpanded && "h-[24dvh] min-h-[9.5rem] max-h-[12rem]",
+        )}
+        contentClassName={!isCourseSheetExpanded ? "h-full overflow-hidden!" : undefined}
+        onHandleClick={() => setIsCourseSheetExpanded((current) => !current)}
+        onDragDismiss={() => setIsCourseSheetExpanded(false)}
+      >
         {selectedCourse ? (
           <CoursePlaceInfoPanel
             hideNewCourseSaveButton
@@ -470,6 +548,8 @@ export function MySavedCoursesPage({
             stops={savedCourseToPlannerStops(selectedCourse, savedPlaces)}
             onBack={onCloseCourseSheet}
             onSave={(payload) => onPersistCourse(selectedCourse.id, payload)}
+            collapsed={!isCourseSheetExpanded}
+            onExpand={() => setIsCourseSheetExpanded(true)}
           />
         ) : null}
       </CoursePlannerBottomSheet>

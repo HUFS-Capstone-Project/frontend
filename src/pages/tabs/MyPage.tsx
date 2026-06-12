@@ -250,14 +250,16 @@ export default function MyPage() {
                 openPlaceDetail(place.id);
               }}
             />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
-              <BottomNavToast message={toastMessage} placement={toastPlacement} />
-              <BottomNavigationBar
-                activeId="mypage"
-                onSelect={handleSelectBottomNav}
-                className="border-border/40 bg-card"
-              />
-            </div>
+            {savedCourseSheet.kind !== "detail" ? (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+                <BottomNavToast message={toastMessage} placement={toastPlacement} />
+                <BottomNavigationBar
+                  activeId="mypage"
+                  onSelect={handleSelectBottomNav}
+                  className="border-border/40 bg-card"
+                />
+              </div>
+            ) : null}
             <PlaceDetailSheet
               savedPlaces={places}
               onSaveMemo={handleSavePlaceMemo}

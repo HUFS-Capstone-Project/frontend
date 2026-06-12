@@ -133,7 +133,12 @@ export default function RoomMainPage() {
 
   const handleRoomNavigate = useCallback(
     (row: RoomListRow) => {
-      selectRoom({ id: row.id, name: row.displayName, memberCount: row.memberCount });
+      selectRoom({
+        id: row.id,
+        name: row.displayName,
+        avatarSeed: row.avatarSeed,
+        memberCount: row.memberCount,
+      });
       navigate(APP_ROUTES.map);
     },
     [navigate, selectRoom],
