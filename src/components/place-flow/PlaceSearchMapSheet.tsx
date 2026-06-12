@@ -17,6 +17,7 @@ import {
   PROMPT_FLOW_ALERT_IN_SCROLL_CLASS,
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { cn } from "@/lib/utils";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import type { LinkSourceType } from "@/shared/lib/link-source-type";
@@ -39,7 +40,9 @@ type PlaceSearchMapSheetProps = {
   selectedPlaceId: string | null;
   searchResults: SavedPlace[];
   isSearching?: boolean;
+  isFetchingNextSearchPage?: boolean;
   isSearchError?: boolean;
+  hasNextSearchPage?: boolean;
   showEmptyResult?: boolean;
   saveError?: string | null;
   confirmLabel?: string;
@@ -51,6 +54,7 @@ type PlaceSearchMapSheetProps = {
   mapFallbackCenter?: MapCoordinate;
   onKeywordChange: (nextKeyword: string) => void;
   onSubmitSearch: () => void;
+  onLoadMoreSearchResults?: () => void;
   onSelectPlace: (placeId: string) => void;
   onClearSelectedPlace?: () => void;
   onCancel: () => void;
@@ -68,7 +72,9 @@ export function PlaceSearchMapSheet({
   selectedPlaceId,
   searchResults,
   isSearching = false,
+  isFetchingNextSearchPage = false,
   isSearchError = false,
+  hasNextSearchPage = false,
   showEmptyResult = true,
   saveError = null,
   confirmLabel = "확인",
@@ -80,6 +86,7 @@ export function PlaceSearchMapSheet({
   mapFallbackCenter = MAP_INITIAL_CENTER,
   onKeywordChange,
   onSubmitSearch,
+  onLoadMoreSearchResults,
   onSelectPlace,
   onClearSelectedPlace,
   onCancel,
@@ -224,7 +231,9 @@ export function PlaceSearchMapSheet({
             searchResults={searchResults}
             selectedPlaceId={selectedPlaceId}
             isSearching={isSearching}
+            isFetchingNextSearchPage={isFetchingNextSearchPage}
             isSearchError={isSearchError}
+            hasNextSearchPage={hasNextSearchPage}
             showEmptyResult={showEmptyResult}
             saveError={saveError}
             canConfirm={canConfirm}
@@ -234,6 +243,7 @@ export function PlaceSearchMapSheet({
             inputRef={searchInputRef}
             onKeywordChange={handleKeywordChange}
             onSubmitSearch={onSubmitSearch}
+            onLoadMoreSearchResults={onLoadMoreSearchResults}
             onSelectPlace={handleSelectPlace}
             onBack={handleBack}
             onConfirm={onConfirm}
@@ -359,7 +369,9 @@ function SearchSheetContent({
   searchResults,
   selectedPlaceId,
   isSearching,
+  isFetchingNextSearchPage,
   isSearchError,
+  hasNextSearchPage,
   showEmptyResult,
   saveError,
   canConfirm,
@@ -369,6 +381,7 @@ function SearchSheetContent({
   inputRef,
   onKeywordChange,
   onSubmitSearch,
+  onLoadMoreSearchResults,
   onSelectPlace,
   onBack,
   onConfirm,
@@ -378,7 +391,9 @@ function SearchSheetContent({
   searchResults: SavedPlace[];
   selectedPlaceId: string | null;
   isSearching: boolean;
+  isFetchingNextSearchPage: boolean;
   isSearchError: boolean;
+  hasNextSearchPage: boolean;
   showEmptyResult: boolean;
   saveError: string | null;
   canConfirm: boolean;
@@ -388,10 +403,20 @@ function SearchSheetContent({
   inputRef: RefObject<HTMLInputElement | null>;
   onKeywordChange: (nextKeyword: string) => void;
   onSubmitSearch: () => void;
+  onLoadMoreSearchResults?: () => void;
   onSelectPlace: (placeId: string) => void;
   onBack: () => void;
   onConfirm: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useInfiniteScrollTrigger({
+    enabled: hasNextSearchPage && !isSearching && !isFetchingNextSearchPage,
+    rootRef: scrollRef,
+    onLoadMore: () => {
+      onLoadMoreSearchResults?.();
+    },
+  });
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <header className="shrink-0 px-5 pt-3 pb-4">
@@ -418,7 +443,7 @@ function SearchSheetContent({
         </div>
       </header>
 
-      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+      <div ref={scrollRef} className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
         {trimmedKeyword ? (
           <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
             {searchResults.length === 0 && !isSearching && showEmptyResult ? (
@@ -433,10 +458,11 @@ function SearchSheetContent({
                 />
               ))
             )}
+            <div ref={loadMoreRef} className="h-1" aria-hidden />
           </ul>
         ) : null}
 
-        {isSearching ? (
+        {isSearching || isFetchingNextSearchPage ? (
           <div className="flex justify-center px-5 py-8">
             <BrandMarkerLoader />
           </div>

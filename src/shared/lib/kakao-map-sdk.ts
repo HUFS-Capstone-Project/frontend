@@ -25,6 +25,7 @@ export type KakaoCustomOverlay = {
 export type KakaoMapInstance = {
   setCenter: (position: KakaoLatLng) => void;
   panTo: (position: KakaoLatLng) => void;
+  getBounds: () => KakaoLatLngBounds;
   setBounds: (
     bounds: KakaoLatLngBounds,
     paddingTop?: number,
@@ -40,6 +41,8 @@ export type KakaoMapInstance = {
 
 export type KakaoLatLngBounds = {
   extend: (position: KakaoLatLng) => void;
+  getSouthWest: () => KakaoLatLng;
+  getNorthEast: () => KakaoLatLng;
 };
 
 export type KakaoGeocodeResult = {

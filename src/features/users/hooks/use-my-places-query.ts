@@ -1,4 +1,8 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+} from "@tanstack/react-query";
 
 import { useAuthStore } from "@/store/auth-store";
 
@@ -18,8 +22,14 @@ type UseMyPlacesQueryOptions = {
   params?: UserPlaceListParams;
   enabled?: boolean;
   queryOptions?: Omit<
-    UseQueryOptions<UserPlaceListResponse, unknown, UserPlaceListResponse, MyPlacesQueryKey>,
-    "queryKey" | "queryFn" | "enabled"
+    UseInfiniteQueryOptions<
+      UserPlaceListResponse,
+      Error,
+      InfiniteData<UserPlaceListResponse, string | null>,
+      MyPlacesQueryKey,
+      string | null
+    >,
+    "queryKey" | "queryFn" | "enabled" | "initialPageParam" | "getNextPageParam"
   >;
 };
 
@@ -33,8 +43,20 @@ export function normalizeUserPlaceListParams(
     tagCode: params.tagCode?.trim() ?? "",
     sidoCode: params.sidoCode?.trim() ?? "",
     sigunguCode: params.sigunguCode?.trim() ?? "",
-    page: params.page ?? 0,
-    size: params.size ?? params.limit ?? DEFAULT_MY_PLACE_LIMIT,
+    limit: params.limit ?? DEFAULT_MY_PLACE_LIMIT,
+    cursor: params.cursor?.trim() || null,
+  };
+}
+
+function toQueryKeyParams(params: NormalizedUserPlaceListParams) {
+  return {
+    keyword: params.keyword,
+    category: params.category,
+    categoryCode: params.categoryCode,
+    tagCode: params.tagCode,
+    sidoCode: params.sidoCode,
+    sigunguCode: params.sigunguCode,
+    limit: params.limit,
   };
 }
 
@@ -43,9 +65,21 @@ export function useMyPlacesQuery(options?: UseMyPlacesQueryOptions) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const normalizedParams = normalizeUserPlaceListParams(options?.params);
 
-  return useQuery({
-    queryKey: userQueryKeys.myPlaces(normalizedParams),
-    queryFn: () => usersApi.getMyPlaces(normalizedParams),
+  return useInfiniteQuery<
+    UserPlaceListResponse,
+    Error,
+    InfiniteData<UserPlaceListResponse, string | null>,
+    MyPlacesQueryKey,
+    string | null
+  >({
+    queryKey: userQueryKeys.myPlaces(toQueryKeyParams(normalizedParams)),
+    queryFn: ({ pageParam }) =>
+      usersApi.getMyPlaces({
+        ...normalizedParams,
+        cursor: pageParam,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor : undefined),
     enabled: (options?.enabled ?? true) && isLoggedIn && Boolean(accessToken),
     ...(options?.queryOptions ?? {}),
   });

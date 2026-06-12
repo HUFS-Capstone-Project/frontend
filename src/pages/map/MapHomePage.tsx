@@ -4,20 +4,27 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
+import type { KakaoMapViewport } from "@/components/map/KakaoMapView";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
 import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
 import {
-  buildMapSearchSuggestions,
   findMapLocationMatchedPlaces,
   findMapSearchCenter,
   findMapSearchMatchedPlaces,
+  includesMapSearchText,
   isMapLocationSearch,
 } from "@/features/map/utils/map-search";
 import { useRoomMembersQuery } from "@/features/room";
-import { roomPlaceToSavedPlace, useAllRoomPlaces } from "@/features/room-places";
+import type { RoomPlaceMapBoundsParams } from "@/features/room-places";
+import {
+  roomPlaceMapPinToSavedPlace,
+  roomPlaceToSavedPlace,
+  useRoomPlaceMapPins,
+  useRoomPlaces,
+} from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { MAP_INITIAL_CENTER, MAP_KOREA_BOUNDS, MAP_SEARCH_PLACEHOLDER } from "@/shared/config/map";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
@@ -74,6 +81,8 @@ export function MapHomePageContent({
   const [selectedSearchPlaceId, setSelectedSearchPlaceId] = useState<string | null>(null);
   const [isSearchSuggestionDismissed, setIsSearchSuggestionDismissed] = useState(false);
   const [mapViewport, setMapViewport] = useState<MapViewport>(() => createKoreaMapViewport());
+  const [mapBounds, setMapBounds] = useState<RoomPlaceMapBoundsParams | null>(null);
+  const [debouncedSearchInput, setDebouncedSearchInput] = useState("");
   const searchHistoryPushedRef = useRef(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
   const selectedMemberId =
@@ -81,15 +90,35 @@ export function MapHomePageContent({
       ? selectedMemberFilter.userId
       : null;
   const roomMembersQuery = useRoomMembersQuery(selectedRoom?.id ?? null);
-  const roomPlacesQuery = useAllRoomPlaces({
+  const roomPlaceMapPinsQuery = useRoomPlaceMapPins({
     roomId: selectedRoom?.id ?? null,
-    params: { createdBy: selectedMemberId },
+    bounds: mapBounds ? { ...mapBounds, createdBy: selectedMemberId } : null,
   });
-  const savedPlaces = useMemo(
-    () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
-    [roomPlacesQuery.data?.items],
+  const trimmedSearchInput = searchInput.trim();
+  const searchKeyword = debouncedSearchInput.trim();
+  const roomPlaceSearchQuery = useRoomPlaces({
+    roomId: selectedRoom?.id ?? null,
+    params: {
+      keyword: searchKeyword,
+      limit: 20,
+      createdBy: selectedMemberId,
+    },
+    enabled: searchKeyword.length > 0 && !isSearchSuggestionDismissed,
+  });
+  const mapPinPlaces = useMemo(
+    () => (roomPlaceMapPinsQuery.data?.items ?? []).map(roomPlaceMapPinToSavedPlace),
+    [roomPlaceMapPinsQuery.data?.items],
   );
-  const places = savedPlaces;
+  const searchedPlaces = useMemo(
+    () =>
+      (roomPlaceSearchQuery.data?.pages ?? []).flatMap((page) =>
+        page.items.map(roomPlaceToSavedPlace),
+      ),
+    [roomPlaceSearchQuery.data?.pages],
+  );
+  const shouldUseSearchPlacesOnMap =
+    trimmedSearchInput.length > 0 && isSearchSuggestionDismissed && searchedPlaces.length > 0;
+  const places = shouldUseSearchPlacesOnMap ? searchedPlaces : mapPinPlaces;
   const {
     categories,
     categoryNameByCode,
@@ -130,18 +159,24 @@ export function MapHomePageContent({
     [roomMembersQuery.data],
   );
   const searchSuggestions = useMemo(
-    () => buildMapSearchSuggestions(places, searchInput),
-    [places, searchInput],
+    () =>
+      searchedPlaces.map((place) => ({
+        place,
+        matchType: includesMapSearchText(place.name, searchKeyword)
+          ? ("name" as const)
+          : ("address" as const),
+      })),
+    [searchedPlaces, searchKeyword],
   );
-  const isSearchSuggestionsOpen = searchInput.trim().length > 0 && !isSearchSuggestionDismissed;
+  const isSearchSuggestionsOpen = trimmedSearchInput.length > 0 && !isSearchSuggestionDismissed;
   const memberRequestedViewport = useMemo((): MapViewport | null => {
     if (
       !selectedRoom ||
       !memberViewportRequest ||
       memberViewportRequest.roomId !== selectedRoom.id ||
       memberViewportRequest.userId !== selectedMemberId ||
-      !roomPlacesQuery.isFetched ||
-      roomPlacesQuery.isFetching ||
+      !roomPlaceMapPinsQuery.isFetched ||
+      roomPlaceMapPinsQuery.isFetching ||
       filteredPlaces.length === 0
     ) {
       return null;
@@ -152,14 +187,14 @@ export function MapHomePageContent({
       fitBoundsPlaces: filteredPlaces,
       fitBoundsCoordinates: [],
       geocodeKeyword: "",
-      key: `${memberViewportRequest.key}-${roomPlacesQuery.dataUpdatedAt}-${filteredPlaces.length}`,
+      key: `${memberViewportRequest.key}-${roomPlaceMapPinsQuery.dataUpdatedAt}-${filteredPlaces.length}`,
     };
   }, [
     filteredPlaces,
     memberViewportRequest,
-    roomPlacesQuery.dataUpdatedAt,
-    roomPlacesQuery.isFetched,
-    roomPlacesQuery.isFetching,
+    roomPlaceMapPinsQuery.dataUpdatedAt,
+    roomPlaceMapPinsQuery.isFetched,
+    roomPlaceMapPinsQuery.isFetching,
     selectedMemberId,
     selectedRoom,
   ]);
@@ -181,6 +216,16 @@ export function MapHomePageContent({
     setSearchInput("");
     setAppliedKeyword("");
   }, [appliedKeyword, searchInput, selectedSearchPlaceId, setAppliedKeyword]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchInput(searchInput);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -233,18 +278,19 @@ export function MapHomePageContent({
     }
 
     const isLocationSearch = isMapLocationSearch(nextKeyword);
+    const searchSourcePlaces = searchedPlaces.length > 0 ? searchedPlaces : places;
     const matchedPlaces = isLocationSearch
-      ? findMapLocationMatchedPlaces(places, nextKeyword)
-      : findMapSearchMatchedPlaces(places, nextKeyword);
+      ? findMapLocationMatchedPlaces(searchSourcePlaces, nextKeyword)
+      : findMapSearchMatchedPlaces(searchSourcePlaces, nextKeyword);
     const shouldUseKakaoSearch = matchedPlaces.length === 0;
     const nextCenter = isLocationSearch
-      ? findMapSearchCenter(places, nextKeyword, mapViewport.center)
+      ? findMapSearchCenter(searchSourcePlaces, nextKeyword, mapViewport.center)
       : matchedPlaces.length === 1
         ? {
             latitude: matchedPlaces[0].latitude,
             longitude: matchedPlaces[0].longitude,
           }
-        : findMapSearchCenter(places, nextKeyword, effectiveMapViewport.center);
+        : findMapSearchCenter(searchSourcePlaces, nextKeyword, effectiveMapViewport.center);
 
     setAppliedKeyword(isLocationSearch || shouldUseKakaoSearch ? "" : nextKeyword);
     setMapViewport({
@@ -261,6 +307,7 @@ export function MapHomePageContent({
     places,
     pushSearchHistory,
     searchInput,
+    searchedPlaces,
     setAppliedKeyword,
   ]);
 
@@ -279,7 +326,9 @@ export function MapHomePageContent({
 
   const handleSelectSearchPlace = useCallback(
     (placeId: string) => {
-      const place = places.find((item) => item.id === placeId);
+      const place =
+        searchedPlaces.find((item) => item.id === placeId) ??
+        places.find((item) => item.id === placeId);
       if (!place) {
         return;
       }
@@ -303,7 +352,7 @@ export function MapHomePageContent({
         }),
       );
     },
-    [places, pushSearchHistory, setAppliedKeyword],
+    [places, pushSearchHistory, searchedPlaces, setAppliedKeyword],
   );
 
   const handlePlaceMarkerClick = useCallback((place: SavedPlace) => {
@@ -319,6 +368,10 @@ export function MapHomePageContent({
     setIsSearchSuggestionDismissed(true);
     handleCloseTagPanel();
   }, [clearSearchKeepViewport, handleCloseTagPanel]);
+
+  const handleMapViewportIdle = useCallback((viewport: KakaoMapViewport) => {
+    setMapBounds(roundMapBounds(viewport));
+  }, []);
 
   const handleOpenPlaceList = useCallback(() => {
     if (!selectedRoom) {
@@ -370,6 +423,7 @@ export function MapHomePageContent({
             showCurrentLocationButton
             onMapClick={handleMapClick}
             onPlaceMarkerClick={handlePlaceMarkerClick}
+            onViewportIdle={handleMapViewportIdle}
             className="absolute inset-0"
           />
         </Suspense>
@@ -380,8 +434,13 @@ export function MapHomePageContent({
             keyword={searchInput}
             searchSuggestions={searchSuggestions}
             isSearchSuggestionsOpen={isSearchSuggestionsOpen}
+            isFetchingNextSearchPage={roomPlaceSearchQuery.isFetchingNextPage}
+            hasNextSearchPage={roomPlaceSearchQuery.hasNextPage}
             onKeywordChange={handleKeywordChange}
             onSubmitSearch={handleSubmitSearch}
+            onLoadMoreSearchResults={() => {
+              void roomPlaceSearchQuery.fetchNextPage();
+            }}
             onSelectSearchPlace={handleSelectSearchPlace}
             categories={categories}
             categoryNameByCode={categoryNameByCode}
@@ -447,4 +506,18 @@ function createKoreaMapViewport(): MapViewport {
     geocodeKeyword: "",
     key: "korea",
   };
+}
+
+function roundMapBounds(viewport: KakaoMapViewport): RoomPlaceMapBoundsParams {
+  return {
+    swLat: roundCoordinate(viewport.swLat),
+    swLng: roundCoordinate(viewport.swLng),
+    neLat: roundCoordinate(viewport.neLat),
+    neLng: roundCoordinate(viewport.neLng),
+    zoom: viewport.zoom,
+  };
+}
+
+function roundCoordinate(value: number): number {
+  return Math.round(value * 100_000) / 100_000;
 }

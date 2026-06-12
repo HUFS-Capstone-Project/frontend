@@ -27,6 +27,15 @@ export type KakaoMapViewProps = {
   showCurrentLocationButton?: boolean;
   onMapClick?: () => void;
   onPlaceMarkerClick?: (place: SavedPlace) => void;
+  onViewportIdle?: (viewport: KakaoMapViewport) => void;
+};
+
+export type KakaoMapViewport = {
+  swLat: number;
+  swLng: number;
+  neLat: number;
+  neLng: number;
+  zoom: number;
 };
 
 type MapLoadState = "loading" | "ready" | "error";
@@ -89,6 +98,7 @@ export function KakaoMapView({
   showCurrentLocationButton = false,
   onMapClick,
   onPlaceMarkerClick,
+  onViewportIdle,
 }: KakaoMapViewProps) {
   const mapKey = appKey?.trim() ?? "";
   const hasMapKey = mapKey.length > 0;
@@ -101,6 +111,7 @@ export function KakaoMapView({
   const clusterOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
   const routePolylineRef = useRef<KakaoPolyline | null>(null);
   const onPlaceMarkerClickRef = useRef(onPlaceMarkerClick);
+  const onViewportIdleRef = useRef(onViewportIdle);
   const [loadState, setLoadState] = useState<MapLoadState>("loading");
   const [currentMapLevel, setCurrentMapLevel] = useState(level);
   const [isLocating, setIsLocating] = useState(false);
@@ -117,6 +128,10 @@ export function KakaoMapView({
   useEffect(() => {
     onPlaceMarkerClickRef.current = onPlaceMarkerClick;
   }, [onPlaceMarkerClick]);
+
+  useEffect(() => {
+    onViewportIdleRef.current = onViewportIdle;
+  }, [onViewportIdle]);
 
   const clearMarkers = () => {
     placeOverlayInstancesRef.current.forEach((overlay) => overlay.setMap(null));
@@ -417,6 +432,44 @@ export function KakaoMapView({
       maps.event.removeListener(mapInstance, "click", onMapClick);
     };
   }, [loadState, onMapClick]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || !mapRef.current || !mapsRef.current || !onViewportIdle) return;
+
+    const maps = mapsRef.current;
+    const mapInstance = mapRef.current;
+    let frameId: number | null = null;
+
+    const emitViewport = () => {
+      if (frameId != null) {
+        cancelAnimationFrame(frameId);
+      }
+
+      frameId = requestAnimationFrame(() => {
+        const bounds = mapInstance.getBounds();
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        onViewportIdleRef.current?.({
+          swLat: sw.getLat(),
+          swLng: sw.getLng(),
+          neLat: ne.getLat(),
+          neLng: ne.getLng(),
+          zoom: mapInstance.getLevel(),
+        });
+        frameId = null;
+      });
+    };
+
+    emitViewport();
+    maps.event.addListener(mapInstance, "idle", emitViewport);
+
+    return () => {
+      if (frameId != null) {
+        cancelAnimationFrame(frameId);
+      }
+      maps.event.removeListener(mapInstance, "idle", emitViewport);
+    };
+  }, [loadState, onViewportIdle]);
 
   const handleMoveToCurrentLocation = useCallback(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current || isLocating) {

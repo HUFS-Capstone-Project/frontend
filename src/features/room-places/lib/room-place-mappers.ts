@@ -1,6 +1,6 @@
 import type { SavedPlace } from "@/shared/types/map-home";
 
-import type { RoomPlace } from "../types/room-place.types";
+import type { RoomPlace, RoomPlaceMapPinDto } from "../types/room-place.types";
 
 export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
   return {
@@ -22,6 +22,21 @@ export function roomPlaceToSavedPlace(place: RoomPlace): SavedPlace {
     memos: place.memos,
     businessHours: place.businessHoursStatus === "SUCCEEDED" ? place.businessHours : null,
     createdAt: place.createdAt,
+  };
+}
+
+export function roomPlaceMapPinToSavedPlace(place: RoomPlaceMapPinDto): SavedPlace {
+  return {
+    id: String(place.roomPlaceId),
+    roomPlaceId: place.roomPlaceId,
+    name: place.name,
+    category: place.categoryCode,
+    categoryName: place.categoryName ?? null,
+    tagKeys: place.tagCode ? [place.tagCode] : undefined,
+    tagNames: place.tagName ? [place.tagName] : undefined,
+    latitude: toCoordinateNumber(place.latitude),
+    longitude: toCoordinateNumber(place.longitude),
+    address: "",
   };
 }
 

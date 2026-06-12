@@ -12,6 +12,5 @@ export type UserPlaceListQueryKeyParams = {
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;
-  page: number;
-  size: number;
+  limit: number;
 };

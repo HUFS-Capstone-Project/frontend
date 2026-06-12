@@ -29,5 +29,16 @@ export type PlaceCandidateParams = {
   region?: string;
   /** Kakao API 검색 필터용. 백엔드 query param은 `categoryGroupCode`로 보낸다. */
   kakaoCategoryGroupCode?: string;
+  page?: number;
   limit?: number;
+};
+
+export type PlaceCandidateSearchResponse = {
+  items: PlaceCandidate[];
+  page: number;
+  limit: number;
+  hasNext: boolean;
+  nextPage: number | null;
+  totalCount: number;
+  pageableCount: number;
 };

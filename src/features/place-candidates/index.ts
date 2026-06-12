@@ -11,4 +11,5 @@ export type {
   PlaceCandidateDisabledReason,
   PlaceCandidateDto,
   PlaceCandidateParams,
+  PlaceCandidateSearchResponse,
 } from "./types/place-candidate.types";

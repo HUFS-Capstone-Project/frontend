@@ -91,12 +91,12 @@ export type SavedRoomDateCourseItemResponse = {
   orderedCoordinates?: DateCourseCoordinateResponse[];
 };
 
-export type DateCourseListResponse<T> = {
+export type DateCourseCursorListResponse<T> = {
   items: T[];
-  page: number;
   limit: number;
-  totalElements: number;
-  totalPages: number;
+  totalCount: number;
+  nextCursor: string | null;
+  hasNext: boolean;
 };
 
 export type DateCourseDetailResponse = {
@@ -127,15 +127,21 @@ export type MySavedDateCourseItemResponse = {
 };
 
 export type DateCourseListParams = {
-  page?: number;
   limit?: number;
+  cursor?: string | null;
 };
 
-function toListQueryParams(params?: DateCourseListParams) {
-  return {
-    page: params?.page ?? 0,
+function toCursorListQueryParams(params?: DateCourseListParams) {
+  const queryParams: Record<string, string | number> = {
     limit: params?.limit ?? 20,
   };
+
+  const cursor = params?.cursor?.trim();
+  if (cursor) {
+    queryParams.cursor = cursor;
+  }
+
+  return queryParams;
 }
 
 function sortRegionFilterOptions(options: DateCourseRegionFilterOption[]) {
@@ -215,11 +221,11 @@ export const dateCourseApi = {
   listRoomDateCourses: async (
     roomId: string,
     params?: DateCourseListParams,
-  ): Promise<DateCourseListResponse<SavedRoomDateCourseItemResponse>> => {
+  ): Promise<DateCourseCursorListResponse<SavedRoomDateCourseItemResponse>> => {
     const response = await api.get<
-      CommonResponse<DateCourseListResponse<SavedRoomDateCourseItemResponse>>
+      CommonResponse<DateCourseCursorListResponse<SavedRoomDateCourseItemResponse>>
     >(API_PATHS.rooms.dateCourses(roomId), {
-      params: toListQueryParams(params),
+      params: toCursorListQueryParams(params),
     });
     return response.data.data;
   },
@@ -236,11 +242,11 @@ export const dateCourseApi = {
 
   listMyDateCourses: async (
     params?: DateCourseListParams,
-  ): Promise<DateCourseListResponse<MySavedDateCourseItemResponse>> => {
+  ): Promise<DateCourseCursorListResponse<MySavedDateCourseItemResponse>> => {
     const response = await api.get<
-      CommonResponse<DateCourseListResponse<MySavedDateCourseItemResponse>>
+      CommonResponse<DateCourseCursorListResponse<MySavedDateCourseItemResponse>>
     >(API_PATHS.users.dateCourses, {
-      params: toListQueryParams(params),
+      params: toCursorListQueryParams(params),
     });
     return response.data.data;
   },

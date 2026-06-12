@@ -14,8 +14,11 @@ export type MapSearchOverlayProps = MapFilterBarProps & {
   keyword: string;
   searchSuggestions: MapSearchSuggestion[];
   isSearchSuggestionsOpen: boolean;
+  isFetchingNextSearchPage?: boolean;
+  hasNextSearchPage?: boolean;
   onKeywordChange: (keyword: string) => void;
   onSubmitSearch: () => void;
+  onLoadMoreSearchResults?: () => void;
   onSelectSearchPlace: (placeId: string) => void;
 };
 
@@ -24,8 +27,11 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
   keyword,
   searchSuggestions,
   isSearchSuggestionsOpen,
+  isFetchingNextSearchPage = false,
+  hasNextSearchPage = false,
   onKeywordChange,
   onSubmitSearch,
+  onLoadMoreSearchResults,
   onSelectSearchPlace,
   onCloseTagPanel,
   isTagPanelOpen,
@@ -49,6 +55,9 @@ export const MapSearchOverlay = memo(function MapSearchOverlay({
         <MapSearchSuggestions
           open={isSearchSuggestionsOpen}
           suggestions={searchSuggestions}
+          isFetchingNextPage={isFetchingNextSearchPage}
+          hasNextPage={hasNextSearchPage}
+          onLoadMore={onLoadMoreSearchResults}
           onSelectPlace={onSelectSearchPlace}
         />
       </div>

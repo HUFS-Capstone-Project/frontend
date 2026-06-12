@@ -26,10 +26,10 @@ export const usersApi = {
 
 function toMyPlaceListQueryParams(params: NormalizedUserPlaceListParams) {
   const queryParams: Record<string, string | number> = {
-    page: params.page,
-    size: params.size,
+    limit: params.limit,
   };
 
+  if (params.cursor && params.cursor.trim().length > 0) queryParams.cursor = params.cursor.trim();
   if (params.keyword.length > 0) queryParams.keyword = params.keyword;
   if (params.category.length > 0) queryParams.category = params.category;
   if (params.categoryCode.length > 0) queryParams.categoryCode = params.categoryCode;

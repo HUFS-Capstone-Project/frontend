@@ -87,12 +87,15 @@ export function CoursePlaceInfoPanel({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
 
-    moveDraftStop(active.id, over.id);
-  }, [moveDraftStop]);
+      moveDraftStop(active.id, over.id);
+    },
+    [moveDraftStop],
+  );
 
   const handleStartEdit = () => {
     startEdit();
@@ -323,10 +326,7 @@ export function CoursePlaceInfoPanel({
         onConfirm={handleAddPlace}
       />
 
-      <CourseConflictModal
-        copy={conflictModalCopy}
-        onClose={() => setConflictModalCopy(null)}
-      />
+      <CourseConflictModal copy={conflictModalCopy} onClose={() => setConflictModalCopy(null)} />
     </section>
   );
 }

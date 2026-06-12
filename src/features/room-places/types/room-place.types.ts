@@ -10,9 +10,8 @@ export type RoomPlaceListParams = {
   sidoCode?: string;
   sigunguCode?: string;
   createdBy?: number | string | null;
-  page?: number;
-  size?: number;
   limit?: number;
+  cursor?: string | null;
 };
 
 export type NormalizedRoomPlaceListParams = {
@@ -22,8 +21,8 @@ export type NormalizedRoomPlaceListParams = {
   sidoCode: string;
   sigunguCode: string;
   createdBy: string;
-  page: number;
-  size: number;
+  limit: number;
+  cursor: string | null;
 };
 
 export type RoomPlaceBusinessHoursStatus = BusinessHoursStatus;
@@ -66,14 +65,40 @@ export type RoomPlace = RoomPlaceDto;
 
 export type RoomPlaceListResponse = {
   items: RoomPlaceDto[];
-  page: number;
   limit: number;
-  totalElements: number;
-  totalPages: number;
+  totalCount: number;
+  nextCursor: string | null;
+  hasNext: boolean;
 };
 
 export type RoomPlaceDetailResponse = RoomPlaceDto;
 
 export type UpdateRoomPlaceMemoRequest = {
   memo: string;
+};
+
+export type RoomPlaceMapBoundsParams = {
+  swLat: number;
+  swLng: number;
+  neLat: number;
+  neLng: number;
+  zoom: number;
+  createdBy?: number | string | null;
+};
+
+export type RoomPlaceMapPinDto = {
+  roomPlaceId: number;
+  name: string;
+  latitude: string | number | null;
+  longitude: string | number | null;
+  categoryCode: ServiceCategoryCode | string;
+  categoryName?: string | null;
+  tagCode?: string | null;
+  tagName?: string | null;
+};
+
+export type RoomPlaceMapResponse = {
+  items: RoomPlaceMapPinDto[];
+  limit: number;
+  truncated: boolean;
 };

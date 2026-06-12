@@ -17,6 +17,7 @@ import { SavedPlaceItem } from "@/components/mypage/SavedPlaceItem";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { PlaceListSavedCoursesPage } from "@/components/place-list/PlaceListSavedCoursesPage";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import {
@@ -36,6 +37,7 @@ import {
   useUpdateRoomPlaceMemo,
 } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
@@ -78,8 +80,7 @@ export default function PlaceListPage() {
     const hasSigungu = hasSido && selectedSigungu.code !== REGION_ALL_CODE;
 
     return {
-      page: 0,
-      size: 20,
+      limit: 20,
       ...(hasSido ? { sidoCode: selectedSido.code } : {}),
       ...(hasSigungu ? { sigunguCode: selectedSigungu.code } : {}),
     };
@@ -123,8 +124,9 @@ export default function PlaceListPage() {
   }, [roomDetailQuery.data, selectRoom, selectedRoom?.id]);
 
   const resolvedPlaces = useMemo(
-    () => (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace),
-    [roomPlacesQuery.data?.items],
+    () =>
+      (roomPlacesQuery.data?.pages ?? []).flatMap((page) => page.items.map(roomPlaceToSavedPlace)),
+    [roomPlacesQuery.data?.pages],
   );
 
   const {
@@ -252,6 +254,18 @@ export default function PlaceListPage() {
   usePlaceDetailOpenEvent(true);
 
   const filterChromeRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const loadMorePlacesRef = useInfiniteScrollTrigger({
+    enabled:
+      !detailOpen &&
+      roomPlacesQuery.hasNextPage &&
+      !roomPlacesQuery.isFetching &&
+      !roomPlacesQuery.isFetchingNextPage,
+    rootRef: listScrollRef,
+    onLoadMore: () => {
+      void roomPlacesQuery.fetchNextPage();
+    },
+  });
   usePointerDownOutside(filterChromeRef, isTagPanelOpen, closeTagPanel);
 
   const mapCenter = useMemo(() => {
@@ -307,15 +321,8 @@ export default function PlaceListPage() {
     setIsRegionPanelOpen(false);
   };
 
-  const shownCount = displayedPlaces.length;
-  const regionTotal = listPlacesBase.length;
-  const categoryTotal = categoryFilteredPlaces.length;
-  const displayedCountLabel =
-    shownCount === regionTotal && regionTotal === categoryTotal
-      ? `${formatCount(shownCount)}개`
-      : shownCount === regionTotal
-        ? `${formatCount(shownCount)}개 / 전체 ${formatCount(categoryTotal)}`
-        : `${formatCount(shownCount)}개 / 전체 ${formatCount(regionTotal)}`;
+  const totalPlaceCount = roomPlacesQuery.data?.pages[0]?.totalCount ?? displayedPlaces.length;
+  const displayedCountLabel = `${formatCount(totalPlaceCount)}개`;
   const roomName =
     selectedRoom?.id === effectiveRoomId ? selectedRoom.name : roomDetailQuery.data?.roomName;
   const pageTitle = roomName;
@@ -533,7 +540,10 @@ export default function PlaceListPage() {
       </CoursePlannerBottomSheet>
 
       {!detailOpen ? (
-        <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+        <div
+          ref={listScrollRef}
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+        >
           {displayedPlaces.length > 0 ? (
             <div className="space-y-2 pb-2" role="list" aria-label="장소 목록">
               {displayedPlaces.map((place) => (
@@ -553,6 +563,12 @@ export default function PlaceListPage() {
                   onSelect={(p) => openPlaceDetail(p.id)}
                 />
               ))}
+              <div ref={loadMorePlacesRef} className="h-1" aria-hidden />
+              {roomPlacesQuery.isFetchingNextPage ? (
+                <div className="flex justify-center px-5 py-6">
+                  <BrandMarkerLoader />
+                </div>
+              ) : null}
             </div>
           ) : (
             <EmptyState

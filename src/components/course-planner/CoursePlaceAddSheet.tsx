@@ -1,5 +1,5 @@
 import { AlertCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { EmptyState } from "@/components/common/EmptyState";
@@ -15,6 +15,7 @@ import {
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
 import { roomPlaceToSavedPlace, useRoomPlaces } from "@/features/room-places";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { cn } from "@/lib/utils";
 import type { SavedPlace } from "@/shared/types/map-home";
 import {
@@ -52,6 +53,18 @@ export function CoursePlaceAddSheet({
     open,
     roomId,
     excludedPlaceIds,
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const loadMorePlacesRef = useInfiniteScrollTrigger({
+    enabled:
+      open &&
+      roomPlacesQuery.hasNextPage &&
+      !roomPlacesQuery.isFetching &&
+      !roomPlacesQuery.isFetchingNextPage,
+    rootRef: scrollRef,
+    onLoadMore: () => {
+      void roomPlacesQuery.fetchNextPage();
+    },
   });
 
   const handleClose = () => {
@@ -95,7 +108,7 @@ export function CoursePlaceAddSheet({
           />
         </header>
 
-        <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
+        <div ref={scrollRef} className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-6 pb-3">
           {!roomId ? (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
@@ -120,6 +133,12 @@ export function CoursePlaceAddSheet({
                   onSelect={() => selectPlace(place.id)}
                 />
               ))}
+              <div ref={loadMorePlacesRef} className="h-1" aria-hidden />
+              {roomPlacesQuery.isFetchingNextPage ? (
+                <div className="flex justify-center px-5 py-8">
+                  <BrandMarkerLoader />
+                </div>
+              ) : null}
             </ul>
           ) : (
             <EmptyState
@@ -172,22 +191,23 @@ function useRoomPlacePicker({
     roomId,
     params: {
       keyword: submittedTrimmedKeyword,
-      page: 0,
       limit: 20,
     },
     enabled: open && Boolean(roomId),
   });
 
   const availablePlaces = useMemo(() => {
-    return (roomPlacesQuery.data?.items ?? []).map(roomPlaceToSavedPlace).filter((place) => {
-      const roomPlaceId = place.roomPlaceId ?? Number(place.id);
-      return (
-        Number.isInteger(roomPlaceId) &&
-        !excludedPlaceIdSet.has(String(roomPlaceId)) &&
-        !excludedPlaceIdSet.has(place.id)
-      );
-    });
-  }, [excludedPlaceIdSet, roomPlacesQuery.data?.items]);
+    return (roomPlacesQuery.data?.pages ?? [])
+      .flatMap((page) => page.items.map(roomPlaceToSavedPlace))
+      .filter((place) => {
+        const roomPlaceId = place.roomPlaceId ?? Number(place.id);
+        return (
+          Number.isInteger(roomPlaceId) &&
+          !excludedPlaceIdSet.has(String(roomPlaceId)) &&
+          !excludedPlaceIdSet.has(place.id)
+        );
+      });
+  }, [excludedPlaceIdSet, roomPlacesQuery.data?.pages]);
 
   const selectedPlace = availablePlaces.find((place) => place.id === selectedPlaceId) ?? null;
 

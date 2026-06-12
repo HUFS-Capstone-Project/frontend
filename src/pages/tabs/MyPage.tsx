@@ -52,8 +52,7 @@ const MY_PAGE_FADE_TRANSITION = {
 };
 
 const MY_PAGE_PLACES_QUERY_PARAMS = {
-  page: 0,
-  size: 100,
+  limit: 20,
 } as const;
 
 export default function MyPage() {
@@ -85,8 +84,11 @@ export default function MyPage() {
     enabled: view === "main" || view === "courses",
   });
   const apiCourses = useMemo(
-    () => (myDateCoursesQuery.data?.items ?? []).map(mapMySavedDateCourseToSavedCourse),
-    [myDateCoursesQuery.data?.items],
+    () =>
+      (myDateCoursesQuery.data?.pages ?? []).flatMap((page) =>
+        page.items.map(mapMySavedDateCourseToSavedCourse),
+      ),
+    [myDateCoursesQuery.data?.pages],
   );
   const coursesList = useMemo(() => {
     const roomById = new Map((roomsQuery.data ?? []).map((room) => [room.roomId, room]));
@@ -105,11 +107,13 @@ export default function MyPage() {
     });
   }, [apiCourses, courseOverrides, roomsQuery.data]);
   const apiPlaces = useMemo(
-    () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
-    [myPlacesQuery.data?.items],
+    () =>
+      (myPlacesQuery.data?.pages ?? []).flatMap((page) => page.items.map(userPlaceToSavedPlace)),
+    [myPlacesQuery.data?.pages],
   );
   const summaryPlaces = myPlacesQuery.data ? apiPlaces : places;
-  const summaryPlaceCount = myPlacesQuery.data?.totalElements ?? places.length;
+  const summaryPlaceCount = myPlacesQuery.data?.pages[0]?.totalCount ?? summaryPlaces.length;
+  const totalDateCourseCount = myDateCoursesQuery.data?.pages[0]?.totalCount ?? coursesList.length;
 
   const openPlaceDetail = usePlaceDetailStore((s) => s.openDetail);
   const closePlaceDetail = usePlaceDetailStore((s) => s.closeDetail);
@@ -269,7 +273,13 @@ export default function MyPage() {
           >
             <MySavedCoursesPage
               courses={coursesList}
+              totalCount={totalDateCourseCount}
               savedPlaces={places}
+              hasNextPage={myDateCoursesQuery.hasNextPage}
+              isFetchingNextPage={myDateCoursesQuery.isFetchingNextPage}
+              onLoadMore={() => {
+                void myDateCoursesQuery.fetchNextPage();
+              }}
               selectedCourse={savedCourseSheet.kind === "detail" ? savedCourseSheet.course : null}
               onSelectCourse={(course) => setSavedCourseSheet({ kind: "detail", course })}
               onCloseCourseSheet={() => setSavedCourseSheet({ kind: "closed" })}

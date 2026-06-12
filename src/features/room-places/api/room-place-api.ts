@@ -7,6 +7,8 @@ import type {
   NormalizedRoomPlaceListParams,
   RoomPlaceDetailResponse,
   RoomPlaceListResponse,
+  RoomPlaceMapBoundsParams,
+  RoomPlaceMapResponse,
   UpdateRoomPlaceMemoRequest,
 } from "../types/room-place.types";
 
@@ -28,6 +30,19 @@ export const roomPlaceApi = {
   getRoomPlace: async (roomId: string, roomPlaceId: number): Promise<RoomPlaceDetailResponse> => {
     const response = await api.get<CommonResponse<RoomPlaceDetailResponse>>(
       API_PATHS.rooms.place(roomId, roomPlaceId),
+    );
+    return response.data.data;
+  },
+
+  getRoomPlaceMapPins: async (
+    roomId: string,
+    params: RoomPlaceMapBoundsParams,
+  ): Promise<RoomPlaceMapResponse> => {
+    const response = await api.get<CommonResponse<RoomPlaceMapResponse>>(
+      API_PATHS.rooms.placesMap(roomId),
+      {
+        params,
+      },
     );
     return response.data.data;
   },
@@ -57,10 +72,12 @@ export const roomPlaceApi = {
 
 function toRoomPlaceListQueryParams(params: NormalizedRoomPlaceListParams) {
   const queryParams: Record<string, string | number> = {
-    page: params.page,
-    limit: params.size,
+    limit: params.limit,
   };
 
+  if (params.cursor && params.cursor.trim().length > 0) {
+    queryParams.cursor = params.cursor.trim();
+  }
   if (params.keyword.trim().length > 0) {
     queryParams.keyword = params.keyword.trim();
   }

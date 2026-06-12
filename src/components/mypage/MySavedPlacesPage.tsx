@@ -17,6 +17,7 @@ import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import { useMyPlacesQuery, userPlaceToSavedPlace } from "@/features/users";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import type { ServiceCategoryCode } from "@/shared/types/map-home";
@@ -75,14 +76,14 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   const myPlacesQuery = useMyPlacesQuery({
     params: {
       category: selectedApiCategory,
-      page: 0,
-      size: 100,
+      limit: 20,
     },
   });
 
   const apiPlaces = useMemo(
-    () => (myPlacesQuery.data?.items ?? []).map(userPlaceToSavedPlace),
-    [myPlacesQuery.data?.items],
+    () =>
+      (myPlacesQuery.data?.pages ?? []).flatMap((page) => page.items.map(userPlaceToSavedPlace)),
+    [myPlacesQuery.data?.pages],
   );
 
   const listPlaces = useMemo(() => {
@@ -133,6 +134,18 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   const closeDetail = usePlaceDetailStore((s) => s.closeDetail);
 
   const filterChromeRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const loadMorePlacesRef = useInfiniteScrollTrigger({
+    enabled:
+      !detailOpen &&
+      myPlacesQuery.hasNextPage &&
+      !myPlacesQuery.isFetching &&
+      !myPlacesQuery.isFetchingNextPage,
+    rootRef: listScrollRef,
+    onLoadMore: () => {
+      void myPlacesQuery.fetchNextPage();
+    },
+  });
   usePointerDownOutside(filterChromeRef, isTagPanelOpen, closeTagPanel);
 
   const mapCenter = useMemo(() => {
@@ -224,6 +237,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
     onBack();
   };
 
+  const totalPlaceCount = myPlacesQuery.data?.pages[0]?.totalCount ?? listPlaces.length;
   const displayedCountLabel =
     myPlacesQuery.isLoading && myPlacesQuery.data == null ? (
       <span
@@ -231,9 +245,9 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
         aria-label="나의 장소 개수 불러오는 중"
       />
     ) : myPlacesQuery.data != null ? (
-      `${formatCount(myPlacesQuery.data.totalElements)}개`
+      `${formatCount(totalPlaceCount)}개`
     ) : (
-      `${formatCount(listPlaces.length)}개`
+      `${formatCount(totalPlaceCount)}개`
     );
 
   return (
@@ -290,7 +304,10 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
       </ListTopBar>
 
       {!detailOpen ? (
-        <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+        <div
+          ref={listScrollRef}
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+        >
           {!myPlacesQuery.isLoading && !myPlacesQuery.isError && listPlaces.length > 0 ? (
             <div className="space-y-3 pb-2">
               {listPlaces.map((place) => (
@@ -310,6 +327,12 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
                   onSelect={onSelectPlace}
                 />
               ))}
+              <div ref={loadMorePlacesRef} className="h-1" aria-hidden />
+              {myPlacesQuery.isFetchingNextPage ? (
+                <div className="flex justify-center px-5 py-6">
+                  <span className="bg-muted/70 h-8 w-8 animate-pulse rounded-full" />
+                </div>
+              ) : null}
             </div>
           ) : (
             <EmptyState

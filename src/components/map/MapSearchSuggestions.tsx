@@ -1,7 +1,9 @@
 import { MapPin } from "lucide-react";
+import { useRef } from "react";
 
 import { renderMapPrimaryCategoryIcon } from "@/components/map/filters/map-category-icons";
 import type { MapSearchSuggestion } from "@/features/map/utils/map-search";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { cn } from "@/lib/utils";
 import type { SavedPlace } from "@/shared/types/map-home";
 
@@ -11,6 +13,9 @@ type MapSearchSuggestionsProps = {
   suggestions: MapSearchSuggestion[];
   open: boolean;
   className?: string;
+  isFetchingNextPage?: boolean;
+  hasNextPage?: boolean;
+  onLoadMore?: () => void;
   onSelectPlace: (placeId: string) => void;
 };
 
@@ -18,8 +23,20 @@ export function MapSearchSuggestions({
   suggestions,
   open,
   className,
+  isFetchingNextPage = false,
+  hasNextPage = false,
+  onLoadMore,
   onSelectPlace,
 }: MapSearchSuggestionsProps) {
+  const scrollRef = useRef<HTMLUListElement>(null);
+  const loadMoreRef = useInfiniteScrollTrigger<HTMLLIElement>({
+    enabled: open && hasNextPage && !isFetchingNextPage,
+    rootRef: scrollRef,
+    onLoadMore: () => {
+      onLoadMore?.();
+    },
+  });
+
   if (!open) {
     return null;
   }
@@ -28,9 +45,10 @@ export function MapSearchSuggestions({
     <div className={cn(MAP_FILTER_PANEL_BASE_CLASS, className)}>
       {suggestions.length > 0 ? (
         <ul
+          ref={scrollRef}
           role="list"
           aria-label="검색된 저장 장소"
-          className="flex list-none flex-col gap-1 p-1.5"
+          className="scrollbar-hide flex max-h-[21rem] list-none flex-col gap-1 overflow-y-auto p-1.5"
         >
           {suggestions.map(({ place }) => {
             const categoryLabel = place.categoryName?.trim() || place.category.trim();
@@ -78,6 +96,12 @@ export function MapSearchSuggestions({
               </li>
             );
           })}
+          <li ref={loadMoreRef} className="h-1" aria-hidden />
+          {isFetchingNextPage ? (
+            <li className="text-muted-foreground px-4 py-3 text-center text-xs font-semibold">
+              Loading...
+            </li>
+          ) : null}
         </ul>
       ) : (
         <div className="px-5 py-4 text-center" role="status" aria-live="polite">

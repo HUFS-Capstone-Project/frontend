@@ -3,8 +3,8 @@ export const roomPlaceQueryKeys = {
   room: (roomId: string) => [...roomPlaceQueryKeys.all, "room", roomId] as const,
   list: (roomId: string, params: RoomPlaceListQueryKeyParams) =>
     [...roomPlaceQueryKeys.room(roomId), "list", params] as const,
-  allList: (roomId: string, params: RoomPlaceListQueryKeyParams) =>
-    [...roomPlaceQueryKeys.room(roomId), "all-list", params] as const,
+  map: (roomId: string, bounds: RoomPlaceMapQueryKeyParams) =>
+    [...roomPlaceQueryKeys.room(roomId), "map", bounds] as const,
   detail: (roomId: string, roomPlaceId: number) =>
     [...roomPlaceQueryKeys.room(roomId), "detail", roomPlaceId] as const,
 };
@@ -16,6 +16,14 @@ export type RoomPlaceListQueryKeyParams = {
   sidoCode: string;
   sigunguCode: string;
   createdBy: string;
-  page: number;
-  size: number;
+  limit: number;
+};
+
+export type RoomPlaceMapQueryKeyParams = {
+  swLat: number;
+  swLng: number;
+  neLat: number;
+  neLng: number;
+  zoom: number;
+  createdBy?: number | string | null;
 };

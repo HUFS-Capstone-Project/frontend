@@ -22,6 +22,7 @@ import {
 } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
 import { useDateCourseDetailQuery } from "@/features/course-planner/hooks/use-date-course-detail-query";
 import { useRoomDateCoursesQuery } from "@/features/course-planner/hooks/use-room-date-courses-query";
@@ -29,6 +30,7 @@ import { useUpdateDateCourseMutation } from "@/features/course-planner/hooks/use
 import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
@@ -106,12 +108,23 @@ export function PlaceListSavedCoursesPage({
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
   const closeDetail = usePlaceDetailStore((s) => s.closeDetail);
-  const filterChromeRef = useRef<HTMLDivElement>(null);
-
   const memberChipApplied = selectedMemberIds.length > 0;
   const dateChipApplied = selectedDate !== null;
   const allChipActive = !memberChipApplied && !dateChipApplied;
   const overlayMapOpen = Boolean(selectedCourse) || detailOpen;
+  const filterChromeRef = useRef<HTMLDivElement>(null);
+  const courseListScrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreCoursesRef = useInfiniteScrollTrigger({
+    enabled:
+      !overlayMapOpen &&
+      roomDateCoursesQuery.hasNextPage &&
+      !roomDateCoursesQuery.isFetching &&
+      !roomDateCoursesQuery.isFetchingNextPage,
+    rootRef: courseListScrollRef,
+    onLoadMore: () => {
+      void roomDateCoursesQuery.fetchNextPage();
+    },
+  });
 
   const closeFilterPopups = useCallback(() => {
     setOpenPopup(null);
@@ -126,10 +139,10 @@ export function PlaceListSavedCoursesPage({
 
   const apiCourses = useMemo(
     () =>
-      (roomDateCoursesQuery.data?.items ?? []).map((course) =>
-        mapRoomSavedDateCourseToSavedCourse(course, roomId),
+      (roomDateCoursesQuery.data?.pages ?? []).flatMap((page) =>
+        page.items.map((course) => mapRoomSavedDateCourseToSavedCourse(course, roomId)),
       ),
-    [roomDateCoursesQuery.data?.items, roomId],
+    [roomDateCoursesQuery.data?.pages, roomId],
   );
 
   const savedCourses = useMemo(
@@ -185,6 +198,7 @@ export function PlaceListSavedCoursesPage({
       return matchesMember && matchesDate;
     });
   }, [savedCourses, selectedDate, selectedMemberIds]);
+  const totalCourseCount = roomDateCoursesQuery.data?.pages[0]?.totalCount ?? savedCourses.length;
 
   const mapPins = useMemo(() => {
     return selectedCourseWithDetail
@@ -301,7 +315,7 @@ export function PlaceListSavedCoursesPage({
 
       <ListTopBar
         title={roomName}
-        trailing={`${formatCount(visibleCourses.length)}개`}
+        trailing={`${formatCount(totalCourseCount)}개`}
         variant={overlayMapOpen ? "overlay" : "sticky"}
         backLabel={
           detailOpen ? "장소 상세 닫기" : selectedCourse ? "코스 상세 닫기" : "지도로 이동"
@@ -495,7 +509,10 @@ export function PlaceListSavedCoursesPage({
       </ListTopBar>
 
       {!overlayMapOpen ? (
-        <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+        <div
+          ref={courseListScrollRef}
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+        >
           {roomDateCoursesQuery.isLoading ? (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
@@ -506,6 +523,12 @@ export function PlaceListSavedCoursesPage({
               {visibleCourses.map((course) => (
                 <SavedCourseCard key={course.id} course={course} onSelect={setSelectedCourse} />
               ))}
+              <div ref={loadMoreCoursesRef} className="h-1" aria-hidden />
+              {roomDateCoursesQuery.isFetchingNextPage ? (
+                <div className="flex justify-center px-5 py-6">
+                  <BrandMarkerLoader />
+                </div>
+              ) : null}
             </div>
           ) : (
             <EmptyState

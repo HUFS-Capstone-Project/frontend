@@ -1,12 +1,19 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+} from "@tanstack/react-query";
 
 import { placeCandidateApi } from "../api/place-candidate-api";
 import { placeCandidateQueryKeys } from "../query-keys";
-import type { PlaceCandidate, PlaceCandidateParams } from "../types/place-candidate.types";
+import type {
+  PlaceCandidateParams,
+  PlaceCandidateSearchResponse,
+} from "../types/place-candidate.types";
 
-const DEFAULT_PLACE_CANDIDATE_LIMIT = 10;
+const DEFAULT_PLACE_CANDIDATE_LIMIT = 15;
 
-type NormalizedPlaceCandidateParams = PlaceCandidateParams & {
+type NormalizedPlaceCandidateParams = Omit<PlaceCandidateParams, "page"> & {
   keyword: string;
   limit: number;
 };
@@ -17,8 +24,14 @@ type UsePlaceCandidatesOptions = {
   params: PlaceCandidateParams;
   enabled?: boolean;
   queryOptions?: Omit<
-    UseQueryOptions<PlaceCandidate[], unknown, PlaceCandidate[], PlaceCandidatesQueryKey>,
-    "queryKey" | "queryFn" | "enabled"
+    UseInfiniteQueryOptions<
+      PlaceCandidateSearchResponse,
+      Error,
+      InfiniteData<PlaceCandidateSearchResponse, number>,
+      PlaceCandidatesQueryKey,
+      number
+    >,
+    "queryKey" | "queryFn" | "enabled" | "initialPageParam" | "getNextPageParam"
   >;
 };
 
@@ -42,15 +55,27 @@ export function usePlaceCandidates({
   const resolvedRoomId = roomId ?? "__missing-room__";
   const normalizedParams = normalizePlaceCandidateParams(params);
 
-  return useQuery({
+  return useInfiniteQuery<
+    PlaceCandidateSearchResponse,
+    Error,
+    InfiniteData<PlaceCandidateSearchResponse, number>,
+    PlaceCandidatesQueryKey,
+    number
+  >({
     queryKey: placeCandidateQueryKeys.search(resolvedRoomId, normalizedParams),
-    queryFn: () => {
+    queryFn: ({ pageParam }) => {
       if (!roomId) {
         throw new Error("roomId is required");
       }
 
-      return placeCandidateApi.search(roomId, normalizedParams);
+      return placeCandidateApi.search(roomId, {
+        ...normalizedParams,
+        page: pageParam,
+      });
     },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? (lastPage.nextPage ?? undefined) : undefined,
     enabled: enabled && Boolean(roomId) && normalizedParams.keyword.length > 0,
     ...(queryOptions ?? {}),
   });

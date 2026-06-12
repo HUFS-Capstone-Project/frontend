@@ -11,9 +11,8 @@ export type UserPlaceListParams = {
   tagCode?: string;
   sidoCode?: string;
   sigunguCode?: string;
-  page?: number;
   limit?: number;
-  size?: number;
+  cursor?: string | null;
 };
 
 export type NormalizedUserPlaceListParams = {
@@ -23,8 +22,8 @@ export type NormalizedUserPlaceListParams = {
   tagCode: string;
   sidoCode: string;
   sigunguCode: string;
-  page: number;
-  size: number;
+  limit: number;
+  cursor: string | null;
 };
 
 export type UserPlaceRoomResponse = {
@@ -57,11 +56,10 @@ export type UserPlaceResponse = {
 
 export type UserPlaceListResponse = {
   items: UserPlaceResponse[];
-  page: number;
-  limit?: number;
-  size?: number;
-  totalElements: number;
-  totalPages: number;
+  limit: number;
+  totalCount: number;
+  nextCursor: string | null;
+  hasNext: boolean;
 };
 
 export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {

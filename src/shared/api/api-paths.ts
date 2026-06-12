@@ -46,6 +46,7 @@ export const API_PATHS = {
       `/v1/rooms/${roomId}/link-analysis-requests/${analysisRequestId}/candidates/${candidateId}/override`,
     placeCandidates: (roomId: string) => `/v1/rooms/${roomId}/place-candidates`,
     places: (roomId: string) => `/v1/rooms/${roomId}/places`,
+    placesMap: (roomId: string) => `/v1/rooms/${roomId}/places/map`,
     place: (roomId: string, roomPlaceId: number) => `/v1/rooms/${roomId}/places/${roomPlaceId}`,
     dateCourses: (roomId: string) => `/v1/rooms/${roomId}/date-courses`,
     dateCourseSidos: (roomId: string) => `/v1/rooms/${roomId}/date-courses/sidos`,

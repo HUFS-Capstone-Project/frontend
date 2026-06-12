@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { CopyableLinkBar } from "@/components/common/CopyableLinkBar";
@@ -9,9 +9,9 @@ import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCanc
 import { PlaceFlowHeadlines } from "@/components/place-flow/PlaceFlowHeadlines";
 import { PlaceFlowSearchEmptyRow } from "@/components/place-flow/PlaceFlowSearchEmptyRow";
 import { PlaceFlowSearchFieldRow } from "@/components/place-flow/PlaceFlowSearchFieldRow";
+import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { PillButton } from "@/components/ui/PillButton";
 import { useSaveManualPlaceMutation } from "@/features/link-analysis";
-import type { PlaceCandidate } from "@/features/place-candidates";
 import {
   canSubmitPlaceCandidate,
   placeCandidateToSavedPlace,
@@ -24,6 +24,7 @@ import {
   PROMPT_FLOW_LIST_TOP_BORDER_CLASS,
   PROMPT_FLOW_SCROLL_BODY_CLASS,
 } from "@/features/place-flow/prompt-flow-layout";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useInpersonPlaceStore } from "@/store/inperson-place-store";
@@ -32,8 +33,6 @@ type RoomPlaceSearchLocationState = {
   linkAddAnalysisRequestId?: number;
   linkAddOriginalUrl?: string;
 };
-
-const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export default function RoomPlaceSearchPage() {
   const navigate = useNavigate();
@@ -47,6 +46,7 @@ export default function RoomPlaceSearchPage() {
   const setSelectedPlace = useInpersonPlaceStore((state) => state.setSelectedPlace);
   const reset = useInpersonPlaceStore((state) => state.reset);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const analysisRequestId =
     typeof routeState?.linkAddAnalysisRequestId === "number"
@@ -63,7 +63,7 @@ export default function RoomPlaceSearchPage() {
     roomId: registerContextRoomId || null,
     params: {
       keyword,
-      limit: 10,
+      limit: 15,
     },
     enabled: registerContextRoomId.length > 0 && canSearch,
   });
@@ -82,7 +82,21 @@ export default function RoomPlaceSearchPage() {
     }
   }, [navigate, registerContextRoomId]);
 
-  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
+  const placeCandidates = useMemo(
+    () => (placeCandidatesQuery.data?.pages ?? []).flatMap((page) => page.items),
+    [placeCandidatesQuery.data?.pages],
+  );
+  const loadMoreCandidatesRef = useInfiniteScrollTrigger({
+    enabled:
+      trimmedKeyword.length > 0 &&
+      placeCandidatesQuery.hasNextPage &&
+      !placeCandidatesQuery.isFetching &&
+      !placeCandidatesQuery.isFetchingNextPage,
+    rootRef: scrollRef,
+    onLoadMore: () => {
+      void placeCandidatesQuery.fetchNextPage();
+    },
+  });
   const searchResults = useMemo(() => {
     if (!trimmedKeyword) {
       return [];
@@ -187,7 +201,7 @@ export default function RoomPlaceSearchPage() {
         </div>
       </header>
 
-      <div className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
+      <div ref={scrollRef} className={PROMPT_FLOW_SCROLL_BODY_CLASS}>
         {trimmedKeyword ? (
           <ul className={PROMPT_FLOW_LIST_TOP_BORDER_CLASS}>
             {searchResults.length === 0 && !placeCandidatesQuery.isFetching ? (
@@ -210,7 +224,13 @@ export default function RoomPlaceSearchPage() {
                 />
               ))
             )}
+            <div ref={loadMoreCandidatesRef} className="h-1" aria-hidden />
           </ul>
+        ) : null}
+        {placeCandidatesQuery.isFetchingNextPage ? (
+          <div className="flex justify-center px-5 py-8">
+            <BrandMarkerLoader />
+          </div>
         ) : null}
         {saveError ? (
           <p className="px-5 pt-3 text-sm font-medium text-(--brand-coral-solid)" role="alert">

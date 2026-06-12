@@ -20,6 +20,7 @@ import {
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { RoomAvatar } from "@/components/room/RoomAvatar";
 import { useRoomsQuery } from "@/features/room";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
@@ -49,8 +50,12 @@ function filterChipClass(active: boolean) {
 
 type MySavedCoursesPageProps = {
   courses: SavedCourse[];
+  totalCount?: number;
   savedPlaces: SavedPlace[];
   selectedCourse: SavedCourse | null;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   onSelectCourse: (course: SavedCourse) => void;
   onCloseCourseSheet: () => void;
   onBack: () => void;
@@ -59,8 +64,12 @@ type MySavedCoursesPageProps = {
 
 export function MySavedCoursesPage({
   courses,
+  totalCount,
   savedPlaces,
   selectedCourse,
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  onLoadMore,
   onSelectCourse,
   onCloseCourseSheet,
   onBack,
@@ -84,6 +93,14 @@ export function MySavedCoursesPage({
   const overlayMapOpen = Boolean(selectedCourse) || detailOpen;
 
   const filterChromeRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreCoursesRef = useInfiniteScrollTrigger({
+    enabled: !overlayMapOpen && hasNextPage && !isFetchingNextPage,
+    rootRef: listScrollRef,
+    onLoadMore: () => {
+      onLoadMore?.();
+    },
+  });
 
   const closeFilterPopups = useCallback(() => {
     setOpenPopup(null);
@@ -125,6 +142,7 @@ export function MySavedCoursesPage({
 
     return courses;
   }, [courses, coursesHaveRoomLink, selectedDate, selectedFilter, selectedRoomIds]);
+  const totalCourseCount = totalCount ?? courses.length;
 
   const mapPins = useMemo(() => {
     return selectedCourse
@@ -205,7 +223,7 @@ export function MySavedCoursesPage({
 
       <ListTopBar
         title="저장된 데이트 코스"
-        trailing={`${formatCount(visibleCourses.length)}개`}
+        trailing={`${formatCount(totalCourseCount)}개`}
         variant={overlayMapOpen ? "overlay" : "sticky"}
         backLabel={
           detailOpen
@@ -414,12 +432,21 @@ export function MySavedCoursesPage({
       </ListTopBar>
 
       {!overlayMapOpen ? (
-        <div className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+        <div
+          ref={listScrollRef}
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+        >
           {visibleCourses.length > 0 ? (
             <div className="space-y-2 pb-2">
               {visibleCourses.map((course) => (
                 <SavedCourseCard key={course.id} course={course} onSelect={onSelectCourse} />
               ))}
+              <div ref={loadMoreCoursesRef} className="h-1" aria-hidden />
+              {isFetchingNextPage ? (
+                <div className="flex justify-center px-5 py-6">
+                  <span className="bg-muted/70 h-8 w-8 animate-pulse rounded-full" />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="flex min-h-48 flex-col items-center justify-center py-8 text-center">

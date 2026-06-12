@@ -201,10 +201,7 @@ export function normalizeAxiosError(error: AxiosError<ApiErrorResponse>): ApiErr
 
   const data = error.response.data;
   const dataRecord = data as ProblemDetail & { message?: unknown };
-  const dataMessage =
-    typeof dataRecord.message === "string"
-      ? dataRecord.message
-      : undefined;
+  const dataMessage = typeof dataRecord.message === "string" ? dataRecord.message : undefined;
   const detail =
     typeof data?.detail === "string" && data.detail.length > 0
       ? data.detail

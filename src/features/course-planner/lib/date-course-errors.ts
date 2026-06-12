@@ -10,16 +10,11 @@ const DATE_COURSE_CONFLICT_COPY: DateCourseConflictModalCopy = {
   description: "같은 장소와 순서의 코스가 이미 저장되어 있어요.",
 };
 
-export function getDateCourseConflictModalCopy(
-  error: unknown,
-): DateCourseConflictModalCopy | null {
+export function getDateCourseConflictModalCopy(error: unknown): DateCourseConflictModalCopy | null {
   const parsed = parseApiError(error);
   const message = parsed.detail ?? parsed.message;
 
-  if (
-    parsed.code === "E409_DUPLICATE_DATE_COURSE" ||
-    message.includes("동일한 데이트 코스")
-  ) {
+  if (parsed.code === "E409_DUPLICATE_DATE_COURSE" || message.includes("동일한 데이트 코스")) {
     return DATE_COURSE_CONFLICT_COPY;
   }
 

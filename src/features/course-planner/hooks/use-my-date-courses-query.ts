@@ -1,39 +1,49 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+} from "@tanstack/react-query";
 
 import {
   dateCourseApi,
-  type DateCourseListResponse,
+  type DateCourseCursorListResponse,
   type MySavedDateCourseItemResponse,
 } from "@/features/course-planner/api/date-course-api";
 import { dateCourseQueryKeys } from "@/features/course-planner/query-keys";
 
-const DEFAULT_PAGE = 0;
-const DEFAULT_LIMIT = 100;
+const DEFAULT_LIMIT = 20;
 
 type UseMyDateCoursesQueryOptions = {
-  page?: number;
   limit?: number;
   enabled?: boolean;
   queryOptions?: Omit<
-    UseQueryOptions<
-      DateCourseListResponse<MySavedDateCourseItemResponse>,
+    UseInfiniteQueryOptions<
+      DateCourseCursorListResponse<MySavedDateCourseItemResponse>,
       Error,
-      DateCourseListResponse<MySavedDateCourseItemResponse>,
-      ReturnType<typeof dateCourseQueryKeys.myList>
+      InfiniteData<DateCourseCursorListResponse<MySavedDateCourseItemResponse>, string | null>,
+      ReturnType<typeof dateCourseQueryKeys.myList>,
+      string | null
     >,
-    "queryKey" | "queryFn" | "enabled"
+    "queryKey" | "queryFn" | "enabled" | "initialPageParam" | "getNextPageParam"
   >;
 };
 
 export function useMyDateCoursesQuery({
-  page = DEFAULT_PAGE,
   limit = DEFAULT_LIMIT,
   enabled = true,
   queryOptions,
 }: UseMyDateCoursesQueryOptions = {}) {
-  return useQuery({
-    queryKey: dateCourseQueryKeys.myList(page, limit),
-    queryFn: () => dateCourseApi.listMyDateCourses({ page, limit }),
+  return useInfiniteQuery<
+    DateCourseCursorListResponse<MySavedDateCourseItemResponse>,
+    Error,
+    InfiniteData<DateCourseCursorListResponse<MySavedDateCourseItemResponse>, string | null>,
+    ReturnType<typeof dateCourseQueryKeys.myList>,
+    string | null
+  >({
+    queryKey: dateCourseQueryKeys.myList(limit),
+    queryFn: ({ pageParam }) => dateCourseApi.listMyDateCourses({ limit, cursor: pageParam }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => (lastPage.hasNext ? lastPage.nextCursor : undefined),
     staleTime: 1000 * 60,
     retry: 1,
     enabled,

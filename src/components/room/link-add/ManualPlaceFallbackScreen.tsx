@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 
 import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
 import { useSaveManualPlaceMutation } from "@/features/link-analysis";
-import type { PlaceCandidate } from "@/features/place-candidates";
 import {
   canSubmitPlaceCandidate,
   placeCandidateToSavedPlace,
@@ -18,8 +17,6 @@ type ManualPlaceFallbackScreenProps = {
   onClose: () => void;
   onSaved: () => void;
 };
-
-const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export function ManualPlaceFallbackScreen({
   roomId,
@@ -37,7 +34,7 @@ export function ManualPlaceFallbackScreen({
     roomId,
     params: {
       keyword,
-      limit: 10,
+      limit: 15,
     },
     enabled: analysisRequestId != null && roomId.length > 0 && trimmedKeyword.length > 0,
   });
@@ -46,7 +43,10 @@ export function ManualPlaceFallbackScreen({
     analysisRequestId,
   });
 
-  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
+  const placeCandidates = useMemo(
+    () => (placeCandidatesQuery.data?.pages ?? []).flatMap((page) => page.items),
+    [placeCandidatesQuery.data?.pages],
+  );
   const searchResults = useMemo(
     () => (trimmedKeyword ? placeCandidates.map(placeCandidateToSavedPlace) : []),
     [placeCandidates, trimmedKeyword],
@@ -102,8 +102,10 @@ export function ManualPlaceFallbackScreen({
       keyword={keyword}
       selectedPlaceId={selectedPlaceId}
       searchResults={searchResults}
-      isSearching={placeCandidatesQuery.isFetching}
+      isSearching={placeCandidatesQuery.isFetching && !placeCandidatesQuery.isFetchingNextPage}
+      isFetchingNextSearchPage={placeCandidatesQuery.isFetchingNextPage}
       isSearchError={placeCandidatesQuery.isError}
+      hasNextSearchPage={placeCandidatesQuery.hasNextPage}
       saveError={saveError}
       canConfirm={canConfirm}
       collapsedResetLabel="다시 검색"
@@ -119,6 +121,9 @@ export function ManualPlaceFallbackScreen({
           return;
         }
         void placeCandidatesQuery.refetch();
+      }}
+      onLoadMoreSearchResults={() => {
+        void placeCandidatesQuery.fetchNextPage();
       }}
       onSelectPlace={(placeId) => {
         const externalPlace = placeCandidates.find(

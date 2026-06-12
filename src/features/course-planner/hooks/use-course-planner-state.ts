@@ -58,7 +58,9 @@ export function useCoursePlannerState({
   const courseTitle = useMemo(
     () =>
       selectedCourseId
-        ? (courseOverrides[selectedCourseId]?.title ?? selectedCourse?.title ?? COURSE_FALLBACK_TITLE)
+        ? (courseOverrides[selectedCourseId]?.title ??
+          selectedCourse?.title ??
+          COURSE_FALLBACK_TITLE)
         : (courses[0]?.title ?? COURSE_FALLBACK_TITLE),
     [courseOverrides, courses, selectedCourse, selectedCourseId],
   );
@@ -152,13 +154,10 @@ export function useCoursePlannerState({
     setMode("loading");
   }, [canGenerate]);
 
-  const handleSelectCourse = useCallback(
-    (courseId: string) => {
-      setSelectedCourseId(courseId);
-      setMode("detail");
-    },
-    [],
-  );
+  const handleSelectCourse = useCallback((courseId: string) => {
+    setSelectedCourseId(courseId);
+    setMode("detail");
+  }, []);
 
   const handleBackToCourseResults = useCallback(() => {
     setSelectedCourseId("");

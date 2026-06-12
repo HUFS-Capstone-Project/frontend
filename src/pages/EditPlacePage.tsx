@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FullscreenFlowRouteMount } from "@/components/layout/FullscreenFlowRouteMount";
 import { PlaceSearchMapSheet } from "@/components/place-flow/PlaceSearchMapSheet";
 import { useOverrideCandidatePlaceMutation } from "@/features/link-analysis";
-import type { PlaceCandidate } from "@/features/place-candidates";
 import {
   canSubmitPlaceCandidate,
   placeCandidateToSavedPlace,
@@ -19,8 +18,6 @@ import { PLACE_FLOW_COPY } from "@/features/place-flow/place-flow-copy";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { ROOM_APP_PATHS } from "@/shared/config/routes";
 import { useEditPlaceStore } from "@/store/edit-place-store";
-
-const EMPTY_PLACE_CANDIDATES: PlaceCandidate[] = [];
 
 export default function EditPlacePage() {
   const navigate = useNavigate();
@@ -71,7 +68,7 @@ export default function EditPlacePage() {
     roomId: isLinkAddCorrection ? (routeState.linkAddRoomId ?? null) : null,
     params: {
       keyword: submittedExternalKeyword,
-      limit: 10,
+      limit: 15,
     },
     enabled: isLinkAddCorrection && submittedExternalKeyword.length > 0,
   });
@@ -80,7 +77,10 @@ export default function EditPlacePage() {
     analysisRequestId: isLinkAddCorrection ? linkAddAnalysisRequestId : null,
   });
 
-  const placeCandidates = placeCandidatesQuery.data ?? EMPTY_PLACE_CANDIDATES;
+  const placeCandidates = useMemo(
+    () => (placeCandidatesQuery.data?.pages ?? []).flatMap((page) => page.items),
+    [placeCandidatesQuery.data?.pages],
+  );
   const linkPreviewUrl =
     typeof routeState.linkAddOriginalUrl === "string" && routeState.linkAddOriginalUrl.length > 0
       ? routeState.linkAddOriginalUrl
@@ -90,7 +90,11 @@ export default function EditPlacePage() {
       return [];
     }
 
-    if (!isLinkAddCorrection || !isExternalInputSubmitted || placeCandidatesQuery.isFetching) {
+    if (
+      !isLinkAddCorrection ||
+      !isExternalInputSubmitted ||
+      (placeCandidatesQuery.isFetching && !placeCandidatesQuery.isFetchingNextPage)
+    ) {
       return [];
     }
 
@@ -98,6 +102,7 @@ export default function EditPlacePage() {
   }, [
     placeCandidates,
     placeCandidatesQuery.isFetching,
+    placeCandidatesQuery.isFetchingNextPage,
     isExternalInputSubmitted,
     isLinkAddCorrection,
     trimmedKeyword,
@@ -220,8 +225,10 @@ export default function EditPlacePage() {
         keyword={searchKeyword}
         selectedPlaceId={selectedResultId}
         searchResults={searchResults}
-        isSearching={placeCandidatesQuery.isFetching}
+        isSearching={placeCandidatesQuery.isFetching && !placeCandidatesQuery.isFetchingNextPage}
+        isFetchingNextSearchPage={placeCandidatesQuery.isFetchingNextPage}
         isSearchError={placeCandidatesQuery.isError && isExternalInputSubmitted}
+        hasNextSearchPage={placeCandidatesQuery.hasNextPage}
         showEmptyResult={!isLinkAddCorrection || isExternalInputSubmitted}
         saveError={overrideError}
         canConfirm={canConfirm}
@@ -248,6 +255,9 @@ export default function EditPlacePage() {
           if (searchResults.length === 1) {
             setSelectedResult(searchResults[0].id);
           }
+        }}
+        onLoadMoreSearchResults={() => {
+          void placeCandidatesQuery.fetchNextPage();
         }}
         onSelectPlace={(placeId) => setSelectedResult(placeId)}
         onClearSelectedPlace={() => setSelectedResult(null)}
