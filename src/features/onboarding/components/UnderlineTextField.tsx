@@ -79,6 +79,25 @@ export function UnderlineTextField({
     [maxLength, onLimitAttempt, value],
   );
 
+  const handleBeforeInput = React.useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      if (maxLength === undefined || !onLimitAttempt) return;
+      const nativeEvent = e.nativeEvent as InputEvent;
+      if (nativeEvent.isComposing) return;
+      const text = nativeEvent.data;
+      if (!text) return;
+      const el = e.currentTarget;
+      const nextLen = lengthAfterInsertAtSelection(
+        value,
+        el.selectionStart,
+        el.selectionEnd,
+        text.length,
+      );
+      if (nextLen > maxLength) onLimitAttempt();
+    },
+    [maxLength, onLimitAttempt, value],
+  );
+
   const clear = () => {
     if (onClear) onClear();
     else onChange("");
@@ -104,6 +123,7 @@ export function UnderlineTextField({
           onChange={(e) => onChange(e.target.value)}
           onCompositionStart={onCompositionStart}
           onCompositionEnd={onCompositionEnd}
+          onBeforeInput={handleBeforeInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           placeholder={placeholder}

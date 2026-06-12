@@ -5,7 +5,7 @@ import type { SavedCourse } from "@/shared/types/course";
 
 import { SavedCourseCard } from "./SavedCourseCard";
 
-const PREVIEW_COUNT = 3;
+const PREVIEW_COUNT = 2;
 
 type SavedCourseSectionProps = {
   courses: SavedCourse[];
@@ -46,7 +46,7 @@ export function SavedCourseSection({
           ))}
         </div>
       ) : (
-        <div className="text-muted-foreground border-border/60 bg-muted/15 mt-4 flex min-h-40 items-center justify-center rounded-xl border border-dashed text-xs font-medium">
+        <div className="text-muted-foreground border-border/60 bg-muted/15 mt-3 flex min-h-28 items-center justify-center rounded-xl border border-dashed text-xs font-medium">
           데이트 코스를 저장해보세요!
         </div>
       )}

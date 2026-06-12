@@ -1,5 +1,6 @@
 import { useCallback, useId } from "react";
 
+import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { cn } from "@/lib/utils";
 
 import { nicknameLimitExceededMessage, resolveNicknamePlaceholder } from "../constants";
@@ -7,8 +8,6 @@ import { useControlledMaxLengthWarning } from "../hooks/use-controlled-max-lengt
 import { UnderlineTextField } from "./UnderlineTextField";
 
 /** 주의 문구 영역: `invisible`로 가릴 때도 레이아웃 유지 */
-const HINT_SLOT_CLASS = "mt-2 min-h-11";
-
 type NicknameInputSectionProps = {
   /** 접근성 라벨 · clear 버튼 문구에 사용 */
   label: string;
@@ -71,16 +70,13 @@ export function NicknameInputSection({
         onCompositionEnd={handleCompositionEnd}
       />
       {maxLength !== undefined ? (
-        <div className={HINT_SLOT_CLASS}>
-          <p
-            id={hintId}
-            className={cn("text-destructive text-sm", !limitWarning && "invisible")}
-            aria-hidden={!limitWarning}
-            aria-live={limitWarning ? "polite" : undefined}
-          >
-            {nicknameLimitExceededMessage(maxLength)}
-          </p>
-        </div>
+        <CharacterLimitFeedback
+          warningId={hintId}
+          currentLength={value.length}
+          maxLength={maxLength}
+          warning={limitWarning ? nicknameLimitExceededMessage(maxLength) : null}
+          className="min-h-11"
+        />
       ) : null}
     </section>
   );

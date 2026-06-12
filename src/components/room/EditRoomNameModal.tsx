@@ -1,7 +1,10 @@
+import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
 import { memo, useCallback, useState } from "react";
 
+import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { useControlledMaxLengthWarning } from "@/features/onboarding";
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
+import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 import type { RoomListRow } from "@/shared/types/room";
 
@@ -46,6 +49,8 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
   const [roomNameInput, setRoomNameInput] = useState(displayRoom.displayName);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
+    limitWarning: roomNameLimitWarning,
+    notifyLimitAttempt: notifyRoomNameLimitAttempt,
     applyChange: applyRoomNameChange,
     handleCompositionStart: handleRoomNameCompositionStart,
     handleCompositionEnd: handleRoomNameCompositionEnd,
@@ -84,6 +89,85 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
     [applyRoomNameChange],
   );
 
+  const handleRoomNameKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        void handleSubmit();
+        return;
+      }
+
+      if ((event.nativeEvent as globalThis.KeyboardEvent).isComposing) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
+      if (event.key.length !== 1) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomNameInput,
+        input.selectionStart,
+        input.selectionEnd,
+        1,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [handleSubmit, notifyRoomNameLimitAttempt, roomNameInput],
+  );
+
+  const handleRoomNamePaste = useCallback(
+    (event: ClipboardEvent<HTMLInputElement>) => {
+      const pastedText = event.clipboardData.getData("text");
+      if (!pastedText) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomNameInput,
+        input.selectionStart,
+        input.selectionEnd,
+        pastedText.length,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [notifyRoomNameLimitAttempt, roomNameInput],
+  );
+
+  const handleRoomNameBeforeInput = useCallback(
+    (event: FormEvent<HTMLInputElement>) => {
+      const nativeEvent = event.nativeEvent as InputEvent;
+      if (nativeEvent.isComposing) {
+        return;
+      }
+
+      const text = nativeEvent.data;
+      if (!text) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomNameInput,
+        input.selectionStart,
+        input.selectionEnd,
+        text.length,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [notifyRoomNameLimitAttempt, roomNameInput],
+  );
+
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5">
@@ -107,7 +191,7 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
             autoCorrect="off"
             autoCapitalize="none"
             aria-describedby={
-              errorMessage ? "edit-room-name-error" : "edit-room-name-limit-warning"
+              errorMessage || roomNameLimitWarning ? "edit-room-name-feedback" : undefined
             }
             className={cn(
               "border-input placeholder:text-muted-foreground bg-background h-11 w-full rounded-xl border px-4 text-sm outline-none",
@@ -121,26 +205,16 @@ const EditRoomNameModalInner = memo(function EditRoomNameModalInner({
             }}
             onCompositionStart={handleRoomNameCompositionStart}
             onCompositionEnd={handleRoomNameCompositionEnd}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") {
-                return;
-              }
-
-              event.preventDefault();
-              void handleSubmit();
-            }}
+            onBeforeInput={handleRoomNameBeforeInput}
+            onKeyDown={handleRoomNameKeyDown}
+            onPaste={handleRoomNamePaste}
           />
-          <div className="mt-2 min-h-5 px-1">
-            {errorMessage ? (
-              <p className="text-destructive text-sm" id="edit-room-name-error" role="alert">
-                {errorMessage}
-              </p>
-            ) : (
-              <p id="edit-room-name-limit-warning" className="text-brand-coral text-xs">
-                {ROOM_NAME_LIMIT_HINT}
-              </p>
-            )}
-          </div>
+          <CharacterLimitFeedback
+            warningId="edit-room-name-feedback"
+            currentLength={roomNameInput.length}
+            maxLength={ROOM_NAME_MAX_LENGTH}
+            warning={errorMessage ?? (roomNameLimitWarning ? ROOM_NAME_LIMIT_HINT : null)}
+          />
         </div>
       </div>
       <div className="border-border/50 flex border-t">

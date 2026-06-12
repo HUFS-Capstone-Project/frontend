@@ -5,6 +5,7 @@ import {
   FLEX_DUAL_ACTION_SLOT_CLASS,
   FLEX_DUAL_PROMPT_FOOTER_ROW_CLASS,
 } from "@/components/common/action-footer-layout";
+import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { PlaceFlowCancelPillButton } from "@/components/place-flow/PlaceFlowCancelPillButton";
 import { RoomAddDrawer } from "@/components/room/RoomAddDrawer";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -12,10 +13,7 @@ import { FullScreenOverlayShell } from "@/components/ui/FullScreenOverlayShell";
 import { PillButton } from "@/components/ui/PillButton";
 import { useControlledMaxLengthWarning } from "@/features/onboarding";
 import { LINK_FLOW_PAGE_CLASS } from "@/features/place-flow/link-flow-layout";
-import {
-  PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS,
-  PROMPT_FLOW_ALERT_INLINE_CLASS,
-} from "@/features/place-flow/prompt-flow-layout";
+import { PROMPT_FLOW_ALERT_BELOW_INPUT_CLASS } from "@/features/place-flow/prompt-flow-layout";
 import { useRoomAddFlow } from "@/features/room";
 import { ROOM_ACTION_MODAL_TRANSITION_MS } from "@/features/room/constants";
 import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
@@ -153,6 +151,32 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
     [notifyRoomNameLimitAttempt, roomName],
   );
 
+  const handleRoomNameBeforeInput = useCallback(
+    (event: React.FormEvent<HTMLInputElement>) => {
+      const nativeEvent = event.nativeEvent as InputEvent;
+      if (nativeEvent.isComposing) {
+        return;
+      }
+
+      const text = nativeEvent.data;
+      if (!text) {
+        return;
+      }
+
+      const input = event.currentTarget;
+      const nextLength = lengthAfterInsertAtSelection(
+        roomName,
+        input.selectionStart,
+        input.selectionEnd,
+        text.length,
+      );
+      if (nextLength > ROOM_NAME_MAX_LENGTH) {
+        notifyRoomNameLimitAttempt();
+      }
+    },
+    [notifyRoomNameLimitAttempt, roomName],
+  );
+
   return (
     <>
       <BottomSheet open={isOpen} onClose={onClose}>
@@ -185,9 +209,12 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 }}
                 onCompositionStart={handleRoomNameCompositionStart}
                 onCompositionEnd={handleRoomNameCompositionEnd}
+                onBeforeInput={handleRoomNameBeforeInput}
                 onKeyDown={handleRoomNameKeyDown}
                 onPaste={handleRoomNamePaste}
-                aria-describedby={roomNameLimitWarning ? "room-name-limit-warning" : undefined}
+                aria-describedby={
+                  roomNameError || roomNameLimitWarning ? "room-name-limit-warning" : undefined
+                }
                 placeholder="예: 내 사랑♥️"
                 autoComplete="off"
                 spellCheck={false}
@@ -195,22 +222,12 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 autoCapitalize="none"
                 className="border-input placeholder:text-muted-foreground bg-background h-12 w-full rounded-full border px-4 text-sm outline-none"
               />
-              <div className="mt-2 min-h-5 px-1">
-                {roomNameError ? (
-                  <p className={PROMPT_FLOW_ALERT_INLINE_CLASS} role="alert">
-                    {roomNameError}
-                  </p>
-                ) : (
-                  <p
-                    id="room-name-limit-warning"
-                    className={cn("text-brand-coral text-xs", !roomNameLimitWarning && "invisible")}
-                    aria-hidden={!roomNameLimitWarning}
-                    aria-live={roomNameLimitWarning ? "polite" : undefined}
-                  >
-                    {ROOM_NAME_LIMIT_HINT}
-                  </p>
-                )}
-              </div>
+              <CharacterLimitFeedback
+                warningId="room-name-limit-warning"
+                currentLength={roomName.length}
+                maxLength={ROOM_NAME_MAX_LENGTH}
+                warning={roomNameError ?? (roomNameLimitWarning ? ROOM_NAME_LIMIT_HINT : null)}
+              />
             </div>
 
             <div className={FLEX_DUAL_PROMPT_FOOTER_ROW_CLASS}>

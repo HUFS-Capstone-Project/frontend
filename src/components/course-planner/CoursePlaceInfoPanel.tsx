@@ -15,9 +15,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { ChevronLeft, MapPin, Pencil, Plus } from "lucide-react";
+import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
 import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
 import { CourseConfirmModal } from "@/components/course-planner/CourseConfirmModal";
 import { CoursePlaceAddSheet } from "@/components/course-planner/CoursePlaceAddSheet";
@@ -25,8 +27,12 @@ import { CourseStopEditRow } from "@/components/course-planner/CourseStopEditRow
 import { CourseStopTitle } from "@/components/course-planner/CourseStopTitle";
 import { PLACE_FLOW_LINK_CHIP_CLASS } from "@/components/place-flow/PlaceFlowOriginalLinkChipRow";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
-import { normalizeDateCourseName } from "@/features/course-planner/constants";
+import {
+  DATE_COURSE_MAX_NAME_LENGTH,
+  normalizeDateCourseName,
+} from "@/features/course-planner/constants";
 import { getDateCourseConflictModalCopy } from "@/features/course-planner/lib/date-course-errors";
+import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
 import type { CourseSavePayload, CourseStop } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/map-home";
@@ -80,6 +86,8 @@ export function CoursePlaceInfoPanel({
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [conflictModalCopy, setConflictModalCopy] = useState<CourseConflictModalCopy | null>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [titleLimitAttempted, setTitleLimitAttempted] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 10 } }),
@@ -98,12 +106,107 @@ export function CoursePlaceInfoPanel({
   );
 
   const handleStartEdit = () => {
+    setTitleError(null);
+    setTitleLimitAttempted(false);
     startEdit();
   };
 
   const handleCancelEdit = () => {
+    setTitleError(null);
+    setTitleLimitAttempted(false);
     cancelEdit();
     setIsAddPlaceOpen(false);
+  };
+
+  const validateDraftTitle = () => {
+    const nextTitle = draftTitle.trim() || courseTitle.trim();
+    if (nextTitle.length > DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleError(`코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자 이하로 입력해 주세요.`);
+      return false;
+    }
+
+    setTitleError(null);
+    return true;
+  };
+
+  const handleDraftTitleChange = (value: string) => {
+    setDraftTitle(value);
+    if ((value.trim() || courseTitle.trim()).length <= DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleError(null);
+    }
+    if (value.length < DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleLimitAttempted(false);
+    }
+  };
+
+  const handleDraftTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if ((event.nativeEvent as globalThis.KeyboardEvent).isComposing) {
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
+    if (event.key.length !== 1) {
+      return;
+    }
+
+    const nextLength = lengthAfterInsertAtSelection(
+      draftTitle,
+      event.currentTarget.selectionStart,
+      event.currentTarget.selectionEnd,
+      1,
+    );
+    if (nextLength > DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleLimitAttempted(true);
+    }
+  };
+
+  const handleDraftTitlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+    const text = event.clipboardData.getData("text");
+    if (!text) {
+      return;
+    }
+
+    const nextLength = lengthAfterInsertAtSelection(
+      draftTitle,
+      event.currentTarget.selectionStart,
+      event.currentTarget.selectionEnd,
+      text.length,
+    );
+    if (nextLength > DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleLimitAttempted(true);
+    }
+  };
+
+  const handleDraftTitleBeforeInput = (event: FormEvent<HTMLInputElement>) => {
+    const nativeEvent = event.nativeEvent as InputEvent;
+    if (nativeEvent.isComposing) {
+      return;
+    }
+
+    const text = nativeEvent.data;
+    if (!text) {
+      return;
+    }
+
+    const nextLength = lengthAfterInsertAtSelection(
+      draftTitle,
+      event.currentTarget.selectionStart,
+      event.currentTarget.selectionEnd,
+      text.length,
+    );
+    if (nextLength > DATE_COURSE_MAX_NAME_LENGTH) {
+      setTitleLimitAttempted(true);
+    }
+  };
+
+  const handleRequestEditSave = () => {
+    if (!validateDraftTitle()) {
+      return;
+    }
+
+    setSaveConfirmKind("edit");
+    setIsSaveConfirmOpen(true);
   };
 
   const handleAddPlace = (place: SavedPlace) => {
@@ -117,6 +220,11 @@ export function CoursePlaceInfoPanel({
     }
 
     const isEditSave = saveConfirmKind === "edit";
+    if (isEditSave && !validateDraftTitle()) {
+      setIsSaveConfirmOpen(false);
+      return;
+    }
+
     const nextTitle =
       normalizeDateCourseName(draftTitle.trim() || courseTitle.trim()) || courseTitle;
     const nextStops = isEditSave ? draftStops : stops;
@@ -159,10 +267,32 @@ export function CoursePlaceInfoPanel({
         <header className="w-full">
           <input
             value={draftTitle}
-            onChange={(event) => setDraftTitle(event.target.value)}
-            className="text-foreground placeholder:text-muted-foreground border-border focus:border-primary w-full border-b bg-transparent pt-0.5 pb-2 text-lg leading-snug font-semibold transition-colors outline-none"
+            onChange={(event) => handleDraftTitleChange(event.target.value)}
+            className={cn(
+              "text-foreground placeholder:text-muted-foreground border-border focus:border-primary w-full border-b bg-transparent pt-0.5 pb-2 text-lg leading-snug font-semibold transition-colors outline-none",
+              titleError && "border-destructive focus:border-destructive",
+            )}
             placeholder="코스 이름"
+            maxLength={DATE_COURSE_MAX_NAME_LENGTH}
             aria-label="코스 이름 편집"
+            aria-invalid={Boolean(titleError)}
+            aria-describedby={
+              titleError || titleLimitAttempted ? "course-title-message" : undefined
+            }
+            onBeforeInput={handleDraftTitleBeforeInput}
+            onKeyDown={handleDraftTitleKeyDown}
+            onPaste={handleDraftTitlePaste}
+          />
+          <CharacterLimitFeedback
+            warningId="course-title-message"
+            currentLength={draftTitle.length}
+            maxLength={DATE_COURSE_MAX_NAME_LENGTH}
+            warning={
+              titleError ??
+              (titleLimitAttempted
+                ? `코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자까지 입력할 수 있어요.`
+                : null)
+            }
           />
         </header>
       ) : (
@@ -192,7 +322,7 @@ export function CoursePlaceInfoPanel({
         </header>
       )}
 
-      <div className="mt-6 flex flex-col gap-5">
+      <div className={cn("flex flex-col gap-5", isEditing ? "mt-3" : "mt-6")}>
         {isEditing ? (
           <DndContext
             sensors={sensors}
@@ -271,10 +401,7 @@ export function CoursePlaceInfoPanel({
             </button>
             <button
               type="button"
-              onClick={() => {
-                setSaveConfirmKind("edit");
-                setIsSaveConfirmOpen(true);
-              }}
+              onClick={handleRequestEditSave}
               className={cn(
                 "focus-visible:ring-ring/50 text-primary-foreground inline-flex h-11 flex-1 items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
                 "bg-primary hover:bg-primary/90",
