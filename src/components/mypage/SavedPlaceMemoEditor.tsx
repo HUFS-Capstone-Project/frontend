@@ -1,8 +1,9 @@
-﻿import { X } from "lucide-react";
+import { X } from "lucide-react";
 
+import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { cn } from "@/lib/utils";
 
-const MAX_MEMO_LENGTH = 50;
+export const MAX_MEMO_LENGTH = 50;
 
 type SavedPlaceMemoEditorProps = {
   value: string;
@@ -17,6 +18,8 @@ export function SavedPlaceMemoEditor({
   onSave,
   onClear,
 }: SavedPlaceMemoEditorProps) {
+  const displayValue = value.slice(0, MAX_MEMO_LENGTH);
+
   return (
     <div className="mt-2">
       <div
@@ -31,14 +34,14 @@ export function SavedPlaceMemoEditor({
         <input
           id="saved-place-memo-input"
           type="text"
-          value={value}
+          value={displayValue}
           maxLength={MAX_MEMO_LENGTH}
           autoComplete="off"
           spellCheck={false}
           autoCorrect="off"
           autoCapitalize="none"
           aria-describedby="saved-place-memo-count"
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => onChange(event.target.value.slice(0, MAX_MEMO_LENGTH))}
           onBlur={onSave}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -49,7 +52,7 @@ export function SavedPlaceMemoEditor({
           placeholder="메모를 남겨주세요."
           autoFocus
         />
-        {value ? (
+        {displayValue ? (
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
@@ -61,13 +64,12 @@ export function SavedPlaceMemoEditor({
           </button>
         ) : null}
       </div>
-      <p
-        id="saved-place-memo-count"
-        className="text-muted-foreground mt-1 px-0.5 text-end text-[0.625rem] font-medium tracking-tight tabular-nums"
-        aria-live="polite"
-      >
-        {value.length}/{MAX_MEMO_LENGTH}
-      </p>
+      <CharacterLimitFeedback
+        warningId="saved-place-memo-count"
+        currentLength={displayValue.length}
+        maxLength={MAX_MEMO_LENGTH}
+        className="mt-1 min-h-4 px-0.5"
+      />
     </div>
   );
 }

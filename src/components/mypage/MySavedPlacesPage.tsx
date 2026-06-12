@@ -12,6 +12,7 @@ import {
   mapPlacesMatchingMySaved,
   weightedMapCenter,
 } from "@/components/mypage/map-places-from-my-saved";
+import { MAX_MEMO_LENGTH } from "@/components/mypage/SavedPlaceMemoEditor";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
@@ -169,7 +170,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   const handleStartMemo = (place: SavedPlace) => {
     setOpenMenuId(null);
     setEditingPlaceId(place.id);
-    setMemoDraft(place.memo ?? "");
+    setMemoDraft((place.memo ?? "").slice(0, MAX_MEMO_LENGTH));
   };
 
   const handleSaveMemo = () => {
@@ -182,7 +183,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
       return;
     }
 
-    const nextMemo = memoDraft.trim();
+    const nextMemo = memoDraft.trim().slice(0, MAX_MEMO_LENGTH);
     updateMemoMutation.mutate(
       { roomId: target.roomId, roomPlaceId: target.roomPlaceId, memo: nextMemo },
       {
@@ -320,7 +321,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
                   memoDraft={memoDraft}
                   onToggleMenu={(id) => setOpenMenuId((current) => (current === id ? null : id))}
                   onStartMemo={handleStartMemo}
-                  onChangeMemo={setMemoDraft}
+                  onChangeMemo={(value) => setMemoDraft(value.slice(0, MAX_MEMO_LENGTH))}
                   onSaveMemo={handleSaveMemo}
                   onClearMemo={() => setMemoDraft("")}
                   onDelete={handleRequestDeletePlace}
