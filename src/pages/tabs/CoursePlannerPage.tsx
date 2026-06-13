@@ -199,15 +199,26 @@ export default function CoursePlannerPage() {
     roomId: selectedRoom?.id ?? null,
     enabled: mode === "region",
   });
-  const dateCourseSigungusQuery = useDateCourseSigungusQuery({
-    roomId: selectedRoom?.id ?? null,
-    sidoCode: draftSidoCode,
-    enabled: mode === "region" && draftSidoCode.length > 0,
-  });
   const sidoOptions = useMemo<RegionSelectionOption[]>(
     () => dateCourseSidosQuery.data?.map(toRegionSelectionOption) ?? [],
     [dateCourseSidosQuery.data],
   );
+  const resolvedDraftSidoOption = useMemo(() => {
+    if (draftSidoCode.length > 0) {
+      return sidoOptions.find((option) => option.code === draftSidoCode) ?? null;
+    }
+
+    return (
+      sidoOptions.find((option) => option.name === draftCity) ??
+      (sidoOptions.length === 1 ? sidoOptions[0] : null)
+    );
+  }, [draftCity, draftSidoCode, sidoOptions]);
+  const effectiveDraftSidoCode = draftSidoCode || resolvedDraftSidoOption?.code || "";
+  const dateCourseSigungusQuery = useDateCourseSigungusQuery({
+    roomId: selectedRoom?.id ?? null,
+    sidoCode: effectiveDraftSidoCode,
+    enabled: mode === "region" && effectiveDraftSidoCode.length > 0,
+  });
   const sigunguOptions = useMemo<RegionSelectionOption[]>(
     () => dateCourseSigungusQuery.data?.map(toRegionSelectionOption) ?? [],
     [dateCourseSigungusQuery.data],
@@ -217,7 +228,7 @@ export default function CoursePlannerPage() {
       ? "방에 저장된 장소가 없거나, 지역 정보가 없어요."
       : null;
   const dateCourseSigunguEmptyMessage =
-    draftSidoCode.length > 0 &&
+    effectiveDraftSidoCode.length > 0 &&
     !dateCourseSigungusQuery.isLoading &&
     !dateCourseSigungusQuery.isError &&
     sigunguOptions.length === 0
@@ -282,6 +293,27 @@ export default function CoursePlannerPage() {
     setRegionSearchKeyword("");
     setMode("form");
   }, [setMode]);
+
+  const handleOpenRegionPanel = useCallback(() => {
+    const nextSidoCode = resolvedDraftSidoOption?.code ?? "";
+    if (nextSidoCode && nextSidoCode !== draftSidoCode) {
+      setDraftSidoCode(nextSidoCode);
+    }
+
+    if (!selectedSigunguCode && !draftSigunguCode) {
+      setDraftDistrict("");
+    }
+
+    setRegionSearchKeyword("");
+    setMode("region");
+  }, [
+    draftSidoCode,
+    draftSigunguCode,
+    resolvedDraftSidoOption?.code,
+    selectedSigunguCode,
+    setDraftDistrict,
+    setMode,
+  ]);
 
   const handleConfirmCourseRegion = useCallback(() => {
     setRegionSearchKeyword("");
@@ -621,7 +653,7 @@ export default function CoursePlannerPage() {
                   isCategoryLoading={isCategoryLoading}
                   isCategoryError={isCategoryError}
                   className="pt-16 pb-0"
-                  onOpenRegionSelect={() => setMode("region")}
+                  onOpenRegionSelect={handleOpenRegionPanel}
                   onOpenDateTimeSelect={handleOpenDateTimeSelect}
                   onAddOrder={handleAddOrder}
                   onRemoveOrder={handleRemoveOrder}
@@ -676,14 +708,16 @@ export default function CoursePlannerPage() {
           cityOptions={sidoOptions}
           districtOptions={sigunguOptions}
           isCityLoading={dateCourseSidosQuery.isLoading}
-          isDistrictLoading={draftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading}
+          isDistrictLoading={
+            effectiveDraftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading
+          }
           cityErrorMessage={dateCourseSidosQuery.isError ? "시/도 정보를 불러오지 못했어요." : null}
           cityEmptyMessage={dateCourseSidoEmptyMessage}
           districtErrorMessage={
             dateCourseSigungusQuery.isError ? "시군구 정보를 불러오지 못했어요." : null
           }
           districtEmptyMessage={
-            draftSidoCode.length === 0
+            effectiveDraftSidoCode.length === 0
               ? "시/도를 먼저 선택해주세요."
               : dateCourseSigunguEmptyMessage
           }
