@@ -1,7 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { CandidatePlace, LinkAnalysisSource, LinkAnalysisStatus } from "@/features/link-analysis";
+import type {
+  CandidatePlace,
+  LinkAnalysisSource,
+  LinkAnalysisStatus,
+} from "@/features/link-analysis";
 import {
   canSelectCandidatePlace,
   isLinkAnalysisTerminal,

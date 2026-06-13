@@ -20,4 +20,3 @@ function base64UrlEncode(bytes: Uint8Array): string {
 
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
-

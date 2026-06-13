@@ -70,11 +70,15 @@ export default function ShareRoomSelectPage() {
       ) : null}
 
       {!roomsQuery.isLoading && rows.length > 0 ? (
-        <RoomList rows={rows} onRoomNavigate={handleSelectRoom} onOpenRoomActions={handleOpenRoomActions} />
+        <RoomList
+          rows={rows}
+          onRoomNavigate={handleSelectRoom}
+          onOpenRoomActions={handleOpenRoomActions}
+        />
       ) : null}
 
       {!roomsQuery.isLoading && rows.length === 0 ? (
-        <div className="px-page py-12 text-center text-sm text-muted-foreground">
+        <div className="px-page text-muted-foreground py-12 text-center text-sm">
           공유할 수 있는 방이 없습니다.
         </div>
       ) : null}

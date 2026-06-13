@@ -6,10 +6,7 @@ import { clearMobileAuthArtifacts } from "@/features/auth/lib/mobile-auth-cleanu
 import { completeMobileLoginAfterExchange } from "@/features/auth/lib/mobile-login";
 import { mobileOAuthCodeVerifierStorage } from "@/features/auth/lib/mobile-oauth-code-verifier-storage";
 import { setMobileOAuthUserError } from "@/features/auth/lib/mobile-oauth-error";
-import {
-  generateCodeChallenge,
-  generateCodeVerifier,
-} from "@/features/auth/lib/mobile-oauth-pkce";
+import { generateCodeChallenge, generateCodeVerifier } from "@/features/auth/lib/mobile-oauth-pkce";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 

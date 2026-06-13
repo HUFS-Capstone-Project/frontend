@@ -43,4 +43,3 @@ export function isCsrfForbidden(error: unknown): boolean {
 
   return error.status === 403 || error.code === "E403_FORBIDDEN";
 }
-

@@ -10,4 +10,3 @@ export function consumeMobileOAuthUserError(): string | null {
   sessionStorage.removeItem(MOBILE_OAUTH_ERROR_KEY);
   return message;
 }
-

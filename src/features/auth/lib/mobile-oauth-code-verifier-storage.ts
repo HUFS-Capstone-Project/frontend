@@ -24,4 +24,3 @@ export const mobileOAuthCodeVerifierStorage = {
     await Preferences.remove({ key: MOBILE_OAUTH_CODE_VERIFIER_KEY });
   },
 };
-

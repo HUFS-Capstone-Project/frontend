@@ -27,13 +27,10 @@ export async function handleGoogleLogin(): Promise<boolean> {
         getRuntimeAuthChannel() === "mobile"
           ? "VITE_MOBILE_API_BASE_URL=https://your-api.example.com/api"
           : "VITE_WEB_GOOGLE_LOGIN_URL=http://localhost:8080/oauth2/authorization/google?client=web";
-      console.warn(
-        `[udidura] Google OAuth start URL is not configured.\n` + `.env.local: ${hint}`,
-      );
+      console.warn(`[udidura] Google OAuth start URL is not configured.\n` + `.env.local: ${hint}`);
     }
     return false;
   }
   window.location.href = url;
   return true;
 }
-

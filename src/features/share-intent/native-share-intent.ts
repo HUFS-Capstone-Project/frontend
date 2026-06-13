@@ -1,7 +1,10 @@
-import { Capacitor, type PluginListenerHandle,registerPlugin } from "@capacitor/core";
+import { Capacitor, type PluginListenerHandle, registerPlugin } from "@capacitor/core";
 
 import { isAndroidCapacitorApp } from "@/features/auth/lib/capacitor-platform";
-import { extractFirstHttpUrl, setPendingSharedLinkUrl } from "@/features/share-intent/shared-link-storage";
+import {
+  extractFirstHttpUrl,
+  setPendingSharedLinkUrl,
+} from "@/features/share-intent/shared-link-storage";
 import { APP_ROUTES } from "@/shared/config/routes";
 
 type ShareIntentPayload = {

@@ -7,4 +7,3 @@ export async function clearMobileAuthArtifacts(): Promise<void> {
     mobileOAuthCodeVerifierStorage.removeCodeVerifier(),
   ]);
 }
-

@@ -708,9 +708,7 @@ export default function CoursePlannerPage() {
           cityOptions={sidoOptions}
           districtOptions={sigunguOptions}
           isCityLoading={dateCourseSidosQuery.isLoading}
-          isDistrictLoading={
-            effectiveDraftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading
-          }
+          isDistrictLoading={effectiveDraftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading}
           cityErrorMessage={dateCourseSidosQuery.isError ? "시/도 정보를 불러오지 못했어요." : null}
           cityEmptyMessage={dateCourseSidoEmptyMessage}
           districtErrorMessage={

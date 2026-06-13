@@ -24,4 +24,3 @@ export function extractFirstHttpUrl(text: string): string | null {
 
   return match[0].replace(/[),.;\]]+$/g, "");
 }
-

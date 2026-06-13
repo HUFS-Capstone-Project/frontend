@@ -17,4 +17,3 @@ export function getRuntimeAuthChannel(): AuthChannel {
   }
   return "web";
 }
-
