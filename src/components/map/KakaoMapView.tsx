@@ -217,8 +217,14 @@ export function KakaoMapView({
 
         setLoadState("ready");
       })
-      .catch(() => {
+      .catch((error) => {
         if (disposed) return;
+        console.error("[udidura] Kakao map failed to load", {
+          error,
+          origin: window.location.origin,
+          href: window.location.href,
+          hasMapKey,
+        });
         setLoadState("error");
       });
 

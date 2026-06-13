@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { authApi } from "@/features/auth/api/auth-api";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
+import { clearMobileAuthArtifacts } from "@/features/auth/lib/mobile-auth-cleanup";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import { userQueryKeys } from "@/features/users";
 import { APP_ROUTES } from "@/shared/config/routes";
@@ -27,6 +28,9 @@ export function useLogout() {
     } catch {
       // ignore
     } finally {
+      if ((useAuthStore.getState().authChannel ?? "web") === "mobile") {
+        await clearMobileAuthArtifacts();
+      }
       logout();
       queryClient.removeQueries({ queryKey: userQueryKeys.me() });
       navigate(APP_ROUTES.root, { replace: true });
@@ -39,6 +43,9 @@ export function useLogout() {
     } catch {
       // ignore
     } finally {
+      if ((useAuthStore.getState().authChannel ?? "web") === "mobile") {
+        await clearMobileAuthArtifacts();
+      }
       logout();
       queryClient.removeQueries({ queryKey: userQueryKeys.me() });
       navigate(APP_ROUTES.root, { replace: true });

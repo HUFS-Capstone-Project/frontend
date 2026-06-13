@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   onboardingNickname: "/onboarding/nickname",
   onboardingTerms: "/onboarding/terms",
   room: "/rooms",
+  share: "/share",
   map: "/places/map",
   list: "/places",
   course: "/courses",

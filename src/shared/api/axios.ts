@@ -2,7 +2,10 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
+import { clearMobileAuthArtifacts } from "@/features/auth/lib/mobile-auth-cleanup";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
+import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobile-refresh-token-storage";
+import { applyMobileTokenResponse } from "@/features/auth/lib/mobile-token-response";
 import type { TokenResponse } from "@/features/auth/types";
 import { API_PATHS } from "@/shared/api/api-paths";
 import { normalizeAxiosError } from "@/shared/api/error";
@@ -26,7 +29,7 @@ if (import.meta.env.PROD && !hasProdApiEnv && !webUsesRelativeApi) {
 export const api = axios.create({
   baseURL: getApiBaseURL(),
   timeout: 25_000,
-  withCredentials: true,
+  withCredentials: getRuntimeAuthChannel() !== "mobile",
   headers: {
     "Content-Type": "application/json",
   },
@@ -52,6 +55,11 @@ function rejectRefreshQueue(error: unknown) {
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    if (getRuntimeAuthChannel() === "mobile") {
+      config.withCredentials = false;
+      config.headers["X-Client-Platform"] = "android";
+    }
+
     const { accessToken } = useAuthStore.getState();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -101,6 +109,9 @@ api.interceptors.response.use(
       (originalConfig.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
       return api(originalConfig);
     } catch {
+      if ((useAuthStore.getState().authChannel ?? "web") === "mobile") {
+        await clearMobileAuthArtifacts();
+      }
       useAuthStore.getState().logout();
       rejectRefreshQueue(new Error("refresh failed"));
       return Promise.reject(normalizeAxiosError(error));
@@ -123,8 +134,10 @@ async function refreshMobileAccessToken(): Promise<string> {
   }
   const wrapper = await mobileAuthApi.refresh({ refreshToken: rt });
   const tr = wrapper.data;
-  if (tr.refreshToken) {
-    useAuthStore.getState().setRefreshToken(tr.refreshToken);
-  }
+  const fallbackRefreshTokenExpiresAt = await mobileRefreshTokenStorage.getRefreshTokenExpiresAt();
+  await applyMobileTokenResponse(tr, {
+    fallbackRefreshToken: rt,
+    fallbackRefreshTokenExpiresAt,
+  });
   return tr.accessToken;
 }

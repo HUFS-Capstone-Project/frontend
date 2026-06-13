@@ -1,3 +1,4 @@
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { API_PATHS } from "@/shared/api/api-paths";
 import { api } from "@/shared/api/axios";
 import { getXsrfHeader, withCsrfRetry } from "@/shared/api/csrf";
@@ -22,6 +23,10 @@ import type {
 export const roomService = {
   /** GET /api/v1/auth/csrf */
   ensureCsrf: async (options?: { forceRefresh?: boolean }): Promise<void> => {
+    if (getRuntimeAuthChannel() === "mobile") {
+      return;
+    }
+
     await ensureCsrfCookie({ forceRefresh: options?.forceRefresh });
   },
 

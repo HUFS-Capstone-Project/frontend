@@ -19,7 +19,7 @@ import {
   useTermsAgreement,
   validateOnboardingRequest,
 } from "@/features/onboarding";
-import { getErrorDetail, isApiError } from "@/shared/api/error";
+import { type ApiError, getErrorDetail, isApiError } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -98,6 +98,8 @@ export default function TermsAgreementPage() {
       },
       onError: (error) => {
         if (isApiError(error)) {
+          logOnboardingSubmitError(error);
+
           if (error.status === 401 || error.code === "E401_UNAUTHORIZED") {
             logout();
             void navigate(APP_ROUTES.login, { replace: true });
@@ -124,11 +126,11 @@ export default function TermsAgreementPage() {
 
           const unmappedFieldError = getFirstUnmappedOnboardingFieldError(error.fieldErrors);
           if (unmappedFieldError) {
-            setSubmitError(unmappedFieldError);
+            setSubmitError(formatOnboardingStatusPrefix(error, unmappedFieldError));
             return;
           }
 
-          setSubmitError(getErrorDetail(error, "온보딩 처리 중 오류가 발생했습니다."));
+          setSubmitError(resolveOnboardingSubmitErrorMessage(error));
           return;
         }
 
@@ -175,4 +177,38 @@ export default function TermsAgreementPage() {
       </OnboardingContent>
     </OnboardingLayout>
   );
+}
+
+const ONBOARDING_SUBMIT_ERROR_FALLBACK = "온보딩 처리 중 오류가 발생했습니다.";
+
+function resolveOnboardingSubmitErrorMessage(error: ApiError): string {
+  switch (error.status) {
+    case 400:
+      return "온보딩 요청 실패 (400): 요청 본문의 필드명 또는 약관 동의 값을 확인해 주세요.";
+    case 403:
+      return "온보딩 요청 실패 (403): CSRF 인증 정보를 확인해 주세요.";
+    case 409:
+      return "온보딩 요청 실패 (409): 이미 온보딩이 완료된 계정입니다.";
+    default:
+      return formatOnboardingStatusPrefix(
+        error,
+        getErrorDetail(error, ONBOARDING_SUBMIT_ERROR_FALLBACK),
+      );
+  }
+}
+
+function formatOnboardingStatusPrefix(error: ApiError, message: string): string {
+  if (error.status === 400 || error.status === 403 || error.status === 409) {
+    return `온보딩 요청 실패 (${error.status}): ${message}`;
+  }
+  return message;
+}
+
+function logOnboardingSubmitError(error: ApiError) {
+  console.error("[udidura] onboarding request failed", {
+    status: error.status ?? null,
+    code: error.code ?? null,
+    fieldErrors: error.fieldErrors ?? null,
+    message: error.message,
+  });
 }

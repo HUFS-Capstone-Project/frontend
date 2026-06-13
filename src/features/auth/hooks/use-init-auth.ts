@@ -4,11 +4,12 @@ import { useEffect } from "react";
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
+import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobile-refresh-token-storage";
+import { applyMobileTokenResponse } from "@/features/auth/lib/mobile-token-response";
 import { userQueryKeys, usersApi } from "@/features/users";
 import { useAuthStore } from "@/store/auth-store";
 
-/** 로그인 복원 흐름: 웹은 ensureCsrfCookie → refresh → me, 모바일은 mobile/refresh → me */
-// TODO(모바일 OAuth): `authChannel==="mobile"`일 때는 `mobileRefreshTokenStorage`에서 직접 읽음. 딥링크 로그인과 병합 필요.
+/** 로그인 복원 흐름: 웹은 ensureCsrfCookie → refresh → me, 모바일은 저장된 refreshToken → mobile/refresh → me */
 export function useInitAuth(): void {
   const queryClient = useQueryClient();
 
@@ -31,8 +32,12 @@ export function useInitAuth(): void {
         const trWrapper = await mobileAuthApi.refresh({ refreshToken: rt });
         if (cancelled) return;
         const tr = trWrapper.data;
-        useAuthStore.getState().setAccessToken(tr.accessToken);
-        if (tr.refreshToken) useAuthStore.getState().setRefreshToken(tr.refreshToken);
+        const fallbackRefreshTokenExpiresAt =
+          await mobileRefreshTokenStorage.getRefreshTokenExpiresAt();
+        await applyMobileTokenResponse(tr, {
+          fallbackRefreshToken: rt,
+          fallbackRefreshTokenExpiresAt,
+        });
 
         const me = await usersApi.getMe();
         if (cancelled) return;
@@ -46,7 +51,10 @@ export function useInitAuth(): void {
           },
           {
             channel: "mobile",
+            accessTokenExpiresAt: tr.accessTokenExpiresAt ?? null,
             refreshToken: tr.refreshToken ?? rt,
+            refreshTokenExpiresAt:
+              tr.refreshTokenExpiresAt ?? fallbackRefreshTokenExpiresAt ?? null,
           },
         );
         return;

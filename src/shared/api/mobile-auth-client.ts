@@ -9,5 +9,6 @@ export const mobileAuthClient = axios.create({
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
+    "X-Client-Platform": "android",
   },
 });

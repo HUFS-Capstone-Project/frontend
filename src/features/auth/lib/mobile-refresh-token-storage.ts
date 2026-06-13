@@ -1,19 +1,45 @@
+import { Preferences } from "@capacitor/preferences";
+
+const MOBILE_REFRESH_TOKEN_KEY = "udidura-mobile-refresh-token";
+const MOBILE_REFRESH_TOKEN_EXPIRES_AT_KEY = "udidura-mobile-refresh-token-expires-at";
+
 /**
- * 모바일 refresh token 저장소 (Capacitor Secure Storage 예정).
- * access token은 메모리(Zustand)만 사용하고, refresh는 여기에 둡니다.
- * TODO(모바일 OAuth): `completeMobileLoginAfterExchange` 성공 시 refresh 저장·앱 재실행 시 `useInitAuth`와 연결.
+ * Mobile refresh-token storage.
+ * accessToken stays in Zustand; refreshToken is persisted for app restart restore.
  */
 export interface IMobileRefreshTokenStorage {
   getRefreshToken(): Promise<string | null>;
-  setRefreshToken(token: string | null): Promise<void>;
+  getRefreshTokenExpiresAt(): Promise<string | null>;
+  setRefreshToken(token: string | null, expiresAt?: string | null): Promise<void>;
 }
 
 export const mobileRefreshTokenStorage: IMobileRefreshTokenStorage = {
   async getRefreshToken() {
-    // TODO(Capacitor): SecureStorage / Preferences에서 읽기
-    return null;
+    const { value } = await Preferences.get({ key: MOBILE_REFRESH_TOKEN_KEY });
+    return value && value.length > 0 ? value : null;
   },
-  async setRefreshToken(_token) {
-    // TODO(Capacitor): 저장
+
+  async getRefreshTokenExpiresAt() {
+    const { value } = await Preferences.get({ key: MOBILE_REFRESH_TOKEN_EXPIRES_AT_KEY });
+    return value && value.length > 0 ? value : null;
+  },
+
+  async setRefreshToken(token, expiresAt) {
+    if (!token) {
+      await Promise.all([
+        Preferences.remove({ key: MOBILE_REFRESH_TOKEN_KEY }),
+        Preferences.remove({ key: MOBILE_REFRESH_TOKEN_EXPIRES_AT_KEY }),
+      ]);
+      return;
+    }
+
+    await Preferences.set({ key: MOBILE_REFRESH_TOKEN_KEY, value: token });
+    if (expiresAt !== undefined) {
+      if (expiresAt) {
+        await Preferences.set({ key: MOBILE_REFRESH_TOKEN_EXPIRES_AT_KEY, value: expiresAt });
+      } else {
+        await Preferences.remove({ key: MOBILE_REFRESH_TOKEN_EXPIRES_AT_KEY });
+      }
+    }
   },
 };

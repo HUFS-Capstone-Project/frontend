@@ -1,8 +1,13 @@
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { isApiError } from "@/shared/api/axios";
 import { ensureCsrfCookie } from "@/shared/api/web-auth-client";
 import { getCookie, XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from "@/shared/lib/cookie";
 
 export async function withCsrfRetry<T>(request: () => Promise<T>): Promise<T> {
+  if (getRuntimeAuthChannel() === "mobile") {
+    return request();
+  }
+
   await ensureCsrfCookie();
 
   try {
@@ -17,6 +22,10 @@ export async function withCsrfRetry<T>(request: () => Promise<T>): Promise<T> {
 }
 
 export function getXsrfHeader(): Record<string, string> | undefined {
+  if (getRuntimeAuthChannel() === "mobile") {
+    return undefined;
+  }
+
   const token = getCookie(XSRF_COOKIE_NAME);
   if (!token) {
     return undefined;
@@ -34,3 +43,4 @@ export function isCsrfForbidden(error: unknown): boolean {
 
   return error.status === 403 || error.code === "E403_FORBIDDEN";
 }
+

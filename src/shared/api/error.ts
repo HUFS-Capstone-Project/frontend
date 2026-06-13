@@ -86,7 +86,7 @@ export function getFieldErrors(error: unknown): FieldError[] | undefined {
 
 export function getErrorDetail(error: unknown, fallback = DEFAULT_API_ERROR_MESSAGE): string {
   const parsed = parseApiError(error);
-  return parsed.detail ?? fallback;
+  return normalizeDisplayMessage(parsed.detail) ?? fallback;
 }
 
 export function mapFieldErrorsToForm(
@@ -152,7 +152,7 @@ export function resolveFormApiError(
     return {
       fieldErrors,
       formError,
-      detailMessage: parsed.detail ?? VALIDATION_DETAIL_MESSAGE,
+      detailMessage: normalizeDisplayMessage(parsed.detail) ?? VALIDATION_DETAIL_MESSAGE,
       hasFieldErrors: true,
     };
   }
@@ -184,8 +184,9 @@ export function resolveGeneralApiErrorMessage(
     return options.statusMessages[parsed.status]!;
   }
 
-  if (parsed.detail) {
-    return parsed.detail;
+  const detail = normalizeDisplayMessage(parsed.detail);
+  if (detail) {
+    return detail;
   }
 
   return fallback;
@@ -203,11 +204,7 @@ export function normalizeAxiosError(error: AxiosError<ApiErrorResponse>): ApiErr
   const dataRecord = data as ProblemDetail & { message?: unknown };
   const dataMessage = typeof dataRecord.message === "string" ? dataRecord.message : undefined;
   const detail =
-    typeof data?.detail === "string" && data.detail.length > 0
-      ? data.detail
-      : dataMessage && dataMessage.length > 0
-        ? dataMessage
-        : undefined;
+    normalizeDisplayMessage(data?.detail) ?? normalizeDisplayMessage(dataMessage) ?? undefined;
   const fieldErrors = normalizeFieldErrors(data?.fieldErrors);
   const message = detail ?? DEFAULT_API_ERROR_MESSAGE;
 
@@ -241,7 +238,10 @@ function normalizeFieldErrors(fieldErrors: unknown): FieldError[] | undefined {
       continue;
     }
 
-    const normalizedItem: FieldError = { field, message };
+    const normalizedItem: FieldError = {
+      field,
+      message: normalizeDisplayMessage(message) ?? VALIDATION_DETAIL_MESSAGE,
+    };
     if (rejectedValue !== undefined) {
       normalizedItem.rejectedValue = rejectedValue;
     }
@@ -254,4 +254,35 @@ function normalizeFieldErrors(fieldErrors: unknown): FieldError[] | undefined {
 
 function isAxiosLikeError(error: unknown): error is AxiosError<ApiErrorResponse> {
   return Boolean(error && typeof error === "object" && "isAxiosError" in error);
+}
+
+function normalizeDisplayMessage(message: unknown): string | undefined {
+  if (typeof message !== "string") {
+    return undefined;
+  }
+
+  const normalized = message.trim();
+  if (normalized.length === 0 || looksMojibakePlaceholder(normalized)) {
+    return undefined;
+  }
+
+  return normalized;
+}
+
+function looksMojibakePlaceholder(message: string): boolean {
+  if (message.includes("\uFFFD")) {
+    return true;
+  }
+
+  const questionMarkCount = Array.from(message).filter((char) => char === "?").length;
+  if (questionMarkCount < 2) {
+    return false;
+  }
+
+  const visibleChars = Array.from(message).filter((char) => !/\s|[.,:;!()[\]{}'"-]/.test(char));
+  if (visibleChars.length === 0) {
+    return false;
+  }
+
+  return questionMarkCount / visibleChars.length >= 0.35;
 }

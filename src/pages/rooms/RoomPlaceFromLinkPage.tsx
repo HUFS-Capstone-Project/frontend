@@ -12,8 +12,13 @@ export default function RoomPlaceFromLinkPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const trimmedRoomId = roomIdParam.trim();
-  const draftSession =
-    (location.state as RoomPlaceFromLinkLocationState | null)?.linkAddDraftSession ?? null;
+  const routeState = location.state as
+    | (RoomPlaceFromLinkLocationState & {
+        sharedOriginalUrl?: string | null;
+      })
+    | null;
+  const draftSession = routeState?.linkAddDraftSession ?? null;
+  const sharedOriginalUrl = routeState?.sharedOriginalUrl ?? null;
 
   const room = useRoomListRowById(trimmedRoomId.length > 0 ? trimmedRoomId : undefined);
 
@@ -43,6 +48,9 @@ export default function RoomPlaceFromLinkPage() {
       <LinkAddFlowView
         room={room}
         draftSessionId={draftSession}
+        initialOriginalUrl={sharedOriginalUrl}
+        autoSubmitInitialUrl={Boolean(sharedOriginalUrl)}
+        linkSource={sharedOriginalUrl ? "APP" : "WEB"}
         autoNavigateToCandidates
         onExit={handleExit}
         onPlacesSaved={handlePlacesSaved}

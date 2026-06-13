@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { CandidatePlace, LinkAnalysisStatus } from "@/features/link-analysis";
+import type { CandidatePlace, LinkAnalysisSource, LinkAnalysisStatus } from "@/features/link-analysis";
 import {
   canSelectCandidatePlace,
   isLinkAnalysisTerminal,
@@ -40,6 +40,9 @@ type UseLinkAddFlowOptions = {
   draftSessionId?: string | null;
   /** 후보 전용 라우트 진입 시 analysisRequestId·originalUrl·선택 상태를 메모리에서 복구 */
   candidatesBootstrap?: LinkAddCandidatesBootstrap | null;
+  initialOriginalUrl?: string | null;
+  autoSubmitInitialUrl?: boolean;
+  linkSource?: LinkAnalysisSource;
   /** Called after 장소 후보 저장 API가 성공한 뒤 (모달 닫기 등). */
   onSaveSuccess?: () => void;
 };
@@ -72,6 +75,9 @@ export function useLinkAddFlow({
   activeRoomId,
   draftSessionId = null,
   candidatesBootstrap = null,
+  initialOriginalUrl = null,
+  autoSubmitInitialUrl = false,
+  linkSource = "WEB",
   onSaveSuccess,
 }: UseLinkAddFlowOptions): UseLinkAddFlowResult {
   const queryClient = useQueryClient();
@@ -88,6 +94,7 @@ export function useLinkAddFlow({
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const submitSequenceRef = useRef(0);
+  const shouldAutoSubmitInitialUrlRef = useRef(false);
 
   const requestLinkAnalysisMutation = useRequestLinkAnalysisMutation(room?.id ?? null);
   const retryLinkAnalysisMutation = useRetryLinkAnalysisMutation(room?.id ?? null);
@@ -173,9 +180,37 @@ export function useLinkAddFlow({
       return;
     }
 
+    const trimmedInitialOriginalUrl = initialOriginalUrl?.trim() ?? "";
+    if (trimmedInitialOriginalUrl.length > 0) {
+      submitSequenceRef.current += 1;
+      shouldAutoSubmitInitialUrlRef.current = autoSubmitInitialUrl;
+      queueMicrotask(() => {
+        setOriginalUrlState(trimmedInitialOriginalUrl);
+        setOriginalUrlError(null);
+        setAnalysisRequestId(null);
+        setLinkId(null);
+        setRequestJobId(null);
+        setRequestStatus(null);
+        setRequestErrorResult(null);
+        setStep(DEFAULT_STEP);
+        setSelectedKakaoPlaceIds([]);
+        setSaveError(null);
+      });
+      return;
+    }
+
     submitSequenceRef.current += 1;
     queueMicrotask(resetFlow);
-  }, [activeRoomId, candidatesBootstrap, draftSessionId, resetKey, resetFlow, room?.id]);
+  }, [
+    activeRoomId,
+    autoSubmitInitialUrl,
+    candidatesBootstrap,
+    draftSessionId,
+    initialOriginalUrl,
+    resetKey,
+    resetFlow,
+    room?.id,
+  ]);
 
   const cancelOngoingSubmission = useCallback(() => {
     submitSequenceRef.current += 1;
@@ -278,7 +313,7 @@ export function useLinkAddFlow({
     try {
       const requested = await requestLinkAnalysisMutation.mutateAsync({
         originalUrl: trimmedOriginalUrl,
-        source: "WEB",
+        source: linkSource,
       });
 
       if (submitSequenceRef.current !== submitSequence) {
@@ -325,7 +360,18 @@ export function useLinkAddFlow({
       });
       setStep("analysisResult");
     }
-  }, [originalUrl, requestLinkAnalysisMutation, room]);
+  }, [linkSource, originalUrl, requestLinkAnalysisMutation, room]);
+
+  useEffect(() => {
+    if (!shouldAutoSubmitInitialUrlRef.current || !room || originalUrl.trim().length === 0) {
+      return;
+    }
+
+    shouldAutoSubmitInitialUrlRef.current = false;
+    queueMicrotask(() => {
+      void submitLink();
+    });
+  }, [originalUrl, room, submitLink]);
 
   const retryLinkAnalysis = useCallback(async () => {
     if (!room || analysisRequestId == null || retryLinkAnalysisMutation.isPending) {

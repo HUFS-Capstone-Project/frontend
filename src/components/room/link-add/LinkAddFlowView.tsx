@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
+import type { LinkAnalysisSource } from "@/features/link-analysis";
 import { LINK_ADD_FLOW_ROOT_CLASS } from "@/features/place-flow/link-flow-layout";
 import type { LinkAddCandidatesBootstrap } from "@/features/room/hooks";
 import { useLinkAddFlow } from "@/features/room/hooks";
@@ -22,6 +23,9 @@ export type LinkAddFlowViewProps = {
   candidatesBootstrap?: LinkAddCandidatesBootstrap | null;
   candidatesOnly?: boolean;
   autoNavigateToCandidates?: boolean;
+  initialOriginalUrl?: string | null;
+  autoSubmitInitialUrl?: boolean;
+  linkSource?: LinkAnalysisSource;
   onExit: () => void;
   onPlacesSaved?: () => void;
 };
@@ -32,6 +36,9 @@ export function LinkAddFlowView({
   candidatesBootstrap = null,
   candidatesOnly = false,
   autoNavigateToCandidates = false,
+  initialOriginalUrl = null,
+  autoSubmitInitialUrl = false,
+  linkSource = "WEB",
   onExit,
   onPlacesSaved,
 }: LinkAddFlowViewProps) {
@@ -64,6 +71,9 @@ export function LinkAddFlowView({
     activeRoomId: room?.id ?? null,
     draftSessionId,
     candidatesBootstrap,
+    initialOriginalUrl,
+    autoSubmitInitialUrl,
+    linkSource,
     onSaveSuccess: handleSaveSuccess,
   });
 

@@ -1,3 +1,4 @@
+import { getRuntimeAuthChannel } from "@/features/auth/lib/auth-channel";
 import { normalizeUserMe, type UserMe, type UserMeResponse } from "@/features/users";
 import { API_PATHS } from "@/shared/api/api-paths";
 import { api } from "@/shared/api/axios";
@@ -15,9 +16,12 @@ export const onboardingApi = {
 };
 
 async function postOnboardingRequest(request: OnboardingRequest): Promise<UserMe> {
+  const isMobile = getRuntimeAuthChannel() === "mobile";
+  const xsrfHeaders = getXsrfHeader();
+
   const res = await api.post<CommonResponse<UserMeResponse>>(API_PATHS.users.onboarding, request, {
-    withCredentials: true,
-    headers: getXsrfHeader(),
+    withCredentials: !isMobile,
+    ...(xsrfHeaders ? { headers: xsrfHeaders } : {}),
   });
 
   return normalizeUserMe(res.data.data);

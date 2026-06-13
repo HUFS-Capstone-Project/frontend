@@ -24,6 +24,7 @@ const RoomMainPage = lazy(() => import("@/pages/room/RoomMainPage"));
 const CoursePlannerPage = lazy(() => import("@/pages/tabs/CoursePlannerPage"));
 const MyPage = lazy(() => import("@/pages/tabs/MyPage"));
 const PlaceListPage = lazy(() => import("@/pages/tabs/PlaceListPage"));
+const ShareRoomSelectPage = lazy(() => import("@/pages/share/ShareRoomSelectPage"));
 
 export const router = createBrowserRouter([
   {
@@ -81,6 +82,7 @@ export const router = createBrowserRouter([
           { path: "places", element: <PlaceListPage /> },
           { path: "courses", element: <CoursePlannerPage /> },
           { path: "me", element: <MyPage /> },
+          { path: "share", element: <ShareRoomSelectPage /> },
           { path: "rooms", element: <RoomMainPage /> },
         ],
       },

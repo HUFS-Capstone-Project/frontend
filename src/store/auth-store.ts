@@ -12,13 +12,17 @@ type SignInData = {
 export type SignInOptions = {
   channel?: AuthChannel;
   refreshToken?: string | null;
+  accessTokenExpiresAt?: string | null;
+  refreshTokenExpiresAt?: string | null;
 };
 
 export type AuthState = {
   accessToken: string | null;
+  accessTokenExpiresAt: string | null;
 
   /** 모바일 리프레시 토큰(메모리). Secure Storage와 별도 동기화 */
   refreshToken: string | null;
+  refreshTokenExpiresAt: string | null;
 
   /** `web` | `mobile` — 초기화/로그아웃 시 분기 채널 */
   authChannel: AuthChannel;
@@ -28,7 +32,9 @@ export type AuthState = {
   hasCompletedOnboarding: boolean;
 
   setAccessToken: (token: string | null) => void;
+  setAccessTokenExpiresAt: (expiresAt: string | null) => void;
   setRefreshToken: (token: string | null) => void;
+  setRefreshTokenExpiresAt: (expiresAt: string | null) => void;
   setLoggedIn: (loggedIn: boolean) => void;
   setNickname: (nickname: string | null) => void;
   setHasCompletedOnboarding: (completed: boolean) => void;
@@ -42,14 +48,18 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       accessToken: null,
+      accessTokenExpiresAt: null,
       refreshToken: null,
+      refreshTokenExpiresAt: null,
       authChannel: "web",
       isLoggedIn: false,
       nickname: null,
       hasCompletedOnboarding: false,
 
       setAccessToken: (token) => set({ accessToken: token }),
+      setAccessTokenExpiresAt: (expiresAt) => set({ accessTokenExpiresAt: expiresAt }),
       setRefreshToken: (token) => set({ refreshToken: token }),
+      setRefreshTokenExpiresAt: (expiresAt) => set({ refreshTokenExpiresAt: expiresAt }),
       setLoggedIn: (loggedIn) => set({ isLoggedIn: loggedIn }),
       setNickname: (nickname) => set({ nickname }),
       setHasCompletedOnboarding: (completed) => set({ hasCompletedOnboarding: completed }),
@@ -61,13 +71,18 @@ export const useAuthStore = create<AuthState>()(
           nickname,
           hasCompletedOnboarding,
           authChannel: options?.channel ?? "web",
+          accessTokenExpiresAt: options?.accessTokenExpiresAt ?? null,
           refreshToken: options?.channel === "mobile" ? (options.refreshToken ?? null) : null,
+          refreshTokenExpiresAt:
+            options?.channel === "mobile" ? (options.refreshTokenExpiresAt ?? null) : null,
         }),
 
       logout: () =>
         set({
           accessToken: null,
+          accessTokenExpiresAt: null,
           refreshToken: null,
+          refreshTokenExpiresAt: null,
           authChannel: "web",
           isLoggedIn: false,
           nickname: null,

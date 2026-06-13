@@ -6,9 +6,20 @@ import { RouterProvider } from "react-router-dom";
 
 import { QueryProvider } from "@/app/providers/QueryProvider";
 import { router } from "@/app/router";
+import { registerMobileOAuthCallbackHandler } from "@/features/auth/lib/mobile-oauth";
+import { registerShareIntentHandler } from "@/features/share-intent/native-share-intent";
 
-// TODO(모바일 OAuth): Capacitor App.addListener("appUrlOpen", ...)에서 OAuth 리다이렉트 URI 처리,
-// PKCE 파라미터 추출 및 completeMobileLoginAfterExchange 전용 플로우로 분기
+registerMobileOAuthCallbackHandler({
+  navigate: (path) => {
+    void router.navigate(path, { replace: true });
+  },
+});
+
+registerShareIntentHandler({
+  navigate: (path) => {
+    void router.navigate(path, { replace: true });
+  },
+});
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {
