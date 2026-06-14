@@ -6,6 +6,7 @@ import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
+import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
@@ -15,13 +16,9 @@ import {
   MAP_CHIP_UNSELECTED_CLASS,
   MAP_FILTER_PANEL_BASE_CLASS,
 } from "@/components/map/chip-style";
-import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
-import {
-  getSavedCourseRouteMapData,
-  mapPlacesFromSavedCourses,
-  savedCourseToPlannerStops,
-} from "@/components/mypage/saved-course-planner-map";
+import { savedCourseToPlannerStops } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
+import { useSavedCourseMapData } from "@/components/mypage/use-saved-course-map-data";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
@@ -40,26 +37,12 @@ import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
+import { useRoomSavedCourseFilters } from "./use-room-saved-course-filters";
+
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
-
-const COURSE_ROUTE_FIT_BOUNDS_PADDING = {
-  top: 88,
-  right: 32,
-  bottom: 260,
-  left: 32,
-} as const;
-
-type CourseFilter = "all" | "member" | "date";
-type FilterPopup = Exclude<CourseFilter, "all"> | null;
-
-type MemberFilterOption = {
-  id: string;
-  nickname: string;
-  profileImageUrl: string | null;
-};
 
 type PlaceListSavedCoursesPageProps = {
   roomId?: string | null;
@@ -99,10 +82,6 @@ export function PlaceListSavedCoursesPage({
   const updateDateCourseMutation = useUpdateDateCourseMutation();
   const [selectedCourse, setSelectedCourse] = useState<SavedCourse | null>(null);
   const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
-  const [, setSelectedFilter] = useState<CourseFilter>("all");
-  const [openPopup, setOpenPopup] = useState<FilterPopup>(null);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
   const [routeViewportKey, setRouteViewportKey] = useState(0);
   const roomDateCoursesQuery = useRoomDateCoursesQuery({
@@ -118,9 +97,6 @@ export function PlaceListSavedCoursesPage({
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
   const closeDetail = usePlaceDetailStore((s) => s.closeDetail);
-  const memberChipApplied = selectedMemberIds.length > 0;
-  const dateChipApplied = selectedDate !== null;
-  const allChipActive = !memberChipApplied && !dateChipApplied;
   const overlayMapOpen = Boolean(selectedCourse) || detailOpen;
   const filterChromeRef = useRef<HTMLDivElement>(null);
   const courseListScrollRef = useRef<HTMLDivElement>(null);
@@ -136,17 +112,6 @@ export function PlaceListSavedCoursesPage({
     },
   });
 
-  const closeFilterPopups = useCallback(() => {
-    setOpenPopup(null);
-    setSelectedFilter((prev) => {
-      if (prev === "date" && selectedDate === null) return "all";
-      if (prev === "member" && selectedMemberIds.length === 0) return "all";
-      return prev;
-    });
-  }, [selectedDate, selectedMemberIds.length]);
-
-  usePointerDownOutside(filterChromeRef, openPopup !== null && !overlayMapOpen, closeFilterPopups);
-
   const apiCourses = useMemo(
     () =>
       (roomDateCoursesQuery.data?.pages ?? []).flatMap((page) =>
@@ -160,31 +125,24 @@ export function PlaceListSavedCoursesPage({
     [apiCourses, courseOverrides],
   );
 
-  const memberOptions = useMemo((): MemberFilterOption[] => {
-    const byId = new Map<string, MemberFilterOption>();
+  const {
+    openPopup,
+    selectedMemberIds,
+    selectedDate,
+    memberOptions,
+    memberChipApplied,
+    dateChipApplied,
+    allChipActive,
+    visibleCourses,
+    closeFilterPopups,
+    handleSelectAll,
+    handleToggleMember,
+    handlePickCalendarDate,
+    toggleMemberFilterPopup,
+    toggleDateFilterPopup,
+  } = useRoomSavedCourseFilters(savedCourses);
 
-    for (const course of savedCourses) {
-      if (course.savedByUserId == null) {
-        continue;
-      }
-
-      const nickname = course.savedByNickname?.trim();
-      if (!nickname) {
-        continue;
-      }
-
-      const id = String(course.savedByUserId);
-      if (!byId.has(id)) {
-        byId.set(id, {
-          id,
-          nickname,
-          profileImageUrl: course.savedByProfileImageUrl ?? null,
-        });
-      }
-    }
-
-    return [...byId.values()];
-  }, [savedCourses]);
+  usePointerDownOutside(filterChromeRef, openPopup !== null && !overlayMapOpen, closeFilterPopups);
 
   const selectedCourseWithDetail = useMemo(() => {
     if (!selectedCourse) {
@@ -198,78 +156,15 @@ export function PlaceListSavedCoursesPage({
     return courseOverrides[detailCourse.id] ?? detailCourse;
   }, [courseOverrides, dateCourseDetailQuery.data, roomId, selectedCourse]);
 
-  const visibleCourses = useMemo(() => {
-    return savedCourses.filter((course) => {
-      const matchesMember =
-        selectedMemberIds.length === 0 ||
-        (course.savedByUserId != null && selectedMemberIds.includes(String(course.savedByUserId)));
-      const matchesDate = selectedDate == null || course.courseDateKey === selectedDate;
-
-      return matchesMember && matchesDate;
-    });
-  }, [savedCourses, selectedDate, selectedMemberIds]);
   const totalCourseCount = roomDateCoursesQuery.data?.pages[0]?.totalCount ?? savedCourses.length;
 
-  const mapPins = useMemo(() => {
-    return selectedCourseWithDetail
-      ? mapPlacesFromSavedCourses([selectedCourseWithDetail], savedPlaces)
-      : mapPlacesFromSavedCourses(visibleCourses, savedPlaces);
-  }, [savedPlaces, selectedCourseWithDetail, visibleCourses]);
-  const selectedCourseRouteMapData = useMemo(
-    () =>
-      selectedCourseWithDetail
-        ? getSavedCourseRouteMapData(selectedCourseWithDetail, savedPlaces)
-        : { places: [], routeCoordinates: [], markerLabelByPlaceId: {} },
-    [savedPlaces, selectedCourseWithDetail],
-  );
-
-  const mapCenter = useMemo(() => {
-    if (detailOpen && selectedPlaceId) {
-      const pin = mapPins.find((place) => place.id === selectedPlaceId);
-      if (pin) {
-        return { latitude: pin.latitude, longitude: pin.longitude };
-      }
-    }
-
-    if (selectedCourseWithDetail) {
-      const focusedPins = mapPlacesFromSavedCourses([selectedCourseWithDetail], savedPlaces);
-      if (focusedPins.length > 0) {
-        return weightedMapCenter(focusedPins);
-      }
-    }
-
-    return weightedMapCenter(mapPins);
-  }, [detailOpen, mapPins, savedPlaces, selectedCourseWithDetail, selectedPlaceId]);
-
-  const handleSelectAll = () => {
-    setSelectedFilter("all");
-    setOpenPopup(null);
-    setSelectedMemberIds([]);
-    setSelectedDate(null);
-  };
-
-  const handleToggleMember = (memberId: string) => {
-    setSelectedMemberIds((current) => {
-      const nextIds = current.includes(memberId)
-        ? current.filter((item) => item !== memberId)
-        : [...current, memberId];
-      setSelectedFilter(nextIds.length === 0 && selectedDate == null ? "all" : "member");
-      return nextIds;
-    });
-  };
-
-  const handlePickCalendarDate = (date: string) => {
-    if (selectedDate === date) {
-      setSelectedDate(null);
-      setSelectedFilter("all");
-      setOpenPopup(null);
-      return;
-    }
-
-    setSelectedFilter("date");
-    setSelectedDate(date);
-    setOpenPopup(null);
-  };
+  const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
+    courses: visibleCourses,
+    selectedCourse: selectedCourseWithDetail,
+    savedPlaces,
+    detailOpen,
+    selectedPlaceId,
+  });
 
   const handleSelectCourse = (course: SavedCourse) => {
     setIsCourseSheetExpanded(false);
@@ -415,10 +310,7 @@ export function PlaceListSavedCoursesPage({
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedFilter("member");
-                    setOpenPopup((current) => (current === "member" ? null : "member"));
-                  }}
+                  onClick={toggleMemberFilterPopup}
                   className={cn(filterChipClass(memberChipApplied), "shrink-0 gap-1 px-3")}
                   aria-expanded={openPopup === "member"}
                   aria-haspopup="listbox"
@@ -518,10 +410,7 @@ export function PlaceListSavedCoursesPage({
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedFilter("date");
-                    setOpenPopup((current) => (current === "date" ? null : "date"));
-                  }}
+                  onClick={toggleDateFilterPopup}
                   className={cn(
                     filterChipClass(dateChipApplied),
                     "max-w-[min(11rem,calc(100vw-8rem))] shrink-0 gap-1 truncate px-3",

@@ -1,6 +1,5 @@
 ﻿import "@/components/map/filter-bar.css";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
@@ -16,7 +15,6 @@ import { MAX_MEMO_LENGTH } from "@/components/mypage/SavedPlaceMemoEditor";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
-import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import { useMyPlacesQuery, userPlaceToSavedPlace } from "@/features/users";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
@@ -26,6 +24,7 @@ import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
 import { SavedPlaceItem } from "./SavedPlaceItem";
+import { useSavedPlaceActions } from "./use-saved-place-actions";
 
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
@@ -47,7 +46,6 @@ function toApiCategory(category: string | undefined): ServiceCategoryCode | unde
 }
 
 export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPageProps) {
-  const queryClient = useQueryClient();
   const {
     filterCategories,
     categories,
@@ -87,9 +85,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
     [myPlacesQuery.data?.pages],
   );
 
-  const listPlaces = useMemo(() => {
-    return apiPlaces;
-  }, [apiPlaces]);
+  const listPlaces = apiPlaces;
 
   const mapPins = useMemo(() => mapPlacesMatchingMySaved(listPlaces), [listPlaces]);
 
@@ -97,38 +93,8 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [memoDraft, setMemoDraft] = useState("");
   const [pendingDeletePlaceId, setPendingDeletePlaceId] = useState<string | null>(null);
-
-  const invalidatePlaces = async (roomId?: string | null) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["user", "me", "places"] }),
-      roomId
-        ? queryClient.invalidateQueries({ queryKey: roomPlaceQueryKeys.room(roomId) })
-        : Promise.resolve(),
-    ]);
-  };
-
-  const updateMemoMutation = useMutation({
-    mutationFn: ({
-      roomId,
-      roomPlaceId,
-      memo,
-    }: {
-      roomId: string;
-      roomPlaceId: number;
-      memo: string;
-    }) => roomPlaceApi.updateMemo(roomId, roomPlaceId, { memo }),
-    onSuccess: async (_, variables) => {
-      await invalidatePlaces(variables.roomId);
-    },
-  });
-
-  const deletePlaceMutation = useMutation({
-    mutationFn: ({ roomId, roomPlaceId }: { roomId: string; roomPlaceId: number }) =>
-      roomPlaceApi.deleteRoomPlace(roomId, roomPlaceId),
-    onSuccess: async (_, variables) => {
-      await invalidatePlaces(variables.roomId);
-    },
-  });
+  const { resolveMutationTarget, updateMemoMutation, deletePlaceMutation } =
+    useSavedPlaceActions(listPlaces);
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
@@ -178,14 +144,14 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
       return;
     }
 
-    const target = listPlaces.find((place) => place.id === editingPlaceId);
-    if (!target?.roomId || target.roomPlaceId == null) {
+    const target = resolveMutationTarget(editingPlaceId);
+    if (!target) {
       return;
     }
 
     const nextMemo = memoDraft.trim().slice(0, MAX_MEMO_LENGTH);
     updateMemoMutation.mutate(
-      { roomId: target.roomId, roomPlaceId: target.roomPlaceId, memo: nextMemo },
+      { ...target, memo: nextMemo },
       {
         onSuccess: () => {
           setEditingPlaceId(null);
@@ -196,10 +162,10 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
   };
 
   const handleDeletePlace = (id: string) => {
-    const target = listPlaces.find((place) => place.id === id);
+    const target = resolveMutationTarget(id);
     setOpenMenuId(null);
 
-    if (!target?.roomId || target.roomPlaceId == null) {
+    if (!target) {
       return;
     }
 

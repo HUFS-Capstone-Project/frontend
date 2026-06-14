@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
@@ -11,6 +10,7 @@ import { MyProfileInfoPage } from "@/components/mypage/MyProfileInfoPage";
 import { MySavedCoursesPage } from "@/components/mypage/MySavedCoursesPage";
 import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
+import { useSavedPlaceActions } from "@/components/mypage/use-saved-place-actions";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
@@ -20,7 +20,6 @@ import { isDateCourseConflictError } from "@/features/course-planner/lib/date-co
 import { mapMySavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-my-saved-date-course";
 import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import { useRoomsQuery } from "@/features/room";
-import { roomPlaceApi, roomPlaceQueryKeys } from "@/features/room-places";
 import {
   useMyPlacesQuery,
   userPlaceToSavedPlace,
@@ -56,7 +55,6 @@ const MY_PAGE_PLACES_QUERY_PARAMS = {
 } as const;
 
 export default function MyPage() {
-  const queryClient = useQueryClient();
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
   const { handleLogout } = useLogout();
@@ -76,6 +74,8 @@ export default function MyPage() {
   });
   const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
   const [places, setPlaces] = useState<SavedPlace[]>([]);
+  const { resolveMutationTarget, updateMemoMutation, deletePlaceMutation } =
+    useSavedPlaceActions(places);
   const myPlacesQuery = useMyPlacesQuery({ params: MY_PAGE_PLACES_QUERY_PARAMS });
   const myDateCoursesQuery = useMyDateCoursesQuery({
     enabled: view === "main" || view === "courses",
@@ -126,23 +126,13 @@ export default function MyPage() {
     }
   }, [apiPlaces, myPlacesQuery.data]);
 
-  const invalidateMyPlaces = async (roomId?: string | null) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["user", "me", "places"] }),
-      roomId
-        ? queryClient.invalidateQueries({ queryKey: roomPlaceQueryKeys.room(roomId) })
-        : Promise.resolve(),
-    ]);
-  };
-
   const handleSavePlaceMemo = async (placeId: string, memo: string) => {
     const nextMemo = memo.trim();
-    const target = places.find((place) => place.id === placeId);
+    const target = resolveMutationTarget(placeId);
 
-    if (target?.roomId && target.roomPlaceId != null) {
+    if (target) {
       try {
-        await roomPlaceApi.updateMemo(target.roomId, target.roomPlaceId, { memo: nextMemo });
-        await invalidateMyPlaces(target.roomId);
+        await updateMemoMutation.mutateAsync({ ...target, memo: nextMemo });
       } catch (error) {
         console.error("Failed to update saved place memo", error);
         return;
@@ -157,12 +147,11 @@ export default function MyPage() {
   };
 
   const handleDeletePlace = async (placeId: string) => {
-    const target = places.find((place) => place.id === placeId);
+    const target = resolveMutationTarget(placeId);
 
-    if (target?.roomId && target.roomPlaceId != null) {
+    if (target) {
       try {
-        await roomPlaceApi.deleteRoomPlace(target.roomId, target.roomPlaceId);
-        await invalidateMyPlaces(target.roomId);
+        await deletePlaceMutation.mutateAsync(target);
       } catch (error) {
         console.error("Failed to delete saved place", error);
         return;

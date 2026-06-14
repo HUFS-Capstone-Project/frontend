@@ -7,14 +7,15 @@ import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
 import { ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
+import { toCoursePlannerCategories } from "@/components/course-planner/course-category-options";
 import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
+import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import {
   type CourseCategoryOrder,
-  type CoursePlannerCategory,
   CoursePlannerPanel,
   type PlaceTypeId,
 } from "@/components/course-planner/CoursePlannerPanel";
@@ -50,13 +51,6 @@ const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
-
-const COURSE_ROUTE_FIT_BOUNDS_PADDING = {
-  top: 88,
-  right: 32,
-  bottom: 260,
-  left: 32,
-} as const;
 
 let nextCourseOrderId = 0;
 
@@ -234,40 +228,10 @@ export default function CoursePlannerPage() {
     sigunguOptions.length === 0
       ? "이 시/도에 저장된 시군구가 없어요."
       : null;
-  const categoryOptions = useMemo<CoursePlannerCategory[]>(() => {
-    return filterCategories
-      .filter((category) => {
-        const code = category.code.trim().toLocaleLowerCase("ko-KR");
-        const name = category.name.trim();
-        return code !== "all" && name !== "전체";
-      })
-      .map((category) => {
-        const tagGroups = category.tagGroups
-          .slice()
-          .sort((a, b) => a.sortOrder - b.sortOrder)
-          .map((group) => ({
-            code: group.code,
-            name: group.name,
-            sortOrder: group.sortOrder,
-            tags: group.tags
-              .slice()
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((tag) => ({
-                code: tag.code,
-                name: tag.name,
-                sortOrder: tag.sortOrder,
-              })),
-          }));
-        const tags = tagGroups.flatMap((group) => group.tags);
-
-        return {
-          id: category.code,
-          label: category.name,
-          tagGroups,
-          tags,
-        };
-      });
-  }, [filterCategories]);
+  const categoryOptions = useMemo(
+    () => toCoursePlannerCategories(filterCategories),
+    [filterCategories],
+  );
 
   const handleSelectRegionCity = useCallback(
     (city: string, option?: RegionSelectionOption) => {

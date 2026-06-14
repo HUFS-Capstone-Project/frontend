@@ -1,8 +1,9 @@
 import { AlertCircle, Check, ChevronDown, Pin, Route } from "lucide-react";
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
+import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
@@ -12,12 +13,7 @@ import {
   MAP_CHIP_UNSELECTED_CLASS,
   MAP_FILTER_PANEL_BASE_CLASS,
 } from "@/components/map/chip-style";
-import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
-import {
-  getSavedCourseRouteMapData,
-  mapPlacesFromSavedCourses,
-  savedCourseToPlannerStops,
-} from "@/components/mypage/saved-course-planner-map";
+import { savedCourseToPlannerStops } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { RoomAvatar } from "@/components/room/RoomAvatar";
 import { useRoomsQuery } from "@/features/room";
@@ -29,20 +25,13 @@ import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
 
+import { useSavedCourseFilters } from "./use-saved-course-filters";
+import { useSavedCourseMapData } from "./use-saved-course-map-data";
+
 const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY;
 const KakaoMapView = lazy(() =>
   import("@/components/map/KakaoMapView").then((module) => ({ default: module.KakaoMapView })),
 );
-
-const COURSE_ROUTE_FIT_BOUNDS_PADDING = {
-  top: 88,
-  right: 32,
-  bottom: 260,
-  left: 32,
-} as const;
-
-type CourseFilter = "all" | "room" | "date";
-type FilterPopup = Exclude<CourseFilter, "all"> | null;
 
 function formatCount(count: number) {
   return count > 999 ? "999+" : String(count);
@@ -84,16 +73,23 @@ export function MySavedCoursesPage({
   onPersistCourse,
 }: MySavedCoursesPageProps) {
   const { data: roomsFromApi, isLoading: isRoomsLoading } = useRoomsQuery();
-  const [selectedFilter, setSelectedFilter] = useState<CourseFilter>("all");
-  const [openPopup, setOpenPopup] = useState<FilterPopup>(null);
-  const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
   const [routeViewportKey, setRouteViewportKey] = useState(0);
-
-  const roomChipApplied = selectedRoomIds.length > 0;
-  const dateChipApplied = selectedDate !== null;
-  const allChipActive = !roomChipApplied && !dateChipApplied;
+  const {
+    openPopup,
+    selectedRoomIds,
+    selectedDate,
+    roomChipApplied,
+    dateChipApplied,
+    allChipActive,
+    visibleCourses,
+    closeFilterPopups,
+    handleSelectAll,
+    handleToggleRoom,
+    handlePickCalendarDate,
+    toggleRoomFilterPopup,
+    toggleDateFilterPopup,
+  } = useSavedCourseFilters(courses);
 
   const detailOpen = usePlaceDetailStore((s) => s.isOpen);
   const selectedPlaceId = usePlaceDetailStore((s) => s.selectedPlaceId);
@@ -112,15 +108,6 @@ export function MySavedCoursesPage({
     },
   });
 
-  const closeFilterPopups = useCallback(() => {
-    setOpenPopup(null);
-    setSelectedFilter((prev) => {
-      if (prev === "date" && selectedDate === null) return "all";
-      if (prev === "room" && selectedRoomIds.length === 0) return "all";
-      return prev;
-    });
-  }, [selectedDate, selectedRoomIds]);
-
   usePointerDownOutside(filterChromeRef, openPopup !== null && !overlayMapOpen, closeFilterPopups);
 
   const roomsList = useMemo(() => {
@@ -128,88 +115,20 @@ export function MySavedCoursesPage({
     return [...list].sort((a, b) => Number(b.pinned) - Number(a.pinned));
   }, [roomsFromApi]);
 
-  const coursesHaveRoomLink = useMemo(
-    () => courses.some((c) => Boolean(c.savedFromRoomId)),
-    [courses],
-  );
-
-  const visibleCourses = useMemo(() => {
-    if (selectedFilter === "date" && selectedDate) {
-      return courses.filter((course) => course.courseDateKey === selectedDate);
-    }
-
-    if (selectedFilter === "room") {
-      if (!coursesHaveRoomLink) {
-        return courses;
-      }
-      if (selectedRoomIds.length === 0) {
-        return courses;
-      }
-      return courses.filter(
-        (c) => c.savedFromRoomId != null && selectedRoomIds.includes(c.savedFromRoomId),
-      );
-    }
-
-    return courses;
-  }, [courses, coursesHaveRoomLink, selectedDate, selectedFilter, selectedRoomIds]);
   const totalCourseCount = totalCount ?? courses.length;
 
-  const mapPins = useMemo(() => {
-    return selectedCourse
-      ? mapPlacesFromSavedCourses([selectedCourse], savedPlaces)
-      : mapPlacesFromSavedCourses(visibleCourses, savedPlaces);
-  }, [savedPlaces, selectedCourse, visibleCourses]);
-  const selectedCourseRouteMapData = useMemo(
-    () =>
-      selectedCourse
-        ? getSavedCourseRouteMapData(selectedCourse, savedPlaces)
-        : { places: [], routeCoordinates: [], markerLabelByPlaceId: {} },
-    [savedPlaces, selectedCourse],
-  );
-
-  const mapCenter = useMemo(() => {
-    if (detailOpen && selectedPlaceId) {
-      const pin = mapPins.find((p) => p.id === selectedPlaceId);
-      if (pin) return { latitude: pin.latitude, longitude: pin.longitude };
-    }
-    if (selectedCourse) {
-      const focused = mapPlacesFromSavedCourses([selectedCourse], savedPlaces);
-      if (focused.length > 0) return weightedMapCenter(focused);
-    }
-    return weightedMapCenter(mapPins);
-  }, [detailOpen, mapPins, savedPlaces, selectedCourse, selectedPlaceId]);
-
-  const handleSelectAll = () => {
-    setSelectedFilter("all");
-    setOpenPopup(null);
-    setSelectedRoomIds([]);
-    setSelectedDate(null);
-  };
+  const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
+    courses: visibleCourses,
+    selectedCourse,
+    savedPlaces,
+    detailOpen,
+    selectedPlaceId,
+  });
 
   const handleSelectCourse = (course: SavedCourse) => {
     setIsCourseSheetExpanded(false);
     setRouteViewportKey((current) => current + 1);
     onSelectCourse(course);
-  };
-
-  const handleToggleRoom = (roomId: string) => {
-    const nextIds = selectedRoomIds.includes(roomId)
-      ? selectedRoomIds.filter((item) => item !== roomId)
-      : [...selectedRoomIds, roomId];
-    setSelectedRoomIds(nextIds);
-    setSelectedFilter(nextIds.length === 0 ? "all" : "room");
-  };
-
-  const handlePickCalendarDate = (dateStr: string) => {
-    if (selectedDate === dateStr) {
-      setSelectedDate(null);
-      setSelectedFilter("all");
-      setOpenPopup(null);
-      return;
-    }
-    setSelectedFilter("date");
-    setSelectedDate(dateStr);
-    setOpenPopup(null);
   };
 
   const handleHeaderBack = () => {
@@ -303,10 +222,7 @@ export function MySavedCoursesPage({
             <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedFilter("room");
-                  setOpenPopup((current) => (current === "room" ? null : "room"));
-                }}
+                onClick={toggleRoomFilterPopup}
                 className={cn(filterChipClass(roomChipApplied), "shrink-0 gap-1 px-3")}
                 aria-expanded={openPopup === "room"}
                 aria-haspopup="listbox"
@@ -442,10 +358,7 @@ export function MySavedCoursesPage({
             <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedFilter("date");
-                  setOpenPopup((current) => (current === "date" ? null : "date"));
-                }}
+                onClick={toggleDateFilterPopup}
                 className={cn(
                   filterChipClass(dateChipApplied),
                   "max-w-[min(11rem,calc(100vw-8rem))] shrink-0 gap-1 truncate px-3",

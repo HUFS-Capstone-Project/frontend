@@ -1,8 +1,9 @@
 export const userQueryKeys = {
   all: ["user"] as const,
   me: () => [...userQueryKeys.all, "me"] as const,
+  myPlacesRoot: () => [...userQueryKeys.me(), "places"] as const,
   myPlaces: (params: UserPlaceListQueryKeyParams) =>
-    [...userQueryKeys.all, "me", "places", params] as const,
+    [...userQueryKeys.myPlacesRoot(), params] as const,
 };
 
 export type UserPlaceListQueryKeyParams = {
