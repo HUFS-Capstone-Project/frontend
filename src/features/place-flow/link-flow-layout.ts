@@ -15,7 +15,7 @@ export const LINK_ADD_FLOW_ROOT_CLASS =
   "flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col items-stretch";
 
 export const LINK_FLOW_PAGE_CLASS =
-  "scrollbar-hide flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col self-stretch overflow-x-hidden overflow-y-auto px-6 pt-16 pb-8";
+  "scrollbar-hide pb-safe-flow flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col self-stretch overflow-x-hidden overflow-y-auto px-6 pt-16";
 
 export const LINK_FLOW_HEADLINE_STACK_CLASS = "space-y-1";
 

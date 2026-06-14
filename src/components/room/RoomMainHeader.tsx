@@ -23,7 +23,7 @@ export function RoomMainHeader({
   return (
     <header
       className={cn(
-        "bg-room-header-gradient text-room-header-foreground px-page flex flex-col gap-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3",
+        "bg-room-header-gradient text-room-header-foreground px-page flex flex-col gap-4 pt-[max(1rem,var(--inset-top))] pb-3",
         className,
       )}
     >

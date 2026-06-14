@@ -26,7 +26,7 @@ export function BottomNavigationBar({ activeId, onSelect, className }: BottomNav
   return (
     <nav
       className={cn(
-        "border-border/60 bg-background overflow-hidden rounded-t-3xl pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]",
+        "border-border/60 bg-background overflow-hidden rounded-t-3xl pt-2 pb-[max(0.5rem,var(--inset-bottom))]",
         "shadow-nav border-t",
         className,
       )}

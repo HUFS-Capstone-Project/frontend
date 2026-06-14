@@ -279,7 +279,7 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
       {!detailOpen ? (
         <div
           ref={listScrollRef}
-          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(var(--inset-bottom)+5.75rem))]"
         >
           {isInitialPlacesLoading ? (
             <SavedPlaceListSkeleton />

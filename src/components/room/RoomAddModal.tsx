@@ -273,7 +273,7 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
         ) : null}
 
         {renderStep === "createInvite" ? (
-          <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-24 pb-8">
+          <div className="scrollbar-hide pb-safe-flow flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-24">
             <div className="mx-auto w-full max-w-sm text-center">
               <h2 className="text-foreground text-[2rem] leading-tight font-semibold">
                 {roomName.trim()}

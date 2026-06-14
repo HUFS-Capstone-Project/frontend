@@ -27,7 +27,7 @@ type MyProfileInfoPageProps = {
   onUpdateNickname: (nickname: string) => Promise<void>;
 };
 
-const PROFILE_PAGE_CONTENT_PADDING_CLASS = "px-4 pb-[max(1rem,env(safe-area-inset-bottom))]";
+const PROFILE_PAGE_CONTENT_PADDING_CLASS = "px-4 pb-[max(1rem,var(--inset-bottom))]";
 const PROFILE_PAGE_FADE_VARIANT = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
@@ -195,7 +195,7 @@ export function MyProfileInfoPage({
         )}
       </div>
 
-      <div className="space-y-1 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="space-y-1 px-4 pb-[max(1rem,var(--inset-bottom))]">
         <button
           type="button"
           onClick={handleStartEdit}

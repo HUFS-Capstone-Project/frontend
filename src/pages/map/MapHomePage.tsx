@@ -498,7 +498,7 @@ export function MapHomePageContent({
           open={friendMenuOpen}
           onToggle={() => setFriendMenuOpen((prev) => !prev)}
           onSelectFriend={handleSelectMember}
-          className="bottom-fab-above-nav absolute left-[max(1rem,env(safe-area-inset-left))] z-10"
+          className="bottom-fab-above-nav absolute left-[max(1rem,var(--inset-left))] z-10"
         />
         <BottomNavigationBar activeId="map" onSelect={handleSelectBottomNav} />
       </div>

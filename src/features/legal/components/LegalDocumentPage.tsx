@@ -39,7 +39,7 @@ export function LegalDocumentPage({ legalDocument }: LegalDocumentPageProps) {
         onBack={handleBack}
       />
 
-      <main className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <main className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-[max(1.5rem,var(--inset-bottom))]">
         <p className="text-muted-foreground pt-2 pb-6 text-xs">시행일: {effectiveDate}</p>
 
         <div className="flex flex-col gap-8">

@@ -660,7 +660,7 @@ export function KakaoMapView({
       ) : null}
 
       {showCurrentLocationButton && hasMapKey && loadState !== "error" ? (
-        <div className="pointer-events-none absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[calc(max(0.5rem,env(safe-area-inset-bottom))+4.25rem)] z-10 flex flex-col items-end gap-2">
+        <div className="pointer-events-none absolute right-[max(1rem,var(--inset-right))] bottom-[calc(max(0.5rem,var(--inset-bottom))+4.25rem)] z-10 flex flex-col items-end gap-2">
           {locationError ? (
             <div className="bg-background/95 border-border-subtle rounded-full border px-3 py-2 text-xs font-medium text-black/65 shadow-sm">
               {locationError}

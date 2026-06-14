@@ -280,7 +280,7 @@ export function CoursePlaceInfoPanel({
     return (
       <section
         className={cn(
-          "bg-background flex h-full min-w-0 flex-col overflow-hidden px-6 pt-8 pb-[max(1rem,env(safe-area-inset-bottom))]",
+          "bg-background flex h-full min-w-0 flex-col overflow-hidden px-6 pt-8 pb-[max(1rem,var(--inset-bottom))]",
           className,
         )}
         onTouchStart={handleCollapsedTouchStart}
@@ -316,7 +316,7 @@ export function CoursePlaceInfoPanel({
       className={cn(
         "bg-background px-6 pt-8",
         hideNewCourseSaveButton && !isEditing
-          ? "pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))]"
+          ? "pb-[max(1.25rem,calc(var(--inset-bottom)+1rem))]"
           : "pb-0",
         className,
       )}

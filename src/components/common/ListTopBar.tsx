@@ -24,7 +24,7 @@ const LIST_TOP_BAR_OVERLAY_CLASS =
   "border-border/55 bg-background/93 supports-[backdrop-filter]:bg-background/82 border-b border-transparent shadow-[0_8px_24px_oklch(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150";
 
 export const LIST_TOP_BAR_ROOT_BASE_CLASS =
-  "relative z-20 shrink-0 pt-[max(1rem,env(safe-area-inset-top))]";
+  "relative z-20 shrink-0 pt-[max(1rem,var(--inset-top))]";
 export const LIST_TOP_BAR_STICKY_CLASS = "bg-background sticky top-0";
 export const LIST_TOP_BAR_OVERLAY_BACKDROP_CLASS = LIST_TOP_BAR_OVERLAY_CLASS;
 export const LIST_TOP_BAR_ROW_CLASS =

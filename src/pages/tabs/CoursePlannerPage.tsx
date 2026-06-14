@@ -609,7 +609,7 @@ export default function CoursePlannerPage() {
       ) : null}
 
       {mode === "detail" ? (
-        <div className="pointer-events-none absolute top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+        <div className="pointer-events-none absolute top-[max(5rem,calc(var(--inset-top)+4.5rem))] left-[max(1rem,var(--inset-left))] z-40 flex items-center">
           <button
             type="button"
             onClick={handleShowRoute}
@@ -626,7 +626,7 @@ export default function CoursePlannerPage() {
       ) : null}
 
       {mode !== "detail" ? (
-        <main className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto pb-[max(7rem,calc(env(safe-area-inset-bottom)+7rem))]">
+        <main className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto pb-[max(7rem,calc(var(--inset-bottom)+7rem))]">
           <div className="flex min-h-0 w-full max-w-full min-w-0 flex-1 flex-col">
             {mode === "form" || mode === "region" || mode === "datetime" ? (
               <>
@@ -652,7 +652,7 @@ export default function CoursePlannerPage() {
                   }}
                 />
 
-                <div className="bg-background px-6 pt-6 pb-[max(5rem,calc(env(safe-area-inset-bottom)+5rem))]">
+                <div className="bg-background px-6 pt-6 pb-[max(5rem,calc(var(--inset-bottom)+5rem))]">
                   <CoursePlannerActions
                     canGenerate={canAttemptGenerate}
                     onGenerate={handleGenerateCourse}

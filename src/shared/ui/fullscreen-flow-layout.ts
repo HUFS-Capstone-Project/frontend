@@ -3,7 +3,7 @@
  * 라우트 기반 플로우와 모달 플로우의 가로·세로 규격 단일 소스.
  */
 export const FULLSCREEN_FLOW_PANEL_CLASSES =
-  "bg-card relative z-10 flex h-dvh w-full max-w-lg flex-col overflow-hidden md:max-w-3xl xl:max-w-lg";
+  "bg-card relative z-10 flex h-[var(--app-viewport-height)] max-h-[var(--app-viewport-height)] w-full max-w-lg flex-col overflow-hidden md:max-w-3xl xl:max-w-lg";
 
 /** 모달/오버레이 바깥 래퍼 (스크림은 별도) */
 export const FULLSCREEN_FLOW_MODAL_OUTER_CLASSES =

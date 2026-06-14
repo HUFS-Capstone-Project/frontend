@@ -330,7 +330,7 @@ export default function MyPage() {
             {...MY_PAGE_FADE_VARIANT}
             transition={MY_PAGE_FADE_TRANSITION}
           >
-            <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto px-4 pt-[max(1rem,calc(env(safe-area-inset-top)+0.75rem))] pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]">
+            <main className="scrollbar-hide bg-background min-h-0 flex-1 overflow-y-auto px-4 pt-[max(1rem,calc(var(--inset-top)+0.75rem))] pb-[max(1rem,calc(var(--inset-bottom)+5.75rem))]">
               <div className="mx-auto max-w-md">
                 <MyProfileHeader
                   nickname={displayNickname}

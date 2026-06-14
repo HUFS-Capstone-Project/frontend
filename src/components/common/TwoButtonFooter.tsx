@@ -15,10 +15,7 @@ type TwoButtonFooterProps = {
 export function TwoButtonFooter({ left, right, className }: TwoButtonFooterProps) {
   return (
     <div
-      className={cn(
-        "bg-background w-full min-w-0 shrink-0 px-6 pt-4 pb-[calc(env(safe-area-inset-bottom)+28px)]",
-        className,
-      )}
+      className={cn("bg-background pb-safe-footer w-full min-w-0 shrink-0 px-6 pt-4", className)}
     >
       <div className={FLEX_DUAL_ACTION_ROW_CLASS}>
         <div className={FLEX_DUAL_ACTION_SLOT_CLASS}>{left}</div>

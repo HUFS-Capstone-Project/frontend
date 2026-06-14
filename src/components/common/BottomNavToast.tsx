@@ -22,8 +22,8 @@ export function BottomNavToast({ message, placement = "bottom" }: BottomNavToast
           transition={{ duration: 0.22, ease: "easeOut" }}
           className={
             isTop
-              ? "pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.75rem)] z-90 flex justify-center px-5"
-              : "pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--keyboard-inset-bottom)+7.0rem)] z-90 flex justify-center px-5"
+              ? "pointer-events-none fixed inset-x-0 top-[calc(var(--inset-top)+0.75rem)] z-90 flex justify-center px-5"
+              : "pointer-events-none fixed inset-x-0 bottom-[calc(var(--inset-bottom)+var(--keyboard-inset-bottom)+7.0rem)] z-90 flex justify-center px-5"
           }
         >
           <p className="bg-foreground/88 text-background rounded-full px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-sm">

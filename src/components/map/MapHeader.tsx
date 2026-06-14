@@ -12,7 +12,7 @@ export function MapHeader({ title, onOpenList, className }: MapHeaderProps) {
   return (
     <header
       className={cn(
-        "bg-room-header-gradient text-room-header-foreground px-page relative z-20 pt-[max(1rem,env(safe-area-inset-top))] pb-3",
+        "bg-room-header-gradient text-room-header-foreground px-page relative z-20 pt-[max(1rem,var(--inset-top))] pb-3",
         className,
       )}
     >

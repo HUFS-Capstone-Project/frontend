@@ -84,6 +84,17 @@ body {
   /* Android Capacitor 키보드 보정. 웹에서는 0으로 유지된다. */
   --app-viewport-height: 100dvh;
   --keyboard-inset-bottom: 0px;
+
+  /**
+   * Safe area 단일 소스.
+   * - Android Capacitor: SystemBars 플러그인이 --safe-area-inset-* 주입
+   * - iOS Safari / PWA: env(safe-area-inset-*) fallback
+   * - 데스크톱 웹: 모두 0px (기존 레이아웃 유지)
+   */
+  --inset-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --inset-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --inset-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --inset-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 }
 
 /* 모바일 퍼스트 / Capacitor 대비: 터치 권장 최소 크기(약 44×44px). 인터랙티브 요소에 병행. */
@@ -139,14 +150,14 @@ body {
    * 모바일 16px(1rem)·md+ 24px(1.5rem) — 가독성·터치 기준에 맞는 권장 수준.
    */
   .px-page {
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-left: max(1rem, var(--inset-left));
+    padding-right: max(1rem, var(--inset-right));
   }
 
   @media (min-width: 768px) {
     .px-page {
-      padding-left: max(1.5rem, env(safe-area-inset-left));
-      padding-right: max(1.5rem, env(safe-area-inset-right));
+      padding-left: max(1.5rem, var(--inset-left));
+      padding-right: max(1.5rem, var(--inset-right));
     }
   }
 
@@ -154,16 +165,16 @@ body {
    * RootLayout의 `px-page` + 상하 safe 패딩을 이 페이지에서 상쇄해 가로·세로 엣지 투 엣지로 쓸 때 사용.
    */
   .-m-page {
-    margin-top: calc(-1 * max(0.75rem, env(safe-area-inset-top)));
-    margin-bottom: calc(-1 * max(0.75rem, env(safe-area-inset-bottom)));
-    margin-left: calc(-1 * max(1rem, env(safe-area-inset-left)));
-    margin-right: calc(-1 * max(1rem, env(safe-area-inset-right)));
+    margin-top: calc(-1 * max(0.75rem, var(--inset-top)));
+    margin-bottom: calc(-1 * max(0.75rem, var(--inset-bottom)));
+    margin-left: calc(-1 * max(1rem, var(--inset-left)));
+    margin-right: calc(-1 * max(1rem, var(--inset-right)));
   }
 
   @media (min-width: 768px) {
     .-m-page {
-      margin-left: calc(-1 * max(1.5rem, env(safe-area-inset-left)));
-      margin-right: calc(-1 * max(1.5rem, env(safe-area-inset-right)));
+      margin-left: calc(-1 * max(1.5rem, var(--inset-left)));
+      margin-right: calc(-1 * max(1.5rem, var(--inset-right)));
     }
   }
 
@@ -171,7 +182,7 @@ body {
   .pb-room-main-scroll {
     padding-bottom: max(
       var(--room-scroll-pb-min),
-      calc(env(safe-area-inset-bottom) + var(--room-scroll-pb-safe-add))
+      calc(var(--inset-bottom) + var(--room-scroll-pb-safe-add))
     );
   }
 
@@ -182,7 +193,27 @@ body {
 
   /** 페이지 수평 패딩과 맞춘 우측(또는 RTL 시 시작) safe inset */
   .end-page-safe {
-    inset-inline-end: max(1rem, env(safe-area-inset-right));
+    inset-inline-end: max(1rem, var(--inset-right));
+  }
+
+  /** 바텀시트·모달 등: 키보드 + 시스템 내비게이션 바 */
+  .pb-safe-overlay {
+    padding-bottom: calc(var(--keyboard-inset-bottom) + var(--inset-bottom));
+  }
+
+  /** 풀스크린 플로우·링크 입력 등 하단 CTA 여백 */
+  .pb-safe-flow {
+    padding-bottom: max(2rem, var(--inset-bottom));
+  }
+
+  /** 바텀시트 스크롤 본문 하단 여백 */
+  .pb-safe-sheet {
+    padding-bottom: max(2rem, var(--inset-bottom));
+  }
+
+  /** 하단 2버튼 푸터 (`TwoButtonFooter`) */
+  .pb-safe-footer {
+    padding-bottom: calc(var(--inset-bottom) + 28px);
   }
 
   .android-keyboard-lift {

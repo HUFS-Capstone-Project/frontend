@@ -158,10 +158,7 @@ export function BottomSheet({
 
   return (
     <div
-      className={cn(
-        "fixed inset-0 z-70 flex items-end justify-center pb-[var(--keyboard-inset-bottom)]",
-        className,
-      )}
+      className={cn("pb-safe-overlay fixed inset-0 z-70 flex items-end justify-center", className)}
       role="dialog"
       aria-modal="true"
     >
@@ -219,7 +216,7 @@ export function BottomSheet({
         <div
           ref={scrollContainerRef}
           className={cn(
-            "scrollbar-hide pb-[max(2rem,env(safe-area-inset-bottom))]",
+            "scrollbar-hide pb-safe-sheet",
             intrinsicPanelHeight
               ? "max-h-[calc(var(--app-viewport-height)-var(--keyboard-inset-bottom)-5.5rem)] flex-none overflow-y-auto"
               : "min-h-0 flex-1 overflow-y-auto",

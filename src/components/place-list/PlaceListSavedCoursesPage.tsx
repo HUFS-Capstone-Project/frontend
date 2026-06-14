@@ -465,7 +465,7 @@ export function PlaceListSavedCoursesPage({
       </ListTopBar>
 
       {selectedCourseWithDetail ? (
-        <div className="pointer-events-none absolute top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+        <div className="pointer-events-none absolute top-[max(5rem,calc(var(--inset-top)+4.5rem))] left-[max(1rem,var(--inset-left))] z-40 flex items-center">
           <button
             type="button"
             onClick={handleShowRoute}
@@ -484,7 +484,7 @@ export function PlaceListSavedCoursesPage({
       {!overlayMapOpen ? (
         <div
           ref={courseListScrollRef}
-          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
+          className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(var(--inset-bottom)+5.75rem))]"
         >
           {isInitialCoursesLoading ? (
             <SavedCourseListSkeleton />
