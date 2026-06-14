@@ -38,3 +38,6 @@ android/app/src/main/res/xml/config.xml
 android/**/*.apk
 android/**/*.ap_
 android/**/*.aab
+android/keystore.properties
+android/*.keystore
+android/*.jks

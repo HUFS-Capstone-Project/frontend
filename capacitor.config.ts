@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.udidura.app",
-  appName: "Udidura",
+  appName: "어디더라",
   webDir: "dist",
   server: {
     androidScheme: "https",
