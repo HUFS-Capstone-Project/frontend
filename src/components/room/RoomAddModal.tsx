@@ -1,4 +1,4 @@
-import { Clipboard } from "lucide-react";
+import { Clipboard, Share2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -18,6 +18,8 @@ import { useRoomAddFlow } from "@/features/room";
 import { ROOM_ACTION_MODAL_TRANSITION_MS } from "@/features/room/constants";
 import { lengthAfterInsertAtSelection } from "@/lib/string-max-length";
 import { cn } from "@/lib/utils";
+import { CLIPBOARD_TEXT, INVITE_SHARE_TEXT } from "@/shared/config/text";
+import { shareRoomInvite } from "@/shared/lib/share-room-invite";
 
 const ROOM_NAME_MAX_LENGTH = 20;
 const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
@@ -151,6 +153,26 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
     [notifyRoomNameLimitAttempt, roomName],
   );
 
+  const handleShareInviteCode = useCallback(async () => {
+    if (!createdRoom?.inviteCode) {
+      return;
+    }
+
+    const result = await shareRoomInvite({
+      roomName: roomName.trim() || createdRoom.roomName,
+      inviteCode: createdRoom.inviteCode,
+    });
+
+    if (result === "copied") {
+      showToast?.(CLIPBOARD_TEXT.copySuccessToast);
+      return;
+    }
+
+    if (result === "failed") {
+      showToast?.(INVITE_SHARE_TEXT.shareErrorToast);
+    }
+  }, [createdRoom, roomName, showToast]);
+
   const handleRoomNameBeforeInput = useCallback(
     (event: React.FormEvent<HTMLInputElement>) => {
       const nativeEvent = event.nativeEvent as InputEvent;
@@ -264,21 +286,38 @@ export function RoomAddModal({ isOpen, onClose, showToast }: RoomAddModalProps) 
                 <p className="text-foreground text-[1.75rem] leading-none font-medium tabular-nums">
                   {displayInviteCode}
                 </p>
-                <button
-                  type="button"
-                  className={cn(
-                    "bg-muted text-foreground hover:bg-muted/80 mt-6 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-colors disabled:opacity-70",
-                    !createdRoom?.inviteCode && "pointer-events-none opacity-60",
-                  )}
-                  aria-label="초대코드 복사"
-                  onClick={() => {
-                    void copyInviteCode();
-                  }}
-                  disabled={!createdRoom?.inviteCode || isCopying}
-                >
-                  <Clipboard className="size-3.5" aria-hidden />
-                  {isCopying ? "복사 중..." : copyFeedback === "copied" ? "복사됨" : "복사"}
-                </button>
+                <div className="mt-6 flex justify-center gap-2">
+                  <button
+                    type="button"
+                    className={cn(
+                      "bg-muted text-foreground hover:bg-foreground/5 active:bg-foreground/8 disabled:hover:bg-muted inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,transform] duration-150 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100",
+                      !createdRoom?.inviteCode && "pointer-events-none opacity-60",
+                    )}
+                    aria-label="초대코드 복사"
+                    onClick={() => {
+                      void copyInviteCode();
+                    }}
+                    disabled={!createdRoom?.inviteCode || isCopying}
+                  >
+                    <Clipboard className="size-3.5" aria-hidden />
+                    {isCopying ? "복사 중..." : copyFeedback === "copied" ? "복사됨" : "복사"}
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      "bg-muted text-foreground hover:bg-foreground/5 active:bg-foreground/8 disabled:hover:bg-muted inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,transform] duration-150 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100",
+                      !createdRoom?.inviteCode && "pointer-events-none opacity-60",
+                    )}
+                    aria-label="초대코드 공유"
+                    onClick={() => {
+                      void handleShareInviteCode();
+                    }}
+                    disabled={!createdRoom?.inviteCode}
+                  >
+                    <Share2 className="size-3.5" aria-hidden />
+                    공유하기
+                  </button>
+                </div>
               </div>
 
               {!createdRoom ? (

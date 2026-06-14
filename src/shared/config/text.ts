@@ -18,6 +18,10 @@ export const CLIPBOARD_TEXT = {
   copyErrorToast: "복사하지 못했어요 다시 시도해 주세요",
 } as const;
 
+export const INVITE_SHARE_TEXT = {
+  shareErrorToast: "공유하지 못했어요 다시 시도해 주세요",
+} as const;
+
 export const ROOM_TEXT = {
   toast: {
     created: "방을 만들었어요",

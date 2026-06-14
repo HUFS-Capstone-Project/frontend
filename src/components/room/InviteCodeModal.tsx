@@ -1,10 +1,11 @@
-import { Clipboard } from "lucide-react";
+import { Clipboard, Share2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
 import { copyTextToClipboard } from "@/features/room/utils/clipboard";
 import { formatInviteCodeForDisplay, getInviteCodeValue } from "@/features/room/utils/inviteCode";
-import { CLIPBOARD_TEXT } from "@/shared/config/text";
+import { CLIPBOARD_TEXT, INVITE_SHARE_TEXT } from "@/shared/config/text";
+import { shareRoomInvite } from "@/shared/lib/share-room-invite";
 import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
@@ -76,6 +77,22 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
     }
   }, [inviteCode, isCopying, resetFeedbackLater, showToast]);
 
+  const handleShare = useCallback(async () => {
+    const result = await shareRoomInvite({
+      roomName: displayRoom.displayName,
+      inviteCode,
+    });
+
+    if (result === "copied") {
+      showToast?.(CLIPBOARD_TEXT.copySuccessToast);
+      return;
+    }
+
+    if (result === "failed") {
+      showToast?.(INVITE_SHARE_TEXT.shareErrorToast);
+    }
+  }, [displayRoom.displayName, inviteCode, showToast]);
+
   return (
     <RoomModalShell visible={visible} onOverlayClick={onClose} className="z-60">
       <div className="px-6 pt-8 pb-5">
@@ -95,10 +112,10 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
               {displayCode}
             </p>
           </div>
-          <div className="mt-3 flex justify-center">
+          <div className="mt-3 flex justify-center gap-2">
             <button
               type="button"
-              className="bg-muted text-foreground hover:bg-muted/80 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-colors disabled:opacity-70"
+              className="bg-muted text-foreground hover:bg-foreground/5 active:bg-foreground/8 disabled:hover:bg-muted inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,transform] duration-150 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
               aria-label="초대코드 복사"
               onClick={() => {
                 void handleCopy();
@@ -107,6 +124,17 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
             >
               <Clipboard className="size-3.5" aria-hidden />
               {isCopying ? "복사 중..." : copyFeedback === "success" ? "복사됨" : "복사"}
+            </button>
+            <button
+              type="button"
+              className="bg-muted text-foreground hover:bg-foreground/5 active:bg-foreground/8 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-[background-color,transform] duration-150 active:scale-[0.98]"
+              aria-label="초대코드 공유"
+              onClick={() => {
+                void handleShare();
+              }}
+            >
+              <Share2 className="size-3.5" aria-hidden />
+              공유하기
             </button>
           </div>
         </div>
