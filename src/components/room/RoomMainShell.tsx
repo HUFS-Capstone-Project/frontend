@@ -28,7 +28,7 @@ export function RoomMainShell({ header, children, bottomNav, fab, className }: R
         {children}
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+      <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
         {fab != null ? (
           <div className="bottom-fab-above-nav end-page-safe absolute z-10">{fab}</div>
         ) : null}

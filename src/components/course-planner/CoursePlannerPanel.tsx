@@ -107,7 +107,7 @@ export function CoursePlannerPanel({
           label="지역 설정"
           required
           value={regionValue}
-          placeholder="지역을 선택해 주세요."
+          placeholder="지역을 선택해 주세요"
           onClick={onOpenRegionSelect}
         />
 
@@ -115,7 +115,7 @@ export function CoursePlannerPanel({
           label="날짜 및 시간 설정"
           required
           value={dateTimeValue}
-          placeholder="날짜 및 시간을 설정해 주세요."
+          placeholder="날짜 및 시간을 설정해 주세요"
           icon={<CalendarDays className="size-4" aria-hidden />}
           onClick={onOpenDateTimeSelect}
         />

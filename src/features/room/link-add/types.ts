@@ -99,11 +99,11 @@ export function resolveAnalysisErrorMessageFromStatus(
   status: LinkAnalysisStatus,
 ): string | undefined {
   if (status === "FAILED") {
-    return "링크 분석에 실패했습니다.";
+    return "링크 분석에 실패했습니다";
   }
 
   if (status === "DISPATCH_FAILED") {
-    return "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요.";
+    return "분석 작업을 시작하지 못했습니다. 다시 시도해 주세요";
   }
 
   return undefined;

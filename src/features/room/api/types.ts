@@ -87,7 +87,3 @@ export type RegisterLinkRequest = {
   roomId: string;
   source?: LinkSource;
 };
-
-export type RoomActionResult = {
-  message: string | null;
-};

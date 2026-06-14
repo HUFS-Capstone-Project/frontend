@@ -7,12 +7,11 @@ import {
   isHmString,
 } from "@/components/course-planner/course-date-time";
 import {
-  COURSE_DEFAULT_REGION,
   COURSE_FALLBACK_TITLE,
   COURSE_TOAST_DURATION_MS,
-  COURSE_TOAST_TEXT,
   type CoursePlannerMode,
 } from "@/features/course-planner/constants";
+import { COURSE_TEXT } from "@/shared/config/text";
 import type { CourseOption, CourseSavePayload, CourseStop } from "@/shared/types/course";
 
 type UseCoursePlannerStateParams = {
@@ -42,8 +41,8 @@ export function useCoursePlannerState({
 }: UseCoursePlannerStateParams) {
   const [mode, setMode] = useState<CoursePlannerMode>("form");
   const [regionValue, setRegionValue] = useState("");
-  const [draftCity, setDraftCity] = useState<string>(COURSE_DEFAULT_REGION.city);
-  const [draftDistrict, setDraftDistrict] = useState<string>(COURSE_DEFAULT_REGION.district);
+  const [draftCity, setDraftCity] = useState("");
+  const [draftDistrict, setDraftDistrict] = useState("");
   const [dateTimeValue, setDateTimeValue] = useState<DateTimeSelection | null>(null);
   const [draftDate, setDraftDate] = useState<string | null>(null);
   const [draftStartTime, setDraftStartTime] = useState<string | null>(COURSE_DEFAULT_START_TIME);
@@ -117,17 +116,12 @@ export function useCoursePlannerState({
 
   const handleSelectCity = useCallback((city: string) => {
     setDraftCity(city);
-    setDraftDistrict(COURSE_DEFAULT_REGION.allDistrict);
+    setDraftDistrict("");
   }, []);
 
   const handleConfirmRegion = useCallback(
     (displayLabel?: string) => {
-      setRegionValue(
-        displayLabel ??
-          (draftDistrict === COURSE_DEFAULT_REGION.allDistrict
-            ? draftCity
-            : `${draftCity} ${draftDistrict}`.trim()),
-      );
+      setRegionValue(displayLabel ?? `${draftCity} ${draftDistrict}`.trim());
       setMode("form");
     },
     [draftCity, draftDistrict],
@@ -135,8 +129,8 @@ export function useCoursePlannerState({
 
   const handleResetPlanner = useCallback(() => {
     setRegionValue("");
-    setDraftCity(COURSE_DEFAULT_REGION.city);
-    setDraftDistrict(COURSE_DEFAULT_REGION.district);
+    setDraftCity("");
+    setDraftDistrict("");
     setDateTimeValue(null);
     setDraftDate(null);
     setDraftStartTime(COURSE_DEFAULT_START_TIME);
@@ -166,7 +160,7 @@ export function useCoursePlannerState({
 
   const handleSaveCourse = useCallback(
     (payload: CourseSavePayload) => {
-      showToast(COURSE_TOAST_TEXT.saved, COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.saved, COURSE_TOAST_DURATION_MS);
       if (payload.kind === "edit") {
         if (selectedCourseId) {
           setCourseOverrides((current) => ({
@@ -199,6 +193,7 @@ export function useCoursePlannerState({
     dateTimeDisplayValue: getDateTimeDisplayValue(dateTimeValue),
     canGenerate,
     setMode,
+    setDraftCity,
     setDraftDistrict,
     setDraftDate,
     setDraftStartTime,

@@ -4,6 +4,7 @@ export { useRoomPlace } from "./hooks/use-room-place";
 export { useRoomPlaceMapPins } from "./hooks/use-room-places";
 export { useRoomPlaces } from "./hooks/use-room-places";
 export { useUpdateRoomPlaceMemo } from "./hooks/use-update-room-place-memo";
+export { isRoomPlaceUsedInDateCourseError } from "./lib/room-place-errors";
 export { roomPlaceMapPinToSavedPlace, roomPlaceToSavedPlace } from "./lib/room-place-mappers";
 export { roomPlaceQueryKeys } from "./query-keys";
 export type {

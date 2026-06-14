@@ -7,7 +7,8 @@ const BOTTOM_SHEET_TRANSITION_MS = 240;
 const DRAG_CLOSE_THRESHOLD = 96;
 
 /** 패널(드래그 핸들 포함) 최대 높이 — 모든 BottomSheet 기본값 (상단 여백 최소) */
-const BOTTOM_SHEET_PANEL_MAX_HEIGHT_CLASS = "max-h-[calc(100dvh-0.5rem)]";
+const BOTTOM_SHEET_PANEL_MAX_HEIGHT_CLASS =
+  "max-h-[calc(var(--app-viewport-height)-var(--keyboard-inset-bottom)-0.5rem)]";
 
 export type BottomSheetProps = {
   open: boolean;
@@ -157,7 +158,10 @@ export function BottomSheet({
 
   return (
     <div
-      className={cn("fixed inset-0 z-70 flex items-end justify-center", className)}
+      className={cn(
+        "fixed inset-0 z-70 flex items-end justify-center pb-[var(--keyboard-inset-bottom)]",
+        className,
+      )}
       role="dialog"
       aria-modal="true"
     >
@@ -217,7 +221,7 @@ export function BottomSheet({
           className={cn(
             "scrollbar-hide pb-[max(2rem,env(safe-area-inset-bottom))]",
             intrinsicPanelHeight
-              ? "max-h-[calc(100dvh-5.5rem)] flex-none overflow-y-auto"
+              ? "max-h-[calc(var(--app-viewport-height)-var(--keyboard-inset-bottom)-5.5rem)] flex-none overflow-y-auto"
               : "min-h-0 flex-1 overflow-y-auto",
             contentClassName,
           )}

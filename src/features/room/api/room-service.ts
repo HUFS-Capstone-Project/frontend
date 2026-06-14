@@ -12,7 +12,6 @@ import type {
   JoinRoomResponse,
   RegisterLinkRequest,
   RegisterLinkResponse,
-  RoomActionResult,
   RoomDetailResponse,
   RoomMemberResponse,
   RoomSummaryResponse,
@@ -53,39 +52,30 @@ export const roomService = {
     return res.data.data;
   },
 
-  updateRoomName: async (
-    roomId: string,
-    payload: UpdateRoomNameRequest,
-  ): Promise<RoomActionResult> => {
+  updateRoomName: async (roomId: string, payload: UpdateRoomNameRequest): Promise<void> => {
     return withCsrfRetry(async () => {
-      const res = await api.patch<CommonResponse<null>>(API_PATHS.rooms.detail(roomId), payload, {
+      await api.patch<CommonResponse<null>>(API_PATHS.rooms.detail(roomId), payload, {
         withCredentials: true,
         headers: getXsrfHeader(),
       });
-      return toRoomActionResult(res.data.message);
     });
   },
 
-  updateRoomPin: async (
-    roomId: string,
-    payload: UpdateRoomPinRequest,
-  ): Promise<RoomActionResult> => {
+  updateRoomPin: async (roomId: string, payload: UpdateRoomPinRequest): Promise<void> => {
     return withCsrfRetry(async () => {
-      const res = await api.patch<CommonResponse<null>>(API_PATHS.rooms.pin(roomId), payload, {
+      await api.patch<CommonResponse<null>>(API_PATHS.rooms.pin(roomId), payload, {
         withCredentials: true,
         headers: getXsrfHeader(),
       });
-      return toRoomActionResult(res.data.message);
     });
   },
 
-  leaveRoom: async (roomId: string): Promise<RoomActionResult> => {
+  leaveRoom: async (roomId: string): Promise<void> => {
     return withCsrfRetry(async () => {
-      const res = await api.delete<CommonResponse<null>>(API_PATHS.rooms.leave(roomId), {
+      await api.delete<CommonResponse<null>>(API_PATHS.rooms.leave(roomId), {
         withCredentials: true,
         headers: getXsrfHeader(),
       });
-      return toRoomActionResult(res.data.message);
     });
   },
 
@@ -127,9 +117,3 @@ export const roomService = {
     });
   },
 };
-
-function toRoomActionResult(message: string | null | undefined): RoomActionResult {
-  return {
-    message: message ?? null,
-  };
-}

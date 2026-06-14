@@ -80,6 +80,10 @@ body {
   /* 인터랙션 마이크로 애니메이션 (컴포넌트에서 동일 변수 참조) */
   --interaction-duration-row: 140ms;
   --interaction-duration-nav: 200ms;
+
+  /* Android Capacitor 키보드 보정. 웹에서는 0으로 유지된다. */
+  --app-viewport-height: 100dvh;
+  --keyboard-inset-bottom: 0px;
 }
 
 /* 모바일 퍼스트 / Capacitor 대비: 터치 권장 최소 크기(약 44×44px). 인터랙티브 요소에 병행. */
@@ -181,6 +185,16 @@ body {
     inset-inline-end: max(1rem, env(safe-area-inset-right));
   }
 
+  .android-keyboard-lift {
+    transform: translateY(calc(-1 * var(--keyboard-inset-bottom)));
+    transition: transform 180ms ease-out;
+    will-change: transform;
+  }
+
+  html:not([data-android-capacitor="true"]) .android-keyboard-lift {
+    transform: none;
+  }
+
   /** 방 메인 헤더 배경 (좌상 FF968E → 우하 F68981) */
   .bg-room-header-gradient {
     background-image: linear-gradient(
@@ -231,6 +245,20 @@ body {
     transition-property: color;
     transition-duration: var(--interaction-duration-nav);
     transition-timing-function: ease-out;
+  }
+}
+
+@keyframes room-fab-soft-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 14px rgb(250 143 135 / 0.34),
+      0 0 0 0 rgb(255 181 173 / 0.42);
+  }
+  50% {
+    box-shadow:
+      0 6px 20px rgb(250 143 135 / 0.46),
+      0 0 0 10px rgb(255 181 173 / 0.18);
   }
 }
 
@@ -290,6 +318,10 @@ body {
     width: 22px;
     height: 22px;
     display: block;
+  }
+
+  .room-fab-hint {
+    animation: room-fab-soft-pulse 2.2s ease-in-out infinite;
   }
 
   .map-place-marker {
@@ -447,6 +479,11 @@ body {
   .map-place-marker:hover .map-place-marker__category-badge {
     filter: drop-shadow(0 2px 4px rgb(194 92 86 / 0.18));
     transform: translateY(-5px) scale(1.04);
+  }
+
+  .map-place-marker--instant .map-place-marker__image,
+  .map-place-marker--instant .map-place-marker__category-badge {
+    transition: none;
   }
 
   .map-place-marker--selected {

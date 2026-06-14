@@ -1,5 +1,8 @@
 import { OutletPageTransition } from "@/app/router/OutletPageTransition";
 import { useInitAuth } from "@/features/auth/hooks/use-init-auth";
+import { isAndroidCapacitorApp } from "@/features/auth/lib/capacitor-platform";
+import { useMobileKeyboardInset } from "@/hooks/use-mobile-keyboard-inset";
+import { cn } from "@/lib/utils";
 
 /**
  * 뷰포트별 콘텐츠 폭
@@ -11,10 +14,19 @@ import { useInitAuth } from "@/features/auth/hooks/use-init-auth";
  */
 export function RootLayout() {
   useInitAuth();
+  useMobileKeyboardInset();
+  const isAndroidApp = isAndroidCapacitorApp();
 
   return (
     <div className="bg-background text-foreground font-sans">
-      <div className="px-page mx-auto flex h-dvh max-h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:max-w-3xl xl:max-w-lg">
+      <div
+        className={cn(
+          "px-page mx-auto flex min-h-0 w-full max-w-lg flex-col overflow-hidden pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] md:max-w-3xl xl:max-w-lg",
+          isAndroidApp
+            ? "h-[var(--app-viewport-height)] max-h-[var(--app-viewport-height)]"
+            : "h-dvh max-h-dvh",
+        )}
+      >
         <OutletPageTransition mode="branch-stable" />
       </div>
     </div>

@@ -9,7 +9,6 @@ export type {
   LinkSource,
   RegisterLinkRequest,
   RegisterLinkResponse,
-  RoomActionResult,
   RoomDetailResponse,
   RoomSummaryResponse,
   UpdateRoomNameRequest,

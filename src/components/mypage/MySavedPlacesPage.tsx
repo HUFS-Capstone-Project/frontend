@@ -1,9 +1,7 @@
 ﻿import "@/components/map/filter-bar.css";
 
-import { AlertCircle } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
-import { EmptyState } from "@/components/common/EmptyState";
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { FilterBar } from "@/components/map/FilterBar";
@@ -12,11 +10,13 @@ import {
   weightedMapCenter,
 } from "@/components/mypage/map-places-from-my-saved";
 import { MAX_MEMO_LENGTH } from "@/components/mypage/SavedPlaceMemoEditor";
+import { PlaceUsedInDateCourseAlertModal } from "@/components/place/PlaceUsedInDateCourseAlertModal";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
 import { useMyPlacesQuery, userPlaceToSavedPlace } from "@/features/users";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
+import { usePlaceUsedInDateCourseAlert } from "@/hooks/use-place-used-in-date-course-alert";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import type { ServiceCategoryCode } from "@/shared/types/map-home";
@@ -46,6 +46,11 @@ function toApiCategory(category: string | undefined): ServiceCategoryCode | unde
 }
 
 export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPageProps) {
+  const {
+    open: isUsedInDateCourseAlertOpen,
+    close: closeUsedInDateCourseAlert,
+    handleDeleteError: handlePlaceDeleteError,
+  } = usePlaceUsedInDateCourseAlert();
   const {
     filterCategories,
     categories,
@@ -125,13 +130,13 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
     return weightedMapCenter(mapPins);
   }, [mapPins, selectedPlaceId]);
 
-  const emptyMessage =
-    activeCategories.length === 0 ? "방에서 장소를 저장해보세요!" : "해당하는 장소가 없습니다.";
-  const statusMessage = myPlacesQuery.isError
-    ? "나의 장소를 불러오지 못했습니다."
-    : myPlacesQuery.isLoading
-      ? "나의 장소를 불러오는 중입니다."
-      : emptyMessage;
+  const isInitialPlacesLoading = myPlacesQuery.isLoading && myPlacesQuery.data == null;
+  const emptyTitle =
+    activeCategories.length === 0 ? "아직 저장한 장소가 없어요" : "조건에 맞는 장소가 없어요";
+  const emptyDescription =
+    activeCategories.length === 0
+      ? "마음에 드는 장소를 저장해보세요!"
+      : "필터를 바꾸면 저장해둔 다른 장소를 볼 수 있어요";
 
   const handleStartMemo = (place: SavedPlace) => {
     setOpenMenuId(null);
@@ -161,27 +166,6 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
     );
   };
 
-  const handleDeletePlace = (id: string) => {
-    const target = resolveMutationTarget(id);
-    setOpenMenuId(null);
-
-    if (!target) {
-      return;
-    }
-
-    deletePlaceMutation.mutate(
-      { roomId: target.roomId, roomPlaceId: target.roomPlaceId },
-      {
-        onSuccess: () => {
-          if (editingPlaceId === id) {
-            setEditingPlaceId(null);
-            setMemoDraft("");
-          }
-        },
-      },
-    );
-  };
-
   const handleRequestDeletePlace = (id: string) => {
     setOpenMenuId(null);
     setPendingDeletePlaceId(id);
@@ -192,8 +176,30 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
       return;
     }
 
-    handleDeletePlace(pendingDeletePlaceId);
-    setPendingDeletePlaceId(null);
+    const placeId = pendingDeletePlaceId;
+    const target = resolveMutationTarget(placeId);
+    if (!target) {
+      setPendingDeletePlaceId(null);
+      return;
+    }
+
+    deletePlaceMutation.mutate(
+      { roomId: target.roomId, roomPlaceId: target.roomPlaceId },
+      {
+        onSuccess: () => {
+          if (editingPlaceId === placeId) {
+            setEditingPlaceId(null);
+            setMemoDraft("");
+          }
+        },
+        onError: (error) => {
+          handlePlaceDeleteError(error);
+        },
+        onSettled: () => {
+          setPendingDeletePlaceId(null);
+        },
+      },
+    );
   };
 
   const handleHeaderBack = () => {
@@ -275,7 +281,9 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
           ref={listScrollRef}
           className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
         >
-          {!myPlacesQuery.isLoading && !myPlacesQuery.isError && listPlaces.length > 0 ? (
+          {isInitialPlacesLoading ? (
+            <SavedPlaceListSkeleton />
+          ) : !myPlacesQuery.isError && listPlaces.length > 0 ? (
             <div className="space-y-3 pb-2">
               {listPlaces.map((place) => (
                 <SavedPlaceItem
@@ -301,11 +309,13 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
                 </div>
               ) : null}
             </div>
-          ) : (
-            <EmptyState
-              icon={<AlertCircle className="size-5" aria-hidden />}
-              message={statusMessage}
+          ) : myPlacesQuery.isError ? (
+            <SavedListState
+              title="장소를 불러오지 못했어요"
+              description="잠시 뒤에 다시 확인해주세요"
             />
+          ) : (
+            <SavedListState title={emptyTitle} description={emptyDescription} />
           )}
         </div>
       ) : null}
@@ -316,10 +326,58 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
         description="삭제하면 목록에서 더 이상 보이지 않아요"
         cancelLabel="취소"
         confirmLabel="삭제"
+        historyStateKey="mySavedPlacesDeleteConfirm"
         confirmButtonClassName="text-primary"
         onCancel={() => setPendingDeletePlaceId(null)}
         onConfirm={handleConfirmDeletePlace}
       />
+
+      <PlaceUsedInDateCourseAlertModal
+        open={isUsedInDateCourseAlertOpen}
+        className="z-95"
+        historyStateKey="mySavedPlacesUsedInDateCourseAlert"
+        onClose={closeUsedInDateCourseAlert}
+      />
+    </div>
+  );
+}
+
+function SavedPlaceListSkeleton() {
+  return (
+    <div className="space-y-3 pb-2" aria-label="저장한 장소를 불러오는 중">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div
+          key={`saved-place-skeleton-${index}`}
+          className="bg-card rounded-[1.15rem] px-3.5 py-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.035)]"
+        >
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <div className="bg-muted/70 h-4 w-[42%] animate-pulse rounded-md" />
+                <div className="bg-muted/60 size-6 animate-pulse rounded-full" />
+                <div className="bg-muted/50 h-3 w-10 animate-pulse rounded-md" />
+              </div>
+              <div className="bg-muted/55 h-3.5 w-[72%] animate-pulse rounded-md" />
+            </div>
+            <div className="bg-muted/50 size-9 shrink-0 animate-pulse rounded-full" />
+          </div>
+          <div className="mt-3 flex gap-1.5">
+            <div className="bg-muted/45 h-6 w-16 animate-pulse rounded-full" />
+            <div className="bg-muted/40 h-6 w-20 animate-pulse rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SavedListState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-48 flex-col items-center justify-center px-5 py-10 text-center">
+      <p className="text-foreground text-sm font-semibold">{title}</p>
+      <p className="text-muted-foreground mt-1.5 max-w-64 text-xs leading-relaxed font-medium">
+        {description}
+      </p>
     </div>
   );
 }

@@ -156,7 +156,7 @@ export default function RoomPlaceSearchPage() {
         onError: (error) => {
           setSaveError(
             resolveGeneralApiErrorMessage(error, {
-              fallback: "장소 저장에 실패했어요. 다시 시도해 주세요.",
+              fallback: "장소 저장에 실패했어요. 다시 시도해 주세요",
             }),
           );
         },

@@ -3,6 +3,7 @@ import { useCallback, useRef } from "react";
 
 import { renderMapPrimaryCategoryIcon } from "@/components/map/filters/map-category-icons";
 import { PlaceMemoList } from "@/components/place/PlaceMemoList";
+import { PlaceOptionsMenu, PlaceOptionsMenuItem } from "@/components/place/PlaceOptionsMenu";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { sharePlace } from "@/shared/lib/share-place";
@@ -109,29 +110,15 @@ export function SavedPlaceItem({
             </button>
 
             {isMenuOpen ? (
-              <div className="border-border bg-popover absolute top-full right-0 z-10 mt-1 w-24 overflow-hidden rounded-md border py-0.5 shadow-sm">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="text-muted-foreground hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-medium transition-colors"
-                >
-                  공유
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onStartMemo?.(place)}
-                  className="text-muted-foreground hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-medium transition-colors"
-                >
+              <PlaceOptionsMenu>
+                <PlaceOptionsMenuItem onClick={handleShare}>공유</PlaceOptionsMenuItem>
+                <PlaceOptionsMenuItem onClick={() => onStartMemo?.(place)}>
                   메모
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete?.(place.id)}
-                  className="hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) transition-colors"
-                >
+                </PlaceOptionsMenuItem>
+                <PlaceOptionsMenuItem variant="danger" onClick={() => onDelete?.(place.id)}>
                   삭제
-                </button>
-              </div>
+                </PlaceOptionsMenuItem>
+              </PlaceOptionsMenu>
             ) : null}
           </div>
         ) : null}

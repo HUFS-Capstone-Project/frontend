@@ -55,11 +55,23 @@ type PlaceCluster = {
   longitude: number;
 };
 
+type PlaceMarkerRecord = {
+  overlay: KakaoCustomOverlay;
+  button: HTMLButtonElement;
+  latitude: number;
+  longitude: number;
+  routeLabel?: string;
+};
+
+type ClusterMarkerRecord = {
+  overlay: KakaoCustomOverlay;
+  button: HTMLElement;
+};
+
 type PlaceMarkerItem =
   | {
       type: "place";
       place: SavedPlace;
-      selected: boolean;
     }
   | {
       type: "cluster";
@@ -83,6 +95,7 @@ const FIT_COORDINATE_BOUNDS_PADDING: FitBoundsPadding = {
 const CLUSTER_MIN_SIZE = 3;
 const CLUSTER_DETAIL_LEVEL = 3;
 const CLUSTER_BASE_RADIUS_METERS = 140;
+const EMPTY_MARKER_LABELS: Record<string, string> = {};
 const PLACE_MARKER_CATEGORY_CODES = ["FOOD", "CAFE", "ACTIVITY"] as const;
 
 type PlaceMarkerCategoryCode = (typeof PLACE_MARKER_CATEGORY_CODES)[number];
@@ -99,7 +112,7 @@ export function KakaoMapView({
   fitBoundsCoordinates = [],
   fitBoundsPadding,
   routeCoordinates = [],
-  markerLabelByPlaceId = {},
+  markerLabelByPlaceId = EMPTY_MARKER_LABELS,
   geocodeKeyword = "",
   viewportKey = "initial",
   level = 4,
@@ -118,7 +131,9 @@ export function KakaoMapView({
   const mapRef = useRef<KakaoMapInstance | null>(null);
   const mapsRef = useRef<KakaoMaps | null>(null);
   const placeOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
+  const placeMarkerRecordsRef = useRef<Map<string, PlaceMarkerRecord>>(new Map());
   const clusterOverlayInstancesRef = useRef<KakaoCustomOverlay[]>([]);
+  const clusterMarkerRecordsRef = useRef<Map<string, ClusterMarkerRecord>>(new Map());
   const routePolylineRefs = useRef<KakaoPolyline[]>([]);
   const lastViewportRequestSignatureRef = useRef<string | null>(null);
   const onPlaceMarkerClickRef = useRef(onPlaceMarkerClick);
@@ -131,16 +146,28 @@ export function KakaoMapView({
     state.isOpen ? state.selectedPlaceId : null,
   );
   const selectedPlaceId = selectedPlaceIdOverride ?? detailSelectedPlaceId;
-  const markerItems = useMemo(
-    () =>
-      buildPlaceMarkerItems(
-        places,
-        selectedPlaceId,
-        currentMapLevel,
-        Object.keys(markerLabelByPlaceId).length > 0,
-      ),
-    [currentMapLevel, markerLabelByPlaceId, places, selectedPlaceId],
+  const disableClustering = Object.keys(markerLabelByPlaceId).length > 0;
+  const markerLayoutItems = useMemo(
+    () => buildPlaceMarkerItems(places, currentMapLevel, disableClustering),
+    [currentMapLevel, disableClustering, places],
   );
+  const markerLayoutKey = useMemo(
+    () => serializeMarkerLayout(markerLayoutItems),
+    [markerLayoutItems],
+  );
+  const markerLabelKey = useMemo(
+    () => serializeMarkerLabels(markerLabelByPlaceId),
+    [markerLabelByPlaceId],
+  );
+  const markerLayoutItemsRef = useRef(markerLayoutItems);
+  const selectedPlaceIdRef = useRef(selectedPlaceId);
+  const markerLabelByPlaceIdRef = useRef(markerLabelByPlaceId);
+
+  useEffect(() => {
+    markerLayoutItemsRef.current = markerLayoutItems;
+    selectedPlaceIdRef.current = selectedPlaceId;
+    markerLabelByPlaceIdRef.current = markerLabelByPlaceId;
+  });
   const viewportRequestSignature = useMemo(
     () =>
       createViewportRequestSignature({
@@ -174,8 +201,10 @@ export function KakaoMapView({
   const clearMarkers = () => {
     placeOverlayInstancesRef.current.forEach((overlay) => overlay.setMap(null));
     placeOverlayInstancesRef.current = [];
+    placeMarkerRecordsRef.current.clear();
     clusterOverlayInstancesRef.current.forEach((overlay) => overlay.setMap(null));
     clusterOverlayInstancesRef.current = [];
+    clusterMarkerRecordsRef.current.clear();
   };
 
   const clearRoutePolyline = () => {
@@ -534,7 +563,7 @@ export function KakaoMapView({
     }
 
     if (!("geolocation" in navigator)) {
-      setLocationError("현재 위치를 확인할 수 없어요.");
+      setLocationError("현재 위치를 확인할 수 없어요");
       return;
     }
 
@@ -559,7 +588,7 @@ export function KakaoMapView({
         setIsLocating(false);
       },
       () => {
-        setLocationError("현재 위치를 확인할 수 없어요.");
+        setLocationError("현재 위치를 확인할 수 없어요");
         setIsLocating(false);
       },
       {
@@ -584,80 +613,34 @@ export function KakaoMapView({
     };
   }, [locationError]);
 
-  // effect C: places 변경 시 marker만 갱신
+  // effect C: 마커 레이아웃 변경 시 diff로 추가/삭제 (기존 DOM 유지)
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !mapsRef.current) {
       return;
     }
-    const maps = mapsRef.current;
-    const mapInstance = mapRef.current;
-    clearMarkers();
-    const nextPlaceOverlays: KakaoCustomOverlay[] = [];
-    const nextClusterOverlays: KakaoCustomOverlay[] = [];
 
-    markerItems.forEach((item) => {
-      if (item.type === "cluster") {
-        const { cluster } = item;
-        const position = new maps.LatLng(cluster.latitude, cluster.longitude);
-        const content = createClusterOverlayElement(cluster.places.length, () => {
-          mapInstance.setLevel(Math.max(CLUSTER_DETAIL_LEVEL, mapInstance.getLevel() - 2));
-          mapInstance.panTo(position);
-        });
-        const overlay = new maps.CustomOverlay({
-          map: mapInstance,
-          position,
-          content,
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          zIndex: 20,
-        });
-
-        nextClusterOverlays.push(overlay);
-        return;
-      }
-
-      const { place } = item;
-      const isSelectedPlace = item.selected;
-      const routeMarkerLabel = markerLabelByPlaceId[place.id];
-      const position = new maps.LatLng(place.latitude, place.longitude);
-      const content = createPlaceMarkerOverlayElement(
-        place,
-        isSelectedPlace,
-        routeMarkerLabel,
-        (element) => {
-          element.classList.add("map-place-marker--selected");
-          mapInstance.panTo(position);
-          const handlePlaceMarkerClick = onPlaceMarkerClickRef.current;
-          if (handlePlaceMarkerClick) {
-            handlePlaceMarkerClick(place);
-            return;
-          }
-          window.dispatchEvent(
-            new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
-              detail: { placeId: place.id },
-            }),
-          );
-        },
-      );
-      const overlay = new maps.CustomOverlay({
-        map: mapInstance,
-        position,
-        content,
-        xAnchor: 0.5,
-        yAnchor: routeMarkerLabel ? 0.5 : 1,
-        zIndex: isSelectedPlace ? 15 : 10,
-      });
-
-      nextPlaceOverlays.push(overlay);
+    syncMarkerLayoutItems({
+      maps: mapsRef.current,
+      mapInstance: mapRef.current,
+      items: markerLayoutItemsRef.current,
+      placeRecords: placeMarkerRecordsRef.current,
+      clusterRecords: clusterMarkerRecordsRef.current,
+      activeSelectedPlaceId: selectedPlaceIdRef.current,
+      activeMarkerLabels: markerLabelByPlaceIdRef.current,
+      onPlaceMarkerClick: onPlaceMarkerClickRef.current,
+      placeOverlayInstancesRef,
+      clusterOverlayInstancesRef,
     });
+  }, [loadState, markerLabelKey, markerLayoutKey]);
 
-    placeOverlayInstancesRef.current = nextPlaceOverlays;
-    clusterOverlayInstancesRef.current = nextClusterOverlays;
+  // effect D: 선택만 바뀐 경우 기존 마커 DOM의 active 상태만 갱신
+  useEffect(() => {
+    if (loadState !== "ready") {
+      return;
+    }
 
-    return () => {
-      clearMarkers();
-    };
-  }, [loadState, markerItems, markerLabelByPlaceId]);
+    syncPlaceMarkerSelection(placeMarkerRecordsRef.current, selectedPlaceId);
+  }, [loadState, selectedPlaceId]);
 
   return (
     <div className={cn("bg-muted relative h-full w-full", className)}>
@@ -750,30 +733,26 @@ function createViewportRequestSignature({
 
 function buildPlaceMarkerItems(
   places: SavedPlace[],
-  selectedPlaceId: string | null,
   mapLevel: number,
   disableClustering = false,
 ): PlaceMarkerItem[] {
   const finitePlaces = places.filter((place) => isFiniteCoordinate(place));
-  const selectedPlaces = finitePlaces.filter((place) => place.id === selectedPlaceId);
-  const clusterablePlaces = finitePlaces.filter((place) => place.id !== selectedPlaceId);
 
   if (
     disableClustering ||
     mapLevel <= CLUSTER_DETAIL_LEVEL ||
-    clusterablePlaces.length < CLUSTER_MIN_SIZE
+    finitePlaces.length < CLUSTER_MIN_SIZE
   ) {
     return finitePlaces.map((place) => ({
       type: "place",
       place,
-      selected: place.id === selectedPlaceId,
     }));
   }
 
   const radiusMeters = getClusterRadiusMeters(mapLevel);
   const clusters: PlaceCluster[] = [];
 
-  clusterablePlaces.forEach((place) => {
+  finitePlaces.forEach((place) => {
     const nearestCluster = findNearestCluster(clusters, place, radiusMeters);
 
     if (!nearestCluster) {
@@ -794,14 +773,11 @@ function buildPlaceMarkerItems(
       nextPlaces.reduce((sum, clusterPlace) => sum + clusterPlace.longitude, 0) / nextPlaces.length;
   });
 
-  return [
-    ...clusters.flatMap((cluster): PlaceMarkerItem[] =>
-      cluster.places.length >= CLUSTER_MIN_SIZE
-        ? [{ type: "cluster", cluster }]
-        : cluster.places.map((place) => ({ type: "place", place, selected: false })),
-    ),
-    ...selectedPlaces.map((place): PlaceMarkerItem => ({ type: "place", place, selected: true })),
-  ];
+  return clusters.flatMap((cluster): PlaceMarkerItem[] =>
+    cluster.places.length >= CLUSTER_MIN_SIZE
+      ? [{ type: "cluster", cluster }]
+      : cluster.places.map((place) => ({ type: "place", place })),
+  );
 }
 
 function findNearestCluster(
@@ -848,17 +824,262 @@ function degreesToRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
+function getMarkerLayoutItemKey(item: PlaceMarkerItem): string {
+  if (item.type === "cluster") {
+    return `c:${item.cluster.places
+      .map((place) => place.id)
+      .sort()
+      .join(",")}`;
+  }
+
+  return `p:${item.place.id}`;
+}
+
+function shouldRecreatePlaceMarkerRecord(
+  record: PlaceMarkerRecord,
+  place: SavedPlace,
+  routeMarkerLabel: string | undefined,
+): boolean {
+  return (
+    record.latitude !== place.latitude ||
+    record.longitude !== place.longitude ||
+    record.routeLabel !== routeMarkerLabel
+  );
+}
+
+function removePlaceMarkerRecord(
+  placeId: string,
+  placeRecords: Map<string, PlaceMarkerRecord>,
+): void {
+  const record = placeRecords.get(placeId);
+  if (!record) {
+    return;
+  }
+
+  record.overlay.setMap(null);
+  placeRecords.delete(placeId);
+}
+
+function removeClusterMarkerRecord(
+  clusterKey: string,
+  clusterRecords: Map<string, ClusterMarkerRecord>,
+): void {
+  const record = clusterRecords.get(clusterKey);
+  if (!record) {
+    return;
+  }
+
+  record.overlay.setMap(null);
+  clusterRecords.delete(clusterKey);
+}
+
+function createClusterMarkerRecord(
+  maps: KakaoMaps,
+  mapInstance: KakaoMapInstance,
+  cluster: PlaceCluster,
+): ClusterMarkerRecord {
+  const position = new maps.LatLng(cluster.latitude, cluster.longitude);
+  const button = createClusterOverlayElement(cluster.places.length, () => {
+    mapInstance.setLevel(Math.max(CLUSTER_DETAIL_LEVEL, mapInstance.getLevel() - 2));
+    mapInstance.panTo(position);
+  });
+  const overlay = new maps.CustomOverlay({
+    map: mapInstance,
+    position,
+    content: button,
+    xAnchor: 0.5,
+    yAnchor: 0.5,
+    zIndex: 20,
+  });
+
+  return { overlay, button };
+}
+
+function createPlaceMarkerRecord(
+  maps: KakaoMaps,
+  mapInstance: KakaoMapInstance,
+  place: SavedPlace,
+  routeMarkerLabel: string | undefined,
+  activeSelectedPlaceId: string | null,
+  onPlaceMarkerClick: KakaoMapViewProps["onPlaceMarkerClick"],
+): PlaceMarkerRecord {
+  const position = new maps.LatLng(place.latitude, place.longitude);
+  const button = createPlaceMarkerOverlayElement(place, routeMarkerLabel, (element) => {
+    setPlaceMarkerSelected(element, true);
+    mapInstance.panTo(position);
+    if (onPlaceMarkerClick) {
+      onPlaceMarkerClick(place);
+      return;
+    }
+    window.dispatchEvent(
+      new CustomEvent(PLACE_DETAIL_OPEN_EVENT, {
+        detail: { placeId: place.id },
+      }),
+    );
+  });
+  const isSelectedPlace = place.id === activeSelectedPlaceId;
+  if (isSelectedPlace) {
+    setPlaceMarkerSelected(button, true);
+  }
+  const overlay = new maps.CustomOverlay({
+    map: mapInstance,
+    position,
+    content: button,
+    xAnchor: 0.5,
+    yAnchor: routeMarkerLabel ? 0.5 : 1,
+    zIndex: isSelectedPlace ? 15 : 10,
+  });
+
+  return {
+    overlay,
+    button,
+    latitude: place.latitude,
+    longitude: place.longitude,
+    routeLabel: routeMarkerLabel,
+  };
+}
+
+function syncMarkerLayoutItems({
+  maps,
+  mapInstance,
+  items,
+  placeRecords,
+  clusterRecords,
+  activeSelectedPlaceId,
+  activeMarkerLabels,
+  onPlaceMarkerClick,
+  placeOverlayInstancesRef,
+  clusterOverlayInstancesRef,
+}: {
+  maps: KakaoMaps;
+  mapInstance: KakaoMapInstance;
+  items: PlaceMarkerItem[];
+  placeRecords: Map<string, PlaceMarkerRecord>;
+  clusterRecords: Map<string, ClusterMarkerRecord>;
+  activeSelectedPlaceId: string | null;
+  activeMarkerLabels: Record<string, string>;
+  onPlaceMarkerClick: KakaoMapViewProps["onPlaceMarkerClick"];
+  placeOverlayInstancesRef: { current: KakaoCustomOverlay[] };
+  clusterOverlayInstancesRef: { current: KakaoCustomOverlay[] };
+}): void {
+  const nextPlaceIds = new Set<string>();
+  const nextClusterKeys = new Set<string>();
+
+  for (const item of items) {
+    if (item.type === "cluster") {
+      nextClusterKeys.add(getMarkerLayoutItemKey(item));
+      continue;
+    }
+
+    nextPlaceIds.add(item.place.id);
+  }
+
+  for (const placeId of [...placeRecords.keys()]) {
+    if (!nextPlaceIds.has(placeId)) {
+      removePlaceMarkerRecord(placeId, placeRecords);
+    }
+  }
+
+  for (const clusterKey of [...clusterRecords.keys()]) {
+    if (!nextClusterKeys.has(clusterKey)) {
+      removeClusterMarkerRecord(clusterKey, clusterRecords);
+    }
+  }
+
+  const nextPlaceOverlays: KakaoCustomOverlay[] = [];
+  const nextClusterOverlays: KakaoCustomOverlay[] = [];
+
+  for (const item of items) {
+    if (item.type === "cluster") {
+      const clusterKey = getMarkerLayoutItemKey(item);
+      let record = clusterRecords.get(clusterKey);
+      if (!record) {
+        record = createClusterMarkerRecord(maps, mapInstance, item.cluster);
+        clusterRecords.set(clusterKey, record);
+      }
+
+      nextClusterOverlays.push(record.overlay);
+      continue;
+    }
+
+    const { place } = item;
+    const routeMarkerLabel = activeMarkerLabels[place.id];
+    let record = placeRecords.get(place.id);
+    if (record && shouldRecreatePlaceMarkerRecord(record, place, routeMarkerLabel)) {
+      removePlaceMarkerRecord(place.id, placeRecords);
+      record = undefined;
+    }
+
+    if (!record) {
+      record = createPlaceMarkerRecord(
+        maps,
+        mapInstance,
+        place,
+        routeMarkerLabel,
+        activeSelectedPlaceId,
+        onPlaceMarkerClick,
+      );
+      placeRecords.set(place.id, record);
+    }
+
+    nextPlaceOverlays.push(record.overlay);
+  }
+
+  placeOverlayInstancesRef.current = nextPlaceOverlays;
+  clusterOverlayInstancesRef.current = nextClusterOverlays;
+}
+
+function serializeMarkerLayout(items: PlaceMarkerItem[]): string {
+  return items
+    .map((item) => {
+      if (item.type === "cluster") {
+        return `c:${item.cluster.places
+          .map((place) => place.id)
+          .sort()
+          .join(",")}`;
+      }
+
+      return `p:${item.place.id}`;
+    })
+    .sort()
+    .join("|");
+}
+
+function serializeMarkerLabels(labels: Record<string, string>): string {
+  return Object.keys(labels)
+    .sort()
+    .map((placeId) => `${placeId}:${labels[placeId]}`)
+    .join("|");
+}
+
+function setPlaceMarkerSelected(button: HTMLButtonElement, selected: boolean): void {
+  button.classList.add("map-place-marker--instant");
+  button.classList.toggle("map-place-marker--selected", selected);
+  requestAnimationFrame(() => {
+    button.classList.remove("map-place-marker--instant");
+  });
+}
+
+function syncPlaceMarkerSelection(
+  records: Map<string, PlaceMarkerRecord>,
+  selectedPlaceId: string | null,
+): void {
+  records.forEach(({ button }, placeId) => {
+    setPlaceMarkerSelected(button, placeId === selectedPlaceId);
+  });
+}
+
 function createPlaceMarkerOverlayElement(
   place: SavedPlace,
-  selected: boolean,
   label: string | undefined,
-  onClick: (element: HTMLElement) => void,
-): HTMLElement {
+  onClick: (element: HTMLButtonElement) => void,
+): HTMLButtonElement {
   const button = document.createElement("button");
   const categoryBadge = createPlaceMarkerCategoryBadge(place);
 
   button.type = "button";
   button.className = "map-place-marker";
+  button.dataset.placeId = place.id;
   button.setAttribute("aria-label", place.name);
 
   if (label) {
@@ -889,11 +1110,6 @@ function createPlaceMarkerOverlayElement(
     } else {
       button.append(defaultImage, selectedImage);
     }
-  }
-  if (selected) {
-    requestAnimationFrame(() => {
-      button.classList.add("map-place-marker--selected");
-    });
   }
   if (!label) {
     button.addEventListener("click", (event) => {

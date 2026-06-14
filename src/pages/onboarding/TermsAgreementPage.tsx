@@ -19,8 +19,9 @@ import {
   useTermsAgreement,
   validateOnboardingRequest,
 } from "@/features/onboarding";
-import { type ApiError, getErrorDetail, isApiError } from "@/shared/api/error";
+import { type ApiError, isApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
+import { AUTH_TEXT } from "@/shared/config/text";
 import { useAuthStore } from "@/store/auth-store";
 
 type TermsLocationState = {
@@ -86,7 +87,7 @@ export default function TermsAgreementPage() {
         clientValidationErrors.serviceTermsAgreed ??
         clientValidationErrors.privacyPolicyAgreed ??
         null;
-      setSubmitError(firstClientMessage ?? "입력값을 다시 확인해 주세요.");
+      setSubmitError(firstClientMessage ?? "입력값을 다시 확인해 주세요");
       return;
     }
 
@@ -134,7 +135,7 @@ export default function TermsAgreementPage() {
           return;
         }
 
-        setSubmitError("온보딩 처리 중 오류가 발생했습니다.");
+        setSubmitError("온보딩 처리 중 오류가 발생했습니다");
       },
     });
   };
@@ -179,20 +180,25 @@ export default function TermsAgreementPage() {
   );
 }
 
-const ONBOARDING_SUBMIT_ERROR_FALLBACK = "온보딩 처리 중 오류가 발생했습니다.";
+const ONBOARDING_SUBMIT_ERROR_FALLBACK = AUTH_TEXT.onboardingError;
 
 function resolveOnboardingSubmitErrorMessage(error: ApiError): string {
   switch (error.status) {
     case 400:
-      return "온보딩 요청 실패 (400): 요청 본문의 필드명 또는 약관 동의 값을 확인해 주세요.";
+      return "온보딩 요청 실패 (400): 요청 본문의 필드명 또는 약관 동의 값을 확인해 주세요";
     case 403:
-      return "온보딩 요청 실패 (403): CSRF 인증 정보를 확인해 주세요.";
+      return "온보딩 요청 실패 (403): CSRF 인증 정보를 확인해 주세요";
     case 409:
-      return "온보딩 요청 실패 (409): 이미 온보딩이 완료된 계정입니다.";
+      return formatOnboardingStatusPrefix(
+        error,
+        resolveGeneralApiErrorMessage(error, {
+          fallback: "온보딩 요청 실패 (409): 이미 온보딩이 완료된 계정입니다",
+        }),
+      );
     default:
       return formatOnboardingStatusPrefix(
         error,
-        getErrorDetail(error, ONBOARDING_SUBMIT_ERROR_FALLBACK),
+        resolveGeneralApiErrorMessage(error, { fallback: ONBOARDING_SUBMIT_ERROR_FALLBACK }),
       );
   }
 }

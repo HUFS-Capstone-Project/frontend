@@ -1,6 +1,3 @@
-export const COPY_SUCCESS_TOAST_MESSAGE = "클립보드에 복사되었습니다.";
-export const COPY_ERROR_TOAST_MESSAGE = "복사에 실패했습니다. 다시 시도해 주세요.";
-
 export async function copyTextToClipboard(value: string): Promise<void> {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(value);

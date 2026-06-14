@@ -1,7 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
-import { isApiError, resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
+import {
+  isApiError,
+  isApiErrorCode,
+  resolveFormApiError,
+  resolveGeneralApiErrorMessage,
+} from "@/shared/api/error";
+import { ROOM_TEXT } from "@/shared/config/text";
 import type { RoomListRow } from "@/shared/types/room";
 
 import { roomQueryKeys } from "../query-keys";
@@ -19,16 +25,6 @@ import { useUpdateRoomNameMutation } from "./use-update-room-name-mutation";
 import { useUpdateRoomPinMutation } from "./use-update-room-pin-mutation";
 
 const ROOM_NAME_MAX_LENGTH = 20;
-
-const RENAME_SUCCESS_TOAST = "방 이름이 변경되었습니다";
-const LEAVE_SUCCESS_TOAST = "방에서 나갔습니다";
-const PINNED_SUCCESS_TOAST = "방을 상단 고정했습니다";
-const UNPINNED_SUCCESS_TOAST = "방 상단 고정을 해제했습니다";
-
-const ROOM_NOT_FOUND_TOAST = "이미 삭제되었거나 존재하지 않는 방입니다";
-const ROOM_FORBIDDEN_TOAST = "방 접근 권한이 없습니다";
-const ROOM_NAME_REQUIRED_TOAST = "방 이름을 입력해 주세요";
-const ROOM_NAME_MAX_LENGTH_TOAST = "방 이름은 최대 20자까지 입력할 수 있어요";
 
 export type RenameRoomSubmitResult = {
   success: boolean;
@@ -105,11 +101,11 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       const nextPinned = !room.isPinned;
 
       try {
-        const result = await updateRoomPinMutation.mutateAsync({
+        await updateRoomPinMutation.mutateAsync({
           roomId: room.id,
           payload: { pinned: nextPinned },
         });
-        showToast?.(result.message ?? (nextPinned ? PINNED_SUCCESS_TOAST : UNPINNED_SUCCESS_TOAST));
+        showToast?.(nextPinned ? ROOM_TEXT.toast.pinned : ROOM_TEXT.toast.unpinned);
       } catch (error) {
         if (isNotFoundRoomError(error)) {
           removeRoomFromCache(queryClient, room.id);
@@ -124,9 +120,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
           return;
         }
 
-        showToast?.(
-          resolveFallbackMessage(error, "상단 고정 변경에 실패했습니다. 다시 시도해 주세요."),
-        );
+        showToast?.(resolveFallbackMessage(error, ROOM_TEXT.toast.pinUpdateFailed));
       }
     },
     [closeRoomRelatedModals, queryClient, showToast, updateRoomPinMutation],
@@ -169,12 +163,12 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       }
 
       try {
-        const result = await updateRoomNameMutation.mutateAsync({
+        await updateRoomNameMutation.mutateAsync({
           roomId: room.id,
           payload: { name: trimmedName },
         });
         setEditRoom(null);
-        showToast?.(result.message ?? RENAME_SUCCESS_TOAST);
+        showToast?.(ROOM_TEXT.toast.renamed);
         return { success: true };
       } catch (error) {
         const formError = resolveFormApiError(error, { knownFields: ["name"] });
@@ -200,9 +194,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
           return { success: false };
         }
 
-        showToast?.(
-          resolveFallbackMessage(error, "방 이름 변경에 실패했습니다. 다시 시도해 주세요."),
-        );
+        showToast?.(resolveFallbackMessage(error, ROOM_TEXT.toast.renameFailed));
         return { success: false };
       }
     },
@@ -212,9 +204,9 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
   const handleConfirmLeaveRoom = useCallback(
     async (room: RoomListRow) => {
       try {
-        const result = await leaveRoomMutation.mutateAsync({ roomId: room.id });
+        await leaveRoomMutation.mutateAsync({ roomId: room.id });
         closeRoomRelatedModals(room.id);
-        showToast?.(result.message ?? LEAVE_SUCCESS_TOAST);
+        showToast?.(ROOM_TEXT.toast.left);
       } catch (error) {
         if (isNotFoundRoomError(error)) {
           removeRoomFromCache(queryClient, room.id);
@@ -230,7 +222,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
           return;
         }
 
-        showToast?.(resolveFallbackMessage(error, "방 나가기에 실패했습니다. 다시 시도해 주세요."));
+        showToast?.(resolveFallbackMessage(error, ROOM_TEXT.toast.leaveFailed));
       }
     },
     [closeRoomRelatedModals, leaveRoomMutation, queryClient, showToast],
@@ -284,11 +276,11 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
 
 function validateRoomName(value: string): string | null {
   if (value.length === 0) {
-    return ROOM_NAME_REQUIRED_TOAST;
+    return ROOM_TEXT.validation.nameRequired;
   }
 
   if (value.length > ROOM_NAME_MAX_LENGTH) {
-    return ROOM_NAME_MAX_LENGTH_TOAST;
+    return ROOM_TEXT.validation.nameMaxLength;
   }
 
   return null;
@@ -307,18 +299,18 @@ function isNotFoundRoomError(error: unknown): boolean {
     return false;
   }
 
-  return error.status === 404 || error.code === "E404_NOT_FOUND";
+  return error.status === 404 || isApiErrorCode(error, "ROOM_NOT_FOUND");
 }
 
 function resolveNotFoundMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: ROOM_NOT_FOUND_TOAST,
+    fallback: ROOM_TEXT.toast.notFound,
   });
 }
 
 function resolveForbiddenMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: ROOM_FORBIDDEN_TOAST,
+    fallback: ROOM_TEXT.toast.forbidden,
   });
 }
 

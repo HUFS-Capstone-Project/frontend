@@ -469,14 +469,14 @@ export function useLinkAddFlow({
     }
 
     if (renderAnalysisResult.status !== "SUCCEEDED") {
-      setSaveError("분석이 완료된 뒤 장소를 저장할 수 있어요.");
+      setSaveError("분석이 완료된 뒤 장소를 저장할 수 있어요");
       return;
     }
 
     const kakaoPlaceIds = Array.from(new Set(selectedSelectableKakaoPlaceIds));
 
     if (kakaoPlaceIds.length === 0) {
-      setSaveError("저장할 장소 후보를 선택해 주세요.");
+      setSaveError("저장할 장소 후보를 선택해 주세요");
       return;
     }
 
@@ -566,11 +566,11 @@ function validateOriginalUrl(value: string): string | null {
   try {
     parsed = new URL(trimmed);
   } catch {
-    return "올바른 링크 형식이 아니에요.";
+    return "올바른 링크 형식이 아니에요";
   }
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    return "http/https 링크만 등록할 수 있어요.";
+    return "http/https 링크만 등록할 수 있어요";
   }
 
   return null;
@@ -591,48 +591,18 @@ function resolveLinkInputFieldError(error: unknown): string | null {
 
 function resolveRegisterLinkErrorMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: "링크 분석 요청에 실패했습니다. 다시 시도해 주세요.",
-    codeMessages: {
-      E403_FORBIDDEN: "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
-      E502_EXTERNAL_API:
-        "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
-    statusMessages: {
-      403: "요청 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
-      500: "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      502: "서버에서 링크 분석 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
+    fallback: "링크 분석 요청에 실패했어요 다시 시도해 주세요",
   });
 }
 
 function resolveLinkStatusErrorMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: "링크 분석 상태를 확인하지 못했습니다. 다시 시도해 주세요.",
-    codeMessages: {
-      E403_FORBIDDEN: "분석 결과를 조회할 권한이 없습니다.",
-      E502_EXTERNAL_API: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
-    statusMessages: {
-      400: "분석 결과 요청 정보를 확인해 주세요.",
-      403: "분석 결과를 조회할 권한이 없습니다.",
-      500: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      502: "서버에서 분석 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
+    fallback: "링크 분석 상태를 확인하지 못했어요 다시 시도해 주세요",
   });
 }
 
 function resolveSaveCandidatePlacesErrorMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: "장소 저장에 실패했습니다. 다시 시도해 주세요.",
-    codeMessages: {
-      E403_FORBIDDEN: "장소를 저장할 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
-    },
-    statusMessages: {
-      400: "선택한 장소 후보를 확인해 주세요.",
-      403: "장소를 저장할 권한이 없습니다. 방 참여 상태를 확인해 주세요.",
-      409: "분석이 완료된 링크만 장소를 저장할 수 있어요.",
-      500: "서버에서 장소 저장 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      502: "서버에서 장소 저장 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    },
+    fallback: "장소 저장에 실패했어요 다시 시도해 주세요",
   });
 }

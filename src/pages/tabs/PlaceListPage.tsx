@@ -1,12 +1,11 @@
 import "@/components/map/filter-bar.css";
 
-import { AlertCircle, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
-import { EmptyState } from "@/components/common/EmptyState";
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
@@ -15,6 +14,7 @@ import { FilterBar } from "@/components/map/FilterBar";
 import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { SavedPlaceItem } from "@/components/mypage/SavedPlaceItem";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { PlaceUsedInDateCourseAlertModal } from "@/components/place/PlaceUsedInDateCourseAlertModal";
 import { PlaceListSavedCoursesPage } from "@/components/place-list/PlaceListSavedCoursesPage";
 import { RoomConfirmModal } from "@/components/room/RoomConfirmModal";
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
@@ -39,10 +39,10 @@ import {
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
+import { usePlaceUsedInDateCourseAlert } from "@/hooks/use-place-used-in-date-course-alert";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/shared/config/routes";
-import { PLACE_LIST_TEXT } from "@/shared/config/text";
 import type { SavedPlace } from "@/shared/types/map-home";
 import type { SavedPlace as MySavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -62,6 +62,11 @@ export default function PlaceListPage() {
   const { roomId: routeRoomId } = useParams<{ roomId?: string }>();
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
+  const {
+    open: isUsedInDateCourseAlertOpen,
+    close: closeUsedInDateCourseAlert,
+    handleDeleteError: handlePlaceDeleteError,
+  } = usePlaceUsedInDateCourseAlert();
   const selectedRoom = useRoomSelectionStore((state) => state.selectedRoom);
   const selectRoom = useRoomSelectionStore((state) => state.selectRoom);
   const effectiveRoomId = routeRoomId ?? selectedRoom?.id ?? null;
@@ -345,13 +350,14 @@ export default function PlaceListPage() {
   }
 
   const hasRegionFilter = selectedSido.code !== REGION_ALL_CODE;
-  const emptyMessage = roomPlacesQuery.isError
-    ? "장소 목록을 불러오지 못했어요."
-    : roomPlacesQuery.isLoading
-      ? "장소 목록을 불러오는 중이에요."
-      : resolvedPlaces.length === 0 && !hasRegionFilter
-        ? PLACE_LIST_TEXT.emptySaved
-        : PLACE_LIST_TEXT.emptyFiltered;
+  const emptyTitle =
+    resolvedPlaces.length === 0 && !hasRegionFilter
+      ? "아직 저장한 장소가 없어요"
+      : "조건에 맞는 장소가 없어요";
+  const emptyDescription =
+    resolvedPlaces.length === 0 && !hasRegionFilter
+      ? "마음에 드는 장소를 저장해보세요!"
+      : "필터를 바꾸면 저장해둔 다른 장소를 볼 수 있어요";
 
   const handleHeaderBack = () => {
     if (detailOpen) {
@@ -400,11 +406,22 @@ export default function PlaceListPage() {
     setMemoDraft("");
   };
 
-  const handleDeletePlace = (id: string) => {
+  const handleDeletePlace = async (id: string): Promise<boolean> => {
     const roomPlaceId = findRoomPlaceId(id);
-    if (roomPlaceId != null) {
-      deleteRoomPlaceMutation.mutate(roomPlaceId);
+    if (roomPlaceId == null) {
+      return false;
     }
+
+    try {
+      await deleteRoomPlaceMutation.mutateAsync(roomPlaceId);
+    } catch (error) {
+      if (handlePlaceDeleteError(error)) {
+        return false;
+      }
+      console.error("Failed to delete room place", error);
+      return false;
+    }
+
     setOpenMenuId(null);
     if (editingPlaceId === id) {
       setEditingPlaceId(null);
@@ -413,6 +430,8 @@ export default function PlaceListPage() {
     if (selectedPlaceId === id) {
       closeDetail();
     }
+
+    return true;
   };
 
   const handleRequestDeletePlace = (id: string) => {
@@ -425,8 +444,31 @@ export default function PlaceListPage() {
       return;
     }
 
-    handleDeletePlace(pendingDeletePlaceId);
-    setPendingDeletePlaceId(null);
+    const placeId = pendingDeletePlaceId;
+    const roomPlaceId = findRoomPlaceId(placeId);
+    if (roomPlaceId == null) {
+      setPendingDeletePlaceId(null);
+      return;
+    }
+
+    deleteRoomPlaceMutation.mutate(roomPlaceId, {
+      onSuccess: () => {
+        setOpenMenuId(null);
+        if (editingPlaceId === placeId) {
+          setEditingPlaceId(null);
+          setMemoDraft("");
+        }
+        if (selectedPlaceId === placeId) {
+          closeDetail();
+        }
+      },
+      onError: (error) => {
+        handlePlaceDeleteError(error);
+      },
+      onSettled: () => {
+        setPendingDeletePlaceId(null);
+      },
+    });
   };
 
   return (
@@ -520,12 +562,12 @@ export default function PlaceListPage() {
             isAllSigunguSearchLoading ||
             (!isRegionSearching && draftSido.code !== REGION_ALL_CODE && sigungusQuery.isLoading)
           }
-          cityErrorMessage={sidosQuery.isError ? "지역 정보를 불러오지 못했어요." : null}
+          cityErrorMessage={sidosQuery.isError ? "지역 정보를 불러오지 못했어요" : null}
           districtErrorMessage={
             isAllSigunguSearchError
-              ? "시/군/구 정보를 확인할 수 없어요."
+              ? "시/군/구 정보를 확인할 수 없어요"
               : !isRegionSearching && draftSido.code !== REGION_ALL_CODE && sigungusQuery.isError
-                ? "시/군/구 정보를 확인할 수 없어요."
+                ? "시/군/구 정보를 확인할 수 없어요"
                 : null
           }
           searchKeyword={regionSearchKeyword}
@@ -545,7 +587,9 @@ export default function PlaceListPage() {
           ref={listScrollRef}
           className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
         >
-          {displayedPlaces.length > 0 ? (
+          {roomPlacesQuery.isLoading ? (
+            <PlaceListSkeleton />
+          ) : displayedPlaces.length > 0 ? (
             <div className="space-y-2 pb-2" role="list" aria-label="장소 목록">
               {displayedPlaces.map((place) => (
                 <SavedPlaceItem
@@ -571,16 +615,18 @@ export default function PlaceListPage() {
                 </div>
               ) : null}
             </div>
-          ) : (
-            <EmptyState
-              icon={<AlertCircle className="size-5" aria-hidden />}
-              message={emptyMessage}
+          ) : roomPlacesQuery.isError ? (
+            <PlaceListState
+              title="장소 목록을 불러오지 못했어요"
+              description="잠시 뒤에 다시 확인해주세요"
             />
+          ) : (
+            <PlaceListState title={emptyTitle} description={emptyDescription} />
           )}
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
+      <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <BottomNavigationBar activeId="map" onSelect={handleSelectBottomNav} />
       </div>
@@ -597,10 +643,58 @@ export default function PlaceListPage() {
         description="삭제하면 목록에서 더 이상 보이지 않아요"
         cancelLabel="취소"
         confirmLabel="삭제"
+        historyStateKey="placeListDeleteConfirm"
         confirmButtonClassName="text-primary"
         onCancel={() => setPendingDeletePlaceId(null)}
         onConfirm={handleConfirmDeletePlace}
       />
+
+      <PlaceUsedInDateCourseAlertModal
+        open={isUsedInDateCourseAlertOpen}
+        className="z-95"
+        historyStateKey="placeListUsedInDateCourseAlert"
+        onClose={closeUsedInDateCourseAlert}
+      />
+    </div>
+  );
+}
+
+function PlaceListSkeleton() {
+  return (
+    <div className="space-y-3 pb-2" aria-label="장소 목록을 불러오는 중">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div
+          key={`room-place-skeleton-${index}`}
+          className="bg-card rounded-[1.15rem] px-3.5 py-3.5 shadow-[0_8px_24px_rgba(15,23,42,0.035)]"
+        >
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <div className="bg-muted/70 h-4 w-[42%] animate-pulse rounded-md" />
+                <div className="bg-muted/60 size-6 animate-pulse rounded-full" />
+                <div className="bg-muted/50 h-3 w-10 animate-pulse rounded-md" />
+              </div>
+              <div className="bg-muted/55 h-3.5 w-[72%] animate-pulse rounded-md" />
+            </div>
+            <div className="bg-muted/50 size-9 shrink-0 animate-pulse rounded-full" />
+          </div>
+          <div className="mt-3 flex gap-1.5">
+            <div className="bg-muted/45 h-6 w-16 animate-pulse rounded-full" />
+            <div className="bg-muted/40 h-6 w-20 animate-pulse rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PlaceListState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-48 flex-col items-center justify-center px-5 py-10 text-center">
+      <p className="text-foreground text-sm font-semibold">{title}</p>
+      <p className="text-muted-foreground mt-1.5 max-w-64 text-xs leading-relaxed font-medium">
+        {description}
+      </p>
     </div>
   );
 }

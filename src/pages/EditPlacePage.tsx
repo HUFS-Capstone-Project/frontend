@@ -196,7 +196,7 @@ export default function EditPlacePage() {
             onError: (error) => {
               setOverrideError(
                 resolveGeneralApiErrorMessage(error, {
-                  fallback: "장소 후보를 수정하지 못했어요. 다시 시도해 주세요.",
+                  fallback: "장소 후보를 수정하지 못했어요. 다시 시도해 주세요",
                 }),
               );
             },

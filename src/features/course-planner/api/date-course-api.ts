@@ -12,9 +12,6 @@ export type DateCourseRegionFilterOption = {
   all: false;
 };
 
-/** @deprecated Use `DateCourseRegionFilterOption` */
-export type DateCourseSigunguOption = DateCourseRegionFilterOption;
-
 export type GenerateDateCourseCategorySlot = {
   categoryCode: string;
   tagCode?: string;

@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
+import { CLIPBOARD_TEXT, ROOM_TEXT } from "@/shared/config/text";
 
 import type { CreateRoomResponse } from "../api";
-import {
-  COPY_ERROR_TOAST_MESSAGE,
-  COPY_SUCCESS_TOAST_MESSAGE,
-  copyTextToClipboard,
-} from "../utils/clipboard";
+import { copyTextToClipboard } from "../utils/clipboard";
 import { formatInviteCodeForDisplay } from "../utils/inviteCode";
 import { useCreateRoomMutation } from "./use-create-room-mutation";
 import { useJoinRoomMutation } from "./use-join-room-mutation";
@@ -17,8 +14,6 @@ const INVITE_CODE_MAX_LENGTH = 32;
 const OPEN_FLOW_DELAY_MS = 260;
 const COPY_FEEDBACK_RESET_MS = 1800;
 
-const CREATE_SUCCESS_TOAST = "방이 생성되었습니다";
-const JOIN_SUCCESS_TOAST = "방에 참여했습니다";
 type FullScreenStep = "none" | "createName" | "createInvite" | "join";
 type CopyFeedback = "idle" | "copied";
 
@@ -160,7 +155,7 @@ export function useRoomAddFlow({
       setRoomNameError(null);
       setCopyFeedback("idle");
       setStep("createInvite");
-      showToast?.(CREATE_SUCCESS_TOAST);
+      showToast?.(ROOM_TEXT.toast.created);
     } catch (error) {
       const formError = resolveFormApiError(error, { knownFields: ["name"] });
 
@@ -185,7 +180,7 @@ export function useRoomAddFlow({
 
     try {
       await joinRoomMutation.mutateAsync({ inviteCode: normalizedInviteCode });
-      showToast?.(JOIN_SUCCESS_TOAST);
+      showToast?.(ROOM_TEXT.toast.joined);
       setStep("none");
     } catch (error) {
       const formError = resolveFormApiError(error, { knownFields: ["inviteCode"] });
@@ -212,9 +207,9 @@ export function useRoomAddFlow({
     try {
       await copyTextToClipboard(createdRoom.inviteCode);
       setCopyFeedback("copied");
-      showToast?.(COPY_SUCCESS_TOAST_MESSAGE);
+      showToast?.(CLIPBOARD_TEXT.copySuccessToast);
     } catch {
-      showToast?.(COPY_ERROR_TOAST_MESSAGE);
+      showToast?.(CLIPBOARD_TEXT.copyErrorToast);
     } finally {
       setIsCopying(false);
 
@@ -277,7 +272,7 @@ function validateRoomName(value: string): string | null {
   }
 
   if (trimmed.length > ROOM_NAME_MAX_LENGTH) {
-    return "방 이름은 최대 20자까지 입력할 수 있어요.";
+    return "방 이름은 최대 20자까지 입력할 수 있어요";
   }
 
   return null;
@@ -298,42 +293,12 @@ function validateInviteCode(value: string): string | null {
 
 function resolveCreateRoomErrorMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    codeMessages: {
-      E401_UNAUTHORIZED: "로그인이 필요합니다. 다시 시도해 주세요.",
-      E403_FORBIDDEN: "요청 권한이 없습니다.",
-      E404_NOT_FOUND: "요청한 리소스를 찾을 수 없습니다.",
-    },
-    statusMessages: {
-      401: "로그인이 필요합니다. 다시 시도해 주세요.",
-      403: "요청 권한이 없습니다.",
-      404: "요청한 리소스를 찾을 수 없습니다.",
-      500: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-      502: "방 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    },
+    fallback: "방을 만들지 못했어요 잠시 후 다시 시도해 주세요",
   });
 }
 
 function resolveJoinRoomErrorMessage(error: unknown): string {
   return resolveGeneralApiErrorMessage(error, {
-    fallback: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    codeMessages: {
-      E400_ILLEGAL_ARGUMENT: "유효하지 않은 입장코드입니다.",
-      E401_UNAUTHORIZED: "로그인이 필요합니다. 다시 시도해 주세요.",
-      E403_FORBIDDEN: "요청 권한이 없습니다.",
-      E404_NOT_FOUND: "요청한 리소스를 찾을 수 없습니다.",
-      E409_CONFLICT: "이미 참여한 방이거나 방 정원이 가득 찼습니다.",
-      E429_TOO_MANY_REQUESTS: "잠시 후 다시 시도해 주세요.",
-    },
-    statusMessages: {
-      400: "유효하지 않은 입장코드입니다.",
-      401: "로그인이 필요합니다. 다시 시도해 주세요.",
-      403: "요청 권한이 없습니다.",
-      404: "요청한 리소스를 찾을 수 없습니다.",
-      409: "이미 참여한 방이거나 방 정원이 가득 찼습니다.",
-      429: "잠시 후 다시 시도해 주세요.",
-      500: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-      502: "입장코드 참여에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    },
+    fallback: "입장코드로 참여하지 못했어요 잠시 후 다시 시도해 주세요",
   });
 }

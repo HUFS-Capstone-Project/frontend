@@ -2,10 +2,6 @@ import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { SearchField } from "@/components/common/SearchField";
-import {
-  COURSE_DISTRICTS_BY_CITY,
-  COURSE_REGION_CITIES,
-} from "@/features/course-planner/constants";
 import type { RegionSelectionOption } from "@/features/regions";
 import { cn } from "@/lib/utils";
 
@@ -54,18 +50,8 @@ export function RegionSelectionPanel({
   const [localSearchKeyword, setLocalSearchKeyword] = useState("");
   const resolvedSearchKeyword = searchKeyword ?? localSearchKeyword;
   const setResolvedSearchKeyword = onSearchKeywordChange ?? setLocalSearchKeyword;
-  const fallbackCityOptions: RegionSelectionOption[] = COURSE_REGION_CITIES.map((city) => ({
-    code: city,
-    name: city,
-  }));
-  const fallbackDistrictOptions = (
-    COURSE_DISTRICTS_BY_CITY[selectedCity] ?? COURSE_DISTRICTS_BY_CITY["서울"]
-  ).map<RegionSelectionOption>((district) => ({
-    code: district,
-    name: district,
-  }));
-  const resolvedCityOptions = cityOptions ?? fallbackCityOptions;
-  const resolvedDistrictOptions = districtOptions ?? fallbackDistrictOptions;
+  const resolvedCityOptions = useMemo(() => cityOptions ?? [], [cityOptions]);
+  const resolvedDistrictOptions = useMemo(() => districtOptions ?? [], [districtOptions]);
   const normalizedSearchKeyword = resolvedSearchKeyword.trim().toLocaleLowerCase("ko-KR");
   const filteredDistrictOptions = useMemo(() => {
     if (!normalizedSearchKeyword) {

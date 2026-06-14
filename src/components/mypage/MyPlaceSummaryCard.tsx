@@ -71,8 +71,8 @@ export function MyPlaceSummaryCard({
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground truncate py-2 text-xs font-medium">
-              방에서 장소를 저장해보세요!
+            <p className="text-muted-foreground py-2 text-xs leading-relaxed font-medium">
+              마음에 드는 장소를 저장해보세요!
             </p>
           )}
         </div>

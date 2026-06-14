@@ -35,7 +35,7 @@ export default function LoginPage() {
     // Local dev fallback: when no redirect URL is configured.
     if (!redirected) {
       setIsLoading(false);
-      setLoginError("로그인에 실패했습니다. 다시 시도해주세요.");
+      setLoginError("로그인에 실패했습니다. 다시 시도해주세요");
     }
   }, []);
 

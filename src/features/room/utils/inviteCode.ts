@@ -16,11 +16,6 @@ export function getInviteCodeValue(room: RoomListRow): string {
   return buildFallbackInviteCode(room.id, INVITE_CODE_LENGTH);
 }
 
-/** @deprecated `getInviteCodeValue`를 사용하세요. */
-export function getInviteCodeDigits(room: RoomListRow): string {
-  return getInviteCodeValue(room);
-}
-
 export function formatInviteCodeForDisplay(code: string): string {
   const normalized = code.trim();
   if (normalized.length === 0) {

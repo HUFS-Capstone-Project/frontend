@@ -61,7 +61,7 @@ export function AnimatedText({
 
   useEffect(() => {
     if (import.meta.env.DEV && slotChildren && slotChildren.length !== safeTexts.length) {
-      console.warn("AnimatedText: `slotChildren.length` must match `texts.length`.");
+      console.warn("AnimatedText: `slotChildren.length` must match `texts.length`");
     }
   }, [slotChildren, safeTexts.length]);
 

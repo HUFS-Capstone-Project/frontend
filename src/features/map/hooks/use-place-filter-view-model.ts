@@ -2,8 +2,7 @@ import { useMemo } from "react";
 
 import { MAP_ALL_CATEGORY_FILTER_CHIP, type MapPrimaryCategory } from "@/shared/types/map-home";
 
-import type { Category, PlaceFilterData } from "../api/place-taxonomy-types";
-import { FALLBACK_PLACE_FILTER_DATA } from "../lib/fallback-place-filter-data";
+import type { PlaceFilterData } from "../api/place-taxonomy-types";
 import { usePlaceFilterData } from "./use-place-filter-data";
 
 type UsePlaceFilterViewModelOptions = {
@@ -18,11 +17,7 @@ export function usePlaceFilterViewModel(options?: UsePlaceFilterViewModelOptions
     retryLoad,
   } = usePlaceFilterData(options?.filterDataOverride);
 
-  const filterCategories = useMemo<Category[]>(() => {
-    if (apiFilterCategories.length > 0) return apiFilterCategories;
-    if (isInitialLoading && !isInitialError) return [];
-    return FALLBACK_PLACE_FILTER_DATA.categories;
-  }, [apiFilterCategories, isInitialError, isInitialLoading]);
+  const filterCategories = apiFilterCategories;
 
   const categories = useMemo(
     () => [MAP_ALL_CATEGORY_FILTER_CHIP, ...filterCategories.map((category) => category.code)],

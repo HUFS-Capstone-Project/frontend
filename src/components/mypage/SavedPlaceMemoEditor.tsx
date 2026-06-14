@@ -49,7 +49,7 @@ export function SavedPlaceMemoEditor({
             }
           }}
           className="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent py-1 text-xs font-medium ring-0 outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-          placeholder="메모를 남겨주세요."
+          placeholder="메모를 남겨주세요"
           autoFocus
         />
         {displayValue ? (

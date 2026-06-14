@@ -1,10 +1,12 @@
 import type { AxiosError } from "axios";
 
+import { ERROR_TEXT, HTTP_ERROR_TEXT, type KnownErrorCode } from "@/shared/config/error-text";
+import { COMMON_TEXT } from "@/shared/config/text";
 import type { ApiErrorResponse, FieldError, ProblemDetail } from "@/shared/types/api-types";
 
-export const DEFAULT_API_ERROR_MESSAGE = "요청 처리 중 문제가 발생했습니다.";
-export const NETWORK_ERROR_MESSAGE = "네트워크 연결을 확인해 주세요.";
-export const VALIDATION_DETAIL_MESSAGE = "입력값을 확인해 주세요.";
+export const DEFAULT_API_ERROR_MESSAGE: string = COMMON_TEXT.defaultApiError;
+export const NETWORK_ERROR_MESSAGE: string = COMMON_TEXT.networkError;
+export const VALIDATION_DETAIL_MESSAGE: string = COMMON_TEXT.validationDetail;
 
 /** 백엔드 field → 프론트 form field (불일치 시에만 정의) */
 export const API_FIELD_TO_FORM_FIELD: Record<string, string> = {
@@ -29,6 +31,8 @@ export type FormApiErrorResult = {
   detailMessage: string;
   hasFieldErrors: boolean;
 };
+
+export type { KnownErrorCode } from "@/shared/config/error-text";
 
 export type ResolveGeneralApiErrorOptions = {
   fallback?: string;
@@ -87,6 +91,19 @@ export function getFieldErrors(error: unknown): FieldError[] | undefined {
 export function getErrorDetail(error: unknown, fallback = DEFAULT_API_ERROR_MESSAGE): string {
   const parsed = parseApiError(error);
   return normalizeDisplayMessage(parsed.detail) ?? fallback;
+}
+
+export function getApiErrorCode(error: unknown): string | undefined {
+  return parseApiError(error).code;
+}
+
+export function isApiErrorCode(error: unknown, code: KnownErrorCode | string): boolean {
+  return getApiErrorCode(error) === code;
+}
+
+export function isAnyApiErrorCode(error: unknown, codes: readonly string[]): boolean {
+  const errorCode = getApiErrorCode(error);
+  return errorCode != null && codes.includes(errorCode);
 }
 
 export function mapFieldErrorsToForm(
@@ -180,13 +197,22 @@ export function resolveGeneralApiErrorMessage(
     return options.codeMessages[parsed.code]!;
   }
 
+  if (parsed.code) {
+    const globalMessage = ERROR_TEXT[parsed.code as keyof typeof ERROR_TEXT];
+    if (globalMessage) {
+      return globalMessage;
+    }
+  }
+
   if (parsed.status != null && options?.statusMessages?.[parsed.status]) {
     return options.statusMessages[parsed.status]!;
   }
 
-  const detail = normalizeDisplayMessage(parsed.detail);
-  if (detail) {
-    return detail;
+  if (parsed.status != null) {
+    const statusMessage = HTTP_ERROR_TEXT[parsed.status];
+    if (statusMessage) {
+      return statusMessage;
+    }
   }
 
   return fallback;

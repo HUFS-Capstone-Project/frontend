@@ -12,7 +12,7 @@ import { useRoomActionModalHistory, useRoomMainModals } from "@/features/room";
 import type { RoomActionType } from "@/features/room/roomActionTypes";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
-import { REGISTER_SELECT_ROOM_TEXT } from "@/shared/config/text";
+import { PLACE_TEXT } from "@/shared/config/text";
 import type { RoomListRow } from "@/shared/types/room";
 import { useAuthStore } from "@/store/auth-store";
 import { useRegisterRoomStore } from "@/store/register-room-store";
@@ -69,6 +69,7 @@ export default function RoomMainPage() {
     inviteCodeRoom,
     leaveRoom,
     isAddRoomOpen,
+    isRoomsLoading,
     isRenamePending,
     isLeavePending,
     handleRoomAction,
@@ -104,7 +105,7 @@ export default function RoomMainPage() {
     let shouldReplace = false;
 
     if (raw.showPlacesRegisteredToast) {
-      showToast(REGISTER_SELECT_ROOM_TEXT.placesRegisteredToast, 2000);
+      showToast(PLACE_TEXT.toast.saved, 2000);
       delete nextState.showPlacesRegisteredToast;
       shouldReplace = true;
     }
@@ -130,6 +131,9 @@ export default function RoomMainPage() {
     ...row,
     placeCount: row.placeCount + (roomPlaceCountDeltas[row.id] ?? 0),
   }));
+  const isRoomSearchActive = debouncedRoomSearchKeyword.trim().length > 0;
+  const shouldShowRoomEmptyHint =
+    !isRoomsLoading && !isRoomSearchActive && displayRows.length === 0;
 
   const handleRoomNavigate = useCallback(
     (row: RoomListRow) => {
@@ -187,11 +191,28 @@ export default function RoomMainPage() {
             onSubmitSearch={() => setDebouncedRoomSearchKeyword(roomSearchKeyword)}
           />
         }
-        fab={<FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />}
+        fab={
+          shouldShowRoomEmptyHint ? (
+            <FloatingActionButton
+              label="방 추가"
+              onClick={handleOpenAddRoom}
+              className="room-fab-hint"
+            />
+          ) : (
+            <FloatingActionButton label="방 추가" onClick={handleOpenAddRoom} />
+          )
+        }
         bottomNav={<BottomNavigationBar activeId="room" onSelect={handleSelectBottomNav} />}
       >
         <RoomList
           rows={displayRows}
+          isLoading={isRoomsLoading}
+          emptyTitle={isRoomSearchActive ? "검색 결과가 없어요" : "아직 방이 없어요"}
+          emptyDescription={
+            isRoomSearchActive
+              ? "다른 방 이름이나 장소로 다시 찾아보세요"
+              : "함께 장소를 모을 방을 만들어보세요"
+          }
           onRoomNavigate={handleRoomNavigate}
           onOpenRoomActions={handleOpenRoomActions}
         />

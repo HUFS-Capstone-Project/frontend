@@ -78,8 +78,11 @@ export default function ShareRoomSelectPage() {
       ) : null}
 
       {!roomsQuery.isLoading && rows.length === 0 ? (
-        <div className="px-page text-muted-foreground py-12 text-center text-sm">
-          공유할 수 있는 방이 없습니다.
+        <div className="px-page py-12 text-center">
+          <p className="text-foreground text-sm font-semibold">아직 공유할 수 있는 방이 없어요</p>
+          <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed font-medium">
+            방을 만들거나 참여하면 링크를 바로 저장할 수 있어요
+          </p>
         </div>
       ) : null}
     </RoomMainShell>

@@ -11,8 +11,6 @@ export type EditPlaceLocationState = {
   linkAddOriginalUrl?: string;
   linkAddCandidateId?: number;
   linkAddDraftSession?: string;
-  /** @deprecated `returnTo` 사용 */
-  onConfirmNavigate?: string;
 };
 
 export type RoomPlaceFromLinkLocationState = {
@@ -38,14 +36,5 @@ export function linkCandidatesResumeState(draftSession?: string | null): LinkCan
 }
 
 export function resolveEditPlaceReturnTo(state: EditPlaceLocationState): EditPlaceReturnTo {
-  if (state.returnTo) {
-    return state.returnTo;
-  }
-  if (state.onConfirmNavigate === "link-add-back") {
-    return "link-add";
-  }
-  if (state.onConfirmNavigate === "back") {
-    return "back";
-  }
-  return "back";
+  return state.returnTo ?? "back";
 }

@@ -1,9 +1,8 @@
-import { AlertCircle, Check, ChevronDown, Route, User } from "lucide-react";
+import { Check, ChevronDown, Route, User } from "lucide-react";
 import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 
 import { type BottomNavId, BottomNavigationBar } from "@/components/common/BottomNavigationBar";
 import { BottomNavToast } from "@/components/common/BottomNavToast";
-import { EmptyState } from "@/components/common/EmptyState";
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
@@ -33,6 +32,7 @@ import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
 import { cn } from "@/lib/utils";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
+import { COMMON_TEXT, COURSE_TEXT } from "@/shared/config/text";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
 import { usePlaceDetailStore } from "@/store/place-detail-store";
@@ -157,6 +157,16 @@ export function PlaceListSavedCoursesPage({
   }, [courseOverrides, dateCourseDetailQuery.data, roomId, selectedCourse]);
 
   const totalCourseCount = roomDateCoursesQuery.data?.pages[0]?.totalCount ?? savedCourses.length;
+  const isInitialCoursesLoading =
+    roomDateCoursesQuery.isLoading && roomDateCoursesQuery.data == null;
+  const emptyTitle =
+    savedCourses.length === 0
+      ? "아직 저장한 데이트코스가 없어요"
+      : "조건에 맞는 데이트코스가 없어요";
+  const emptyDescription =
+    savedCourses.length === 0
+      ? "코스를 만들면 이곳에 차곡차곡 모아둘게요"
+      : "필터를 바꾸면 저장해둔 다른 코스를 볼 수 있어요";
 
   const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
     courses: visibleCourses,
@@ -184,13 +194,13 @@ export function PlaceListSavedCoursesPage({
 
     const source = savedCourses.find((course) => course.id === prevCourseId) ?? selectedCourse;
     if (!source || !roomId) {
-      onShowToast?.("코스 수정에 필요한 방 정보를 찾지 못했어요.", COURSE_TOAST_DURATION_MS);
+      onShowToast?.(COURSE_TEXT.toast.roomInfoNotFound, COURSE_TOAST_DURATION_MS);
       throw new Error("roomId is required to update date course");
     }
 
     const roomPlaceIds = payload.stops.map((stop) => stop.roomPlaceId);
     if (roomPlaceIds.length === 0) {
-      onShowToast?.("코스에는 장소가 1개 이상 필요해요.", COURSE_TOAST_DURATION_MS);
+      onShowToast?.(COURSE_TEXT.toast.placeMinRequired, COURSE_TOAST_DURATION_MS);
       throw new Error("roomPlaceIds is required to update date course");
     }
 
@@ -211,12 +221,15 @@ export function PlaceListSavedCoursesPage({
 
       setCourseOverrides((current) => ({ ...current, [prevCourseId]: nextCourse }));
       setSelectedCourse(nextCourse);
-      onShowToast?.("코스가 수정되었습니다.", COURSE_TOAST_DURATION_MS);
+      onShowToast?.(COURSE_TEXT.toast.updated, COURSE_TOAST_DURATION_MS);
     } catch (error) {
       if (isDateCourseConflictError(error)) {
         throw error;
       }
-      onShowToast?.(resolveGeneralApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+      onShowToast?.(
+        resolveGeneralApiErrorMessage(error, { fallback: COMMON_TEXT.defaultApiError }),
+        COURSE_TOAST_DURATION_MS,
+      );
       throw error;
     }
   };
@@ -350,8 +363,13 @@ export function PlaceListSavedCoursesPage({
                         ))}
                       </div>
                     ) : memberOptions.length === 0 ? (
-                      <div className="text-muted-foreground px-3 py-3 text-left text-xs font-medium">
-                        저장한 멤버가 없습니다
+                      <div className="px-4 py-5 text-center">
+                        <p className="text-foreground text-xs font-semibold">
+                          아직 저장한 멤버가 없어요
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-[0.68rem] leading-relaxed font-medium">
+                          코스가 저장되면 멤버별로 볼 수 있어요
+                        </p>
                       </div>
                     ) : (
                       <ul
@@ -447,7 +465,7 @@ export function PlaceListSavedCoursesPage({
       </ListTopBar>
 
       {selectedCourseWithDetail ? (
-        <div className="pointer-events-none absolute top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+        <div className="pointer-events-none absolute top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
           <button
             type="button"
             onClick={handleShowRoute}
@@ -468,11 +486,8 @@ export function PlaceListSavedCoursesPage({
           ref={courseListScrollRef}
           className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
         >
-          {roomDateCoursesQuery.isLoading ? (
-            <EmptyState
-              icon={<AlertCircle className="size-5" aria-hidden />}
-              message="저장된 데이트 코스를 불러오는 중이에요."
-            />
+          {isInitialCoursesLoading ? (
+            <SavedCourseListSkeleton />
           ) : visibleCourses.length > 0 ? (
             <div className="space-y-2 pb-2">
               {visibleCourses.map((course) => (
@@ -485,15 +500,13 @@ export function PlaceListSavedCoursesPage({
                 </div>
               ) : null}
             </div>
-          ) : (
-            <EmptyState
-              icon={<AlertCircle className="size-5" aria-hidden />}
-              message={
-                roomDateCoursesQuery.isError
-                  ? "저장된 데이트 코스를 불러오지 못했어요."
-                  : "해당하는 데이트 코스가 없습니다."
-              }
+          ) : roomDateCoursesQuery.isError ? (
+            <SavedCourseListState
+              title="데이트코스를 불러오지 못했어요"
+              description="잠시 뒤에 다시 확인해주세요"
             />
+          ) : (
+            <SavedCourseListState title={emptyTitle} description={emptyDescription} />
           )}
         </div>
       ) : null}
@@ -526,13 +539,44 @@ export function PlaceListSavedCoursesPage({
       </CoursePlannerBottomSheet>
 
       {!selectedCourse ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
+        <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
           <BottomNavigationBar activeId="map" onSelect={onSelectBottomNav} />
         </div>
       ) : null}
 
       <PlaceDetailSheet roomId={roomId} savedPlaces={savedPlaces} />
+    </div>
+  );
+}
+
+function SavedCourseListSkeleton() {
+  return (
+    <div className="space-y-2 pb-2" aria-label="저장된 데이트 코스를 불러오는 중">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={`room-saved-course-skeleton-${index}`}
+          className="bg-card flex items-center gap-3 rounded-lg px-2.5 py-2.5"
+        >
+          <div className="bg-muted/65 size-9 shrink-0 animate-pulse rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="bg-muted/65 h-3.5 w-[48%] animate-pulse rounded-md" />
+            <div className="bg-muted/45 h-3 w-[72%] animate-pulse rounded-md" />
+          </div>
+          <div className="bg-muted/45 size-4 shrink-0 animate-pulse rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SavedCourseListState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-48 flex-col items-center justify-center px-5 py-10 text-center">
+      <p className="text-foreground text-sm font-semibold">{title}</p>
+      <p className="text-muted-foreground mt-1.5 max-w-64 text-xs leading-relaxed font-medium">
+        {description}
+      </p>
     </div>
   );
 }

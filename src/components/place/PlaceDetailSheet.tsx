@@ -7,6 +7,7 @@ import {
   BusinessHoursAccordion,
   BusinessHoursStatusSummary,
 } from "@/components/place/BusinessHoursAccordion";
+import { PlaceOptionsMenu, PlaceOptionsMenuItem } from "@/components/place/PlaceOptionsMenu";
 import {
   PLACE_FLOW_LINK_CHIP_CLASS,
   PlaceFlowOriginalLinkChipRow,
@@ -47,7 +48,7 @@ type PlaceDetailSheetProps = {
   /** false면 메모 목록만 표시하고 메모 작성 UI는 숨김 (데이트 코스 후보 확인 등) */
   allowMemoEdit?: boolean;
   onSaveMemo?: (placeId: string, memo: string) => void | Promise<void>;
-  onDeletePlace?: (placeId: string) => void | Promise<void>;
+  onDeletePlace?: (placeId: string) => void | Promise<void | boolean>;
 };
 
 export function PlaceDetailSheet({
@@ -64,7 +65,6 @@ export function PlaceDetailSheet({
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const optionsMenuRef = useRef<HTMLDivElement>(null);
   const [localMemos, setLocalMemos] = useState<Record<string, string>>({});
-  const [localRemovedPlaceIds, setLocalRemovedPlaceIds] = useState<string[]>([]);
   const [businessHoursPollingStartedAt, setBusinessHoursPollingStartedAt] = useState<number | null>(
     null,
   );
@@ -107,7 +107,6 @@ export function PlaceDetailSheet({
   });
 
   const places = useMemo(() => {
-    const localRemoved = new Set(localRemovedPlaceIds);
     let sourcePlaces: MapSavedPlace[];
 
     if (roomPlaceDetailQuery.data) {
@@ -119,29 +118,27 @@ export function PlaceDetailSheet({
           memo: localMemo ?? detailPlace.memo,
           memos: localMemo ? createLocalMemoList(localMemo) : detailPlace.memos,
         },
-      ].filter((place) => !localRemoved.has(place.id));
+      ];
     } else if (savedPlaces) {
-      sourcePlaces = savedPlaces
-        .filter((place) => !localRemoved.has(place.id))
-        .map((place) => {
-          return {
-            id: place.id,
-            name: place.name,
-            category: place.category,
-            categoryName: place.categoryName,
-            tagKeys: place.tagKeys,
-            tagNames: place.tagNames,
-            latitude: place.latitude ?? 0,
-            longitude: place.longitude ?? 0,
-            address: place.address,
-            shareLinkUrl: place.shareLinkUrl ?? null,
-            addedVia: place.addedVia ?? null,
-            linkSourceType: place.linkSourceType ?? null,
-            memo: localMemos[place.id] ?? place.memo,
-            memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : place.memos,
-            businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
-          };
-        });
+      sourcePlaces = savedPlaces.map((place) => {
+        return {
+          id: place.id,
+          name: place.name,
+          category: place.category,
+          categoryName: place.categoryName,
+          tagKeys: place.tagKeys,
+          tagNames: place.tagNames,
+          latitude: place.latitude ?? 0,
+          longitude: place.longitude ?? 0,
+          address: place.address,
+          shareLinkUrl: place.shareLinkUrl ?? null,
+          addedVia: place.addedVia ?? null,
+          linkSourceType: place.linkSourceType ?? null,
+          memo: localMemos[place.id] ?? place.memo,
+          memos: localMemos[place.id] ? createLocalMemoList(localMemos[place.id]) : place.memos,
+          businessHours: "businessHours" in place ? (place.businessHours ?? null) : null,
+        };
+      });
     } else if (shouldFetchRoomPlaceDetail) {
       sourcePlaces = [];
     } else {
@@ -149,13 +146,7 @@ export function PlaceDetailSheet({
     }
 
     return sourcePlaces;
-  }, [
-    localMemos,
-    localRemovedPlaceIds,
-    roomPlaceDetailQuery.data,
-    savedPlaces,
-    shouldFetchRoomPlaceDetail,
-  ]);
+  }, [localMemos, roomPlaceDetailQuery.data, savedPlaces, shouldFetchRoomPlaceDetail]);
 
   const place = places.find((item) => item.id === selectedPlaceId) ?? null;
   const isRoomPlaceDetailLoading = shouldFetchRoomPlaceDetail && roomPlaceDetailQuery.isLoading;
@@ -237,25 +228,15 @@ export function PlaceDetailSheet({
     setDeleteTargetId(place.id);
   }, [place]);
 
-  const handleConfirmDelete = useCallback(() => {
-    if (!deleteTargetId) {
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTargetId || !onDeletePlace) {
       return;
     }
 
-    if (onDeletePlace) {
-      onDeletePlace(deleteTargetId);
-    } else {
-      setLocalRemovedPlaceIds((previous) =>
-        previous.includes(deleteTargetId) ? previous : [...previous, deleteTargetId],
-      );
-      setLocalMemos((previous) => {
-        if (!(deleteTargetId in previous)) {
-          return previous;
-        }
-        const next = { ...previous };
-        delete next[deleteTargetId];
-        return next;
-      });
+    const result = await onDeletePlace(deleteTargetId);
+    if (result === false) {
+      setDeleteTargetId(null);
+      return;
     }
 
     setDeleteTargetId(null);
@@ -334,7 +315,10 @@ export function PlaceDetailSheet({
                   </span>
                 ) : null}
               </div>
-              <div ref={optionsMenuRef} className="relative -mr-1 shrink-0 pt-px">
+              <div
+                ref={optionsMenuRef}
+                className={cn("relative -mr-1 shrink-0 pt-px", !onDeletePlace && "hidden")}
+              >
                 <button
                   type="button"
                   onClick={() => setIsOptionsMenuOpen((current) => !current)}
@@ -347,22 +331,17 @@ export function PlaceDetailSheet({
                 </button>
 
                 {isOptionsMenuOpen ? (
-                  <div
-                    role="menu"
-                    className="border-border bg-popover absolute top-full right-0 z-10 mt-1 w-24 overflow-hidden rounded-md border py-0.5 shadow-sm"
-                  >
-                    <button
-                      type="button"
-                      role="menuitem"
+                  <PlaceOptionsMenu>
+                    <PlaceOptionsMenuItem
+                      variant="danger"
                       onClick={() => {
                         setIsOptionsMenuOpen(false);
                         handleRequestDelete();
                       }}
-                      className="hover:bg-muted/20 active:bg-muted/30 block w-full px-4 py-2.5 text-left text-xs font-semibold text-(--brand-coral-solid) transition-colors"
                     >
                       삭제
-                    </button>
-                  </div>
+                    </PlaceOptionsMenuItem>
+                  </PlaceOptionsMenu>
                 ) : null}
               </div>
             </div>
@@ -428,17 +407,20 @@ export function PlaceDetailSheet({
         </div>
       </BottomSheet>
 
-      <RoomConfirmModal
-        open={deleteTargetId != null}
-        message="이 장소를 삭제할까요?"
-        description="삭제하면 방 목록에서 더 이상 보이지 않아요"
-        cancelLabel="취소"
-        confirmLabel="삭제"
-        className="z-95"
-        confirmButtonClassName="text-primary"
-        onCancel={() => setDeleteTargetId(null)}
-        onConfirm={handleConfirmDelete}
-      />
+      {onDeletePlace ? (
+        <RoomConfirmModal
+          open={deleteTargetId != null}
+          message="이 장소를 삭제할까요?"
+          description="삭제하면 방 목록에서 더 이상 보이지 않아요"
+          cancelLabel="취소"
+          confirmLabel="삭제"
+          className="z-95"
+          historyStateKey="placeDetailDeleteConfirm"
+          confirmButtonClassName="text-primary"
+          onCancel={() => setDeleteTargetId(null)}
+          onConfirm={handleConfirmDelete}
+        />
+      ) : null}
     </>
   );
 }

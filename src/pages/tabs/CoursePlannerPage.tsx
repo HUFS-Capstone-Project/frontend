@@ -29,7 +29,6 @@ import type { GenerateDateCourseRequest } from "@/features/course-planner/api/da
 import {
   COURSE_LOADING_ROOM_FALLBACK,
   COURSE_TOAST_DURATION_MS,
-  COURSE_TOAST_TEXT,
 } from "@/features/course-planner/constants";
 import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-course-planner-courses";
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
@@ -44,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { MAP_INITIAL_CENTER } from "@/shared/config/map";
 import { APP_ROUTES } from "@/shared/config/routes";
+import { COMMON_TEXT, COURSE_TEXT } from "@/shared/config/text";
 import type { CourseSavePayload } from "@/shared/types/course";
 import { useRoomSelectionStore } from "@/store/room-selection-store";
 
@@ -117,9 +117,12 @@ function resolveCoursePlannerApiErrorMessage(error: unknown) {
   const formError = resolveFormApiError(error, {
     knownFields: ["sigunguCode", "startDateTime", "endDateTime", "categorySequence"],
   });
-  const firstFieldError = Object.values(formError.fieldErrors)[0];
 
-  return firstFieldError ?? formError.formError ?? resolveGeneralApiErrorMessage(error);
+  if (formError.hasFieldErrors || formError.formError) {
+    return COMMON_TEXT.validationDetail;
+  }
+
+  return resolveGeneralApiErrorMessage(error, { fallback: COMMON_TEXT.defaultApiError });
 }
 
 export default function CoursePlannerPage() {
@@ -167,6 +170,7 @@ export default function CoursePlannerPage() {
     dateTimeDisplayValue,
     canGenerate: canGenerateByRegion,
     setMode,
+    setDraftCity,
     setDraftDistrict,
     setDraftDate,
     setDraftStartTime,
@@ -219,14 +223,14 @@ export default function CoursePlannerPage() {
   );
   const dateCourseSidoEmptyMessage =
     !dateCourseSidosQuery.isLoading && !dateCourseSidosQuery.isError && sidoOptions.length === 0
-      ? "방에 저장된 장소가 없거나, 지역 정보가 없어요."
+      ? "방에 저장된 장소가 없어요"
       : null;
   const dateCourseSigunguEmptyMessage =
     effectiveDraftSidoCode.length > 0 &&
     !dateCourseSigungusQuery.isLoading &&
     !dateCourseSigungusQuery.isError &&
     sigunguOptions.length === 0
-      ? "이 시/도에 저장된 시군구가 없어요."
+      ? "이 시/도에 저장된 시군구가 없어요"
       : null;
   const categoryOptions = useMemo(
     () => toCoursePlannerCategories(filterCategories),
@@ -246,11 +250,16 @@ export default function CoursePlannerPage() {
 
   const handleSelectRegionDistrict = useCallback(
     (district: string, option?: RegionSelectionOption) => {
+      if (option?.parentSidoCode && option.parentSidoName) {
+        setDraftSidoCode(option.parentSidoCode);
+        setDraftCity(option.parentSidoName);
+      }
+
       setDraftDistrict(option?.name ?? district);
       setDraftSigunguCode(option?.code ?? "");
       setSelectedSigunguCode(option?.code ?? "");
     },
-    [setDraftDistrict],
+    [setDraftCity, setDraftDistrict],
   );
 
   const handleCloseRegionPanel = useCallback(() => {
@@ -259,9 +268,13 @@ export default function CoursePlannerPage() {
   }, [setMode]);
 
   const handleOpenRegionPanel = useCallback(() => {
-    const nextSidoCode = resolvedDraftSidoOption?.code ?? "";
-    if (nextSidoCode && nextSidoCode !== draftSidoCode) {
-      setDraftSidoCode(nextSidoCode);
+    const nextSidoOption = resolvedDraftSidoOption;
+    if (nextSidoOption?.code && nextSidoOption.code !== draftSidoCode) {
+      setDraftSidoCode(nextSidoOption.code);
+    }
+
+    if (nextSidoOption?.name && draftCity.trim().length === 0) {
+      setDraftCity(nextSidoOption.name);
     }
 
     if (!selectedSigunguCode && !draftSigunguCode) {
@@ -271,10 +284,12 @@ export default function CoursePlannerPage() {
     setRegionSearchKeyword("");
     setMode("region");
   }, [
+    draftCity,
     draftSidoCode,
     draftSigunguCode,
-    resolvedDraftSidoOption?.code,
+    resolvedDraftSidoOption,
     selectedSigunguCode,
+    setDraftCity,
     setDraftDistrict,
     setMode,
   ]);
@@ -284,16 +299,25 @@ export default function CoursePlannerPage() {
     const matchedSigungu = sigunguOptions.find((option) => option.name === draftDistrict);
     const nextSigunguCode = draftSigunguCode || matchedSigungu?.code || "";
     if (!nextSigunguCode) {
-      showToast("시군구를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectSigungu, COURSE_TOAST_DURATION_MS);
       return;
     }
 
     setSelectedSigunguCode(nextSigunguCode);
     const sigunguName = matchedSigungu?.name ?? draftDistrict;
-    const displayLabel =
-      draftCity.trim().length > 0 ? `${draftCity} ${sigunguName}`.trim() : sigunguName;
+    const sidoName =
+      draftCity.trim() || resolvedDraftSidoOption?.name || matchedSigungu?.parentSidoName || "";
+    const displayLabel = sidoName ? `${sidoName} ${sigunguName}`.trim() : sigunguName;
     handleConfirmRegion(displayLabel);
-  }, [draftCity, draftDistrict, draftSigunguCode, handleConfirmRegion, showToast, sigunguOptions]);
+  }, [
+    draftCity,
+    draftDistrict,
+    draftSigunguCode,
+    handleConfirmRegion,
+    resolvedDraftSidoOption?.name,
+    showToast,
+    sigunguOptions,
+  ]);
 
   const handleAddOrder = useCallback(() => {
     if (courseOrders.length >= 5) {
@@ -414,12 +438,12 @@ export default function CoursePlannerPage() {
     }
 
     if (!selectedRoom?.id) {
-      showToast("방을 선택한 뒤 코스를 만들어주세요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectRoomFirst, COURSE_TOAST_DURATION_MS);
       return;
     }
 
     if (!canGenerateByRegion || effectiveSigunguCode.length === 0) {
-      showToast("시군구를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectSigungu, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -429,7 +453,7 @@ export default function CoursePlannerPage() {
       !isHmString(dateTimeValue.endTime) ||
       !isEndAfterStart(dateTimeValue.startTime, dateTimeValue.endTime)
     ) {
-      showToast("날짜와 시간을 설정해주세요", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.setDateTime, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -438,7 +462,7 @@ export default function CoursePlannerPage() {
       displayedCourseOrders.length > 5 ||
       !displayedCourseOrders.every((order) => order.category.trim().length > 0)
     ) {
-      showToast("방문할 장소를 선택해주세요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectPlaces, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -458,7 +482,7 @@ export default function CoursePlannerPage() {
     clearCourses();
     try {
       await generateCourses(payload);
-      showToast(COURSE_TOAST_TEXT.generated, COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.generated, COURSE_TOAST_DURATION_MS);
       setMode("result");
     } catch (error) {
       setMode("form");
@@ -585,7 +609,7 @@ export default function CoursePlannerPage() {
       ) : null}
 
       {mode === "detail" ? (
-        <div className="pointer-events-none absolute top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+        <div className="pointer-events-none absolute top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
           <button
             type="button"
             onClick={handleShowRoute}
@@ -659,7 +683,7 @@ export default function CoursePlannerPage() {
       ) : null}
 
       {mode !== "detail" ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
+        <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
           <BottomNavToast message={toastMessage} placement={toastPlacement} />
           <BottomNavigationBar activeId="course" onSelect={handleSelectBottomNav} />
         </div>
@@ -673,14 +697,14 @@ export default function CoursePlannerPage() {
           districtOptions={sigunguOptions}
           isCityLoading={dateCourseSidosQuery.isLoading}
           isDistrictLoading={effectiveDraftSidoCode.length > 0 && dateCourseSigungusQuery.isLoading}
-          cityErrorMessage={dateCourseSidosQuery.isError ? "시/도 정보를 불러오지 못했어요." : null}
+          cityErrorMessage={dateCourseSidosQuery.isError ? "시/도 정보를 불러오지 못했어요" : null}
           cityEmptyMessage={dateCourseSidoEmptyMessage}
           districtErrorMessage={
-            dateCourseSigungusQuery.isError ? "시군구 정보를 불러오지 못했어요." : null
+            dateCourseSigungusQuery.isError ? "시군구 정보를 불러오지 못했어요" : null
           }
           districtEmptyMessage={
             effectiveDraftSidoCode.length === 0
-              ? "시/도를 먼저 선택해주세요."
+              ? "시/도를 먼저 선택해주세요"
               : dateCourseSigunguEmptyMessage
           }
           searchKeyword={regionSearchKeyword}

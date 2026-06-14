@@ -7,6 +7,7 @@ import { FriendFloatingMenu } from "@/components/map/FriendFloatingMenu";
 import type { KakaoMapViewport } from "@/components/map/KakaoMapView";
 import { MapHeader } from "@/components/map/MapHeader";
 import { MapSearchOverlay } from "@/components/map/MapSearchOverlay";
+import { isAndroidCapacitorApp } from "@/features/auth/lib/capacitor-platform";
 import type { PlaceFilterData } from "@/features/map/api/place-taxonomy-types";
 import { useMapSearchFilters } from "@/features/map/hooks/use-map-search-filters";
 import { usePlaceFilterData } from "@/features/map/hooks/use-place-filter-data";
@@ -26,7 +27,13 @@ import {
   useRoomPlaces,
 } from "@/features/room-places";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
-import { MAP_INITIAL_CENTER, MAP_KOREA_BOUNDS, MAP_SEARCH_PLACEHOLDER } from "@/shared/config/map";
+import {
+  MAP_ANDROID_INITIAL_BOUNDS,
+  MAP_BOUNDS_DEBOUNCE_MS,
+  MAP_INITIAL_CENTER,
+  MAP_KOREA_BOUNDS,
+  MAP_SEARCH_PLACEHOLDER,
+} from "@/shared/config/map";
 import { APP_ROUTES, ROOM_APP_PATHS } from "@/shared/config/routes";
 import type { MapCoordinate, RoomFriend, SavedPlace } from "@/shared/types/map-home";
 import { PLACE_DETAIL_OPEN_EVENT } from "@/store/place-detail-store";
@@ -68,6 +75,7 @@ export function MapHomePageContent({
   filterDataOverride = null,
 }: MapHomePageContentProps): JSX.Element {
   const selectedRoom = useRoomSelectionStore((s) => s.selectedRoom);
+  const isAndroidApp = isAndroidCapacitorApp();
   const navigate = useNavigate();
   const { toastMessage, toastPlacement, handleSelectBottomNav } = useBottomNavController();
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
@@ -80,8 +88,11 @@ export function MapHomePageContent({
   );
   const [selectedSearchPlaceId, setSelectedSearchPlaceId] = useState<string | null>(null);
   const [isSearchSuggestionDismissed, setIsSearchSuggestionDismissed] = useState(false);
-  const [mapViewport, setMapViewport] = useState<MapViewport>(() => createKoreaMapViewport());
+  const [mapViewport, setMapViewport] = useState<MapViewport>(() =>
+    createKoreaMapViewport(isAndroidApp),
+  );
   const [mapBounds, setMapBounds] = useState<RoomPlaceMapBoundsParams | null>(null);
+  const [viewportSnapshot, setViewportSnapshot] = useState<KakaoMapViewport | null>(null);
   const [debouncedSearchInput, setDebouncedSearchInput] = useState("");
   const searchHistoryPushedRef = useRef(false);
   const mapTitle = selectedRoom ? selectedRoom.name : "데이트 지도";
@@ -228,6 +239,21 @@ export function MapHomePageContent({
   }, [searchInput]);
 
   useEffect(() => {
+    if (!viewportSnapshot) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const nextBounds = roundMapBounds(viewportSnapshot);
+      setMapBounds((previous) => (areMapBoundsEqual(previous, nextBounds) ? previous : nextBounds));
+    }, MAP_BOUNDS_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [viewportSnapshot]);
+
+  useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       if (!searchHistoryPushedRef.current) {
         return;
@@ -273,7 +299,7 @@ export function MapHomePageContent({
       searchHistoryPushedRef.current = false;
       setSearchInput("");
       setAppliedKeyword("");
-      setMapViewport(createKoreaMapViewport());
+      setMapViewport(createKoreaMapViewport(isAndroidApp));
       return;
     }
 
@@ -303,6 +329,7 @@ export function MapHomePageContent({
     pushSearchHistory();
   }, [
     effectiveMapViewport.center,
+    isAndroidApp,
     mapViewport.center,
     places,
     pushSearchHistory,
@@ -370,7 +397,7 @@ export function MapHomePageContent({
   }, [clearSearchKeepViewport, handleCloseTagPanel]);
 
   const handleMapViewportIdle = useCallback((viewport: KakaoMapViewport) => {
-    setMapBounds(roundMapBounds(viewport));
+    setViewportSnapshot(viewport);
   }, []);
 
   const handleOpenPlaceList = useCallback(() => {
@@ -463,7 +490,7 @@ export function MapHomePageContent({
         </div>
       </main>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
+      <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 *:pointer-events-auto">
         <BottomNavToast message={toastMessage} placement={toastPlacement} />
         <FriendFloatingMenu
           friends={fabFriends}
@@ -498,14 +525,31 @@ function averageMapCenter(places: Pick<SavedPlace, "latitude" | "longitude">[]):
   };
 }
 
-function createKoreaMapViewport(): MapViewport {
+function createKoreaMapViewport(isAndroidApp: boolean): MapViewport {
   return {
     center: MAP_INITIAL_CENTER,
     fitBoundsPlaces: [],
-    fitBoundsCoordinates: MAP_KOREA_BOUNDS,
+    fitBoundsCoordinates: isAndroidApp ? MAP_ANDROID_INITIAL_BOUNDS : MAP_KOREA_BOUNDS,
     geocodeKeyword: "",
-    key: "korea",
+    key: isAndroidApp ? "korea-android" : "korea",
   };
+}
+
+function areMapBoundsEqual(
+  previous: RoomPlaceMapBoundsParams | null,
+  next: RoomPlaceMapBoundsParams,
+): boolean {
+  if (!previous) {
+    return false;
+  }
+
+  return (
+    previous.swLat === next.swLat &&
+    previous.swLng === next.swLng &&
+    previous.neLat === next.neLat &&
+    previous.neLng === next.neLng &&
+    previous.zoom === next.zoom
+  );
 }
 
 function roundMapBounds(viewport: KakaoMapViewport): RoomPlaceMapBoundsParams {

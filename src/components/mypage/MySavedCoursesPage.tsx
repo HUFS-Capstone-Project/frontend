@@ -1,4 +1,4 @@
-import { AlertCircle, Check, ChevronDown, Pin, Route } from "lucide-react";
+import { Check, ChevronDown, Pin, Route } from "lucide-react";
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
@@ -52,6 +52,8 @@ type MySavedCoursesPageProps = {
   selectedCourse: SavedCourse | null;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
   onLoadMore?: () => void;
   onSelectCourse: (course: SavedCourse) => void;
   onCloseCourseSheet: () => void;
@@ -66,6 +68,8 @@ export function MySavedCoursesPage({
   selectedCourse,
   hasNextPage = false,
   isFetchingNextPage = false,
+  isLoading = false,
+  isError = false,
   onLoadMore,
   onSelectCourse,
   onCloseCourseSheet,
@@ -116,6 +120,13 @@ export function MySavedCoursesPage({
   }, [roomsFromApi]);
 
   const totalCourseCount = totalCount ?? courses.length;
+  const isInitialCoursesLoading = isLoading && courses.length === 0;
+  const emptyTitle =
+    courses.length === 0 ? "아직 저장한 데이트코스가 없어요" : "조건에 맞는 데이트코스가 없어요";
+  const emptyDescription =
+    courses.length === 0
+      ? "코스를 만들면 이곳에 차곡차곡 모아둘게요"
+      : "필터를 바꾸면 저장해둔 다른 코스를 볼 수 있어요";
 
   const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
     courses: visibleCourses,
@@ -188,9 +199,16 @@ export function MySavedCoursesPage({
             : "저장된 데이트 코스"
         }
         trailing={
-          selectedCourse
-            ? `${selectedCourseRouteMapData.places.length}개 장소`
-            : `${formatCount(totalCourseCount)}개`
+          isInitialCoursesLoading && !selectedCourse ? (
+            <span
+              className="bg-muted/70 inline-block h-3.5 w-8 animate-pulse rounded-md align-middle"
+              aria-label="저장된 데이트 코스 개수 불러오는 중"
+            />
+          ) : selectedCourse ? (
+            `${selectedCourseRouteMapData.places.length}개 장소`
+          ) : (
+            `${formatCount(totalCourseCount)}개`
+          )
         }
         variant={overlayMapOpen ? "overlay" : "sticky"}
         backLabel={
@@ -265,13 +283,12 @@ export function MySavedCoursesPage({
                       ))}
                     </div>
                   ) : roomsList.length === 0 ? (
-                    <div className="text-muted-foreground flex flex-col items-center gap-1.5 px-4 py-6 text-center">
-                      <div className="bg-muted/70 flex size-9 items-center justify-center rounded-lg shadow-inner">
-                        <AlertCircle className="size-4 opacity-50" strokeWidth={1.75} aria-hidden />
-                      </div>
-                      <p className="text-xs leading-snug font-medium">참여 중인 방이 없습니다.</p>
-                      <p className="text-muted-foreground/85 max-w-52 text-[0.65rem] leading-relaxed">
-                        방에 참여하면 여기서 코스를 방별로 모아볼 수 있어요.
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-foreground text-xs leading-snug font-semibold">
+                        아직 참여 중인 방이 없어요
+                      </p>
+                      <p className="text-muted-foreground mt-1.5 max-w-52 text-[0.65rem] leading-relaxed font-medium">
+                        방에 참여하면 저장한 코스를 방별로 모아볼 수 있어요
                       </p>
                     </div>
                   ) : (
@@ -394,7 +411,7 @@ export function MySavedCoursesPage({
       </ListTopBar>
 
       {selectedCourse ? (
-        <div className="pointer-events-none absolute top-[max(4.5rem,calc(env(safe-area-inset-top)+4rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
+        <div className="pointer-events-none absolute top-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] left-[max(1rem,env(safe-area-inset-left))] z-40 flex items-center">
           <button
             type="button"
             onClick={handleShowRoute}
@@ -415,7 +432,9 @@ export function MySavedCoursesPage({
           ref={listScrollRef}
           className="scrollbar-hide relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-3 pb-[max(1rem,calc(env(safe-area-inset-bottom)+5.75rem))]"
         >
-          {visibleCourses.length > 0 ? (
+          {isInitialCoursesLoading ? (
+            <SavedCourseListSkeleton />
+          ) : !isError && visibleCourses.length > 0 ? (
             <div className="space-y-2 pb-2">
               {visibleCourses.map((course) => (
                 <SavedCourseCard key={course.id} course={course} onSelect={handleSelectCourse} />
@@ -427,15 +446,13 @@ export function MySavedCoursesPage({
                 </div>
               ) : null}
             </div>
+          ) : isError ? (
+            <SavedCourseListState
+              title="데이트코스를 불러오지 못했어요"
+              description="잠시 뒤에 다시 확인해주세요"
+            />
           ) : (
-            <div className="flex min-h-48 flex-col items-center justify-center py-8 text-center">
-              <span className="bg-muted-foreground text-primary-foreground flex size-11 items-center justify-center rounded-full">
-                <AlertCircle className="size-5" aria-hidden />
-              </span>
-              <p className="text-muted-foreground mt-4 text-sm font-medium">
-                해당하는 데이트 코스가 없습니다.
-              </p>
-            </div>
+            <SavedCourseListState title={emptyTitle} description={emptyDescription} />
           )}
         </div>
       ) : null}
@@ -466,6 +483,37 @@ export function MySavedCoursesPage({
           />
         ) : null}
       </CoursePlannerBottomSheet>
+    </div>
+  );
+}
+
+function SavedCourseListSkeleton() {
+  return (
+    <div className="space-y-2 pb-2" aria-label="저장한 데이트 코스를 불러오는 중">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={`saved-course-skeleton-${index}`}
+          className="bg-card flex items-center gap-3 rounded-lg px-2.5 py-2.5"
+        >
+          <div className="bg-muted/65 size-9 shrink-0 animate-pulse rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="bg-muted/65 h-3.5 w-[48%] animate-pulse rounded-md" />
+            <div className="bg-muted/45 h-3 w-[72%] animate-pulse rounded-md" />
+          </div>
+          <div className="bg-muted/45 size-4 shrink-0 animate-pulse rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SavedCourseListState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-48 flex-col items-center justify-center px-5 py-10 text-center">
+      <p className="text-foreground text-sm font-semibold">{title}</p>
+      <p className="text-muted-foreground mt-1.5 max-w-64 text-xs leading-relaxed font-medium">
+        {description}
+      </p>
     </div>
   );
 }

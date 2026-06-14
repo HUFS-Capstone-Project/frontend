@@ -12,6 +12,7 @@ import { MySavedPlacesPage } from "@/components/mypage/MySavedPlacesPage";
 import { SavedCourseSection } from "@/components/mypage/SavedCourseSection";
 import { useSavedPlaceActions } from "@/components/mypage/use-saved-place-actions";
 import { PlaceDetailSheet } from "@/components/place/PlaceDetailSheet";
+import { PlaceUsedInDateCourseAlertModal } from "@/components/place/PlaceUsedInDateCourseAlertModal";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
 import { useMyDateCoursesQuery } from "@/features/course-planner/hooks/use-my-date-courses-query";
@@ -28,7 +29,9 @@ import {
 } from "@/features/users";
 import { useBottomNavController } from "@/hooks/use-bottom-nav-controller";
 import { usePlaceDetailOpenEvent } from "@/hooks/use-place-detail-open-event";
+import { usePlaceUsedInDateCourseAlert } from "@/hooks/use-place-used-in-date-course-alert";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
+import { COMMON_TEXT, COURSE_TEXT } from "@/shared/config/text";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 import type { CourseSavePayload, SavedCourse } from "@/shared/types/course";
 import type { SavedPlace } from "@/shared/types/my-page";
@@ -57,6 +60,11 @@ const MY_PAGE_PLACES_QUERY_PARAMS = {
 export default function MyPage() {
   const { toastMessage, toastPlacement, handleSelectBottomNav, showToast } =
     useBottomNavController();
+  const {
+    open: isUsedInDateCourseAlertOpen,
+    close: closeUsedInDateCourseAlert,
+    handleDeleteError: handlePlaceDeleteError,
+  } = usePlaceUsedInDateCourseAlert();
   const { handleLogout } = useLogout();
   const updateNicknameMutation = useUpdateNicknameMutation();
   const updateDateCourseMutation = useUpdateDateCourseMutation();
@@ -146,20 +154,23 @@ export default function MyPage() {
     );
   };
 
-  const handleDeletePlace = async (placeId: string) => {
+  const handleDeletePlace = async (placeId: string): Promise<boolean> => {
     const target = resolveMutationTarget(placeId);
 
     if (target) {
       try {
         await deletePlaceMutation.mutateAsync(target);
       } catch (error) {
+        if (handlePlaceDeleteError(error)) {
+          return false;
+        }
         console.error("Failed to delete saved place", error);
-        return;
+        return false;
       }
     }
 
     setPlaces((currentPlaces) => currentPlaces.filter((place) => place.id !== placeId));
-    closePlaceDetail();
+    return true;
   };
 
   const handleUpdateNickname = async (nickname: string) => {
@@ -175,13 +186,13 @@ export default function MyPage() {
     const source = coursesList.find((c) => c.id === prevCourseId);
     const roomId = source?.savedFromRoomId;
     if (!source || !roomId) {
-      showToast("코스 수정에 필요한 방 정보를 찾지 못했어요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.roomInfoNotFound, COURSE_TOAST_DURATION_MS);
       throw new Error("roomId is required to update date course");
     }
 
     const roomPlaceIds = payload.stops.map((stop) => stop.roomPlaceId);
     if (roomPlaceIds.length === 0) {
-      showToast("코스에는 장소가 1개 이상 필요해요.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.placeMinRequired, COURSE_TOAST_DURATION_MS);
       throw new Error("roomPlaceIds is required to update date course");
     }
 
@@ -202,12 +213,15 @@ export default function MyPage() {
       };
       setCourseOverrides((current) => ({ ...current, [prevCourseId]: merged }));
       setSavedCourseSheet({ kind: "detail", course: merged });
-      showToast("코스가 수정되었습니다.", COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.updated, COURSE_TOAST_DURATION_MS);
     } catch (error) {
       if (isDateCourseConflictError(error)) {
         throw error;
       }
-      showToast(resolveGeneralApiErrorMessage(error), COURSE_TOAST_DURATION_MS);
+      showToast(
+        resolveGeneralApiErrorMessage(error, { fallback: COMMON_TEXT.defaultApiError }),
+        COURSE_TOAST_DURATION_MS,
+      );
       throw error;
     }
   };
@@ -240,7 +254,7 @@ export default function MyPage() {
               }}
             />
             {savedCourseSheet.kind !== "detail" ? (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+              <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
                 <BottomNavToast message={toastMessage} placement={toastPlacement} />
                 <BottomNavigationBar
                   activeId="mypage"
@@ -266,6 +280,8 @@ export default function MyPage() {
               courses={coursesList}
               totalCount={totalDateCourseCount}
               savedPlaces={places}
+              isLoading={myDateCoursesQuery.isLoading && myDateCoursesQuery.data == null}
+              isError={myDateCoursesQuery.isError}
               hasNextPage={myDateCoursesQuery.hasNextPage}
               isFetchingNextPage={myDateCoursesQuery.isFetchingNextPage}
               onLoadMore={() => {
@@ -281,7 +297,7 @@ export default function MyPage() {
               }}
               onPersistCourse={handleSavedCoursePersist}
             />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+            <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
               <BottomNavToast message={toastMessage} placement={toastPlacement} />
               <BottomNavigationBar
                 activeId="mypage"
@@ -340,6 +356,7 @@ export default function MyPage() {
 
                   <SavedCourseSection
                     courses={coursesList}
+                    isLoading={myDateCoursesQuery.isLoading && myDateCoursesQuery.data == null}
                     onOpenFullList={() => {
                       setSavedCourseSheet({ kind: "closed" });
                       setView("courses");
@@ -355,7 +372,7 @@ export default function MyPage() {
               </div>
             </main>
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
+            <div className="android-keyboard-lift pointer-events-none absolute inset-x-0 bottom-0 z-30 [&>*]:pointer-events-auto">
               <BottomNavToast message={toastMessage} placement={toastPlacement} />
               <BottomNavigationBar
                 activeId="mypage"
@@ -372,6 +389,13 @@ export default function MyPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PlaceUsedInDateCourseAlertModal
+        open={isUsedInDateCourseAlertOpen}
+        className="z-95"
+        historyStateKey="myPageUsedInDateCourseAlert"
+        onClose={closeUsedInDateCourseAlert}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   OnboardingTitle,
 } from "@/features/onboarding";
 import { resolveFormApiError, resolveGeneralApiErrorMessage } from "@/shared/api/error";
+import { PROFILE_TEXT } from "@/shared/config/text";
 import { SHELL_CONTENT_FADE_SECONDS } from "@/shared/config/ui-timing";
 
 type MyProfileInfoPageProps = {
@@ -82,7 +83,7 @@ export function MyProfileInfoPage({
     }
 
     if (nextNickname.length > NICKNAME_MAX_LENGTH) {
-      setNicknameError(`닉네임은 최대 ${NICKNAME_MAX_LENGTH}자까지 가능합니다.`);
+      setNicknameError(`닉네임은 최대 ${NICKNAME_MAX_LENGTH}자까지 가능합니다`);
       return;
     }
 
@@ -106,7 +107,7 @@ export function MyProfileInfoPage({
 
       setNicknameError(
         resolveGeneralApiErrorMessage(error, {
-          fallback: "닉네임 변경에 실패했습니다.",
+          fallback: PROFILE_TEXT.nicknameChangeFailed,
         }),
       );
     }

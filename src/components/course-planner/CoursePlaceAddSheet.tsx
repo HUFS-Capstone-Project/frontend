@@ -112,7 +112,7 @@ export function CoursePlaceAddSheet({
           {!roomId ? (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
-              message="방을 선택한 뒤 장소를 추가해 주세요."
+              message="방을 선택한 뒤 장소를 추가해 주세요"
             />
           ) : roomPlacesQuery.isLoading || roomPlacesQuery.isFetching ? (
             <div className="flex justify-center px-5 py-10">
@@ -121,7 +121,7 @@ export function CoursePlaceAddSheet({
           ) : roomPlacesQuery.isError ? (
             <EmptyState
               icon={<AlertCircle className="size-5" aria-hidden />}
-              message="방 장소 목록을 불러오지 못했어요."
+              message="방 장소 목록을 불러오지 못했어요"
             />
           ) : availablePlaces.length > 0 ? (
             <ul className={cn(PROMPT_FLOW_LIST_TOP_BORDER_CLASS, "mt-1")}>
@@ -145,8 +145,8 @@ export function CoursePlaceAddSheet({
               icon={<AlertCircle className="size-5" aria-hidden />}
               message={
                 submittedTrimmedKeyword
-                  ? "검색 결과 중 추가할 수 있는 장소가 없어요."
-                  : "추가할 수 있는 방 장소가 없어요."
+                  ? "검색 결과 중 추가할 수 있는 장소가 없어요"
+                  : "추가할 수 있는 방 장소가 없어요"
               }
             />
           )}

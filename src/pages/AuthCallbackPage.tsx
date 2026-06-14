@@ -5,12 +5,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { userQueryKeys, usersApi } from "@/features/users";
-import { getErrorDetail } from "@/shared/api/error";
+import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
+import { AUTH_TEXT } from "@/shared/config/text";
 import { useAuthStore } from "@/store/auth-store";
 
-const FALLBACK_ERROR_MESSAGE = "로그인 처리 중 오류가 발생했습니다.";
-const MISSING_TICKET_MESSAGE = "인증 정보가 없습니다. 다시 로그인해 주세요.";
+const FALLBACK_ERROR_MESSAGE = AUTH_TEXT.loginProcessError;
+const MISSING_TICKET_MESSAGE = AUTH_TEXT.missingTicket;
 const BACK_TO_LOGIN_LABEL = "로그인 화면으로 돌아가기";
 
 type AuthCallbackFallbackProps = {
@@ -82,7 +83,7 @@ export default function AuthCallbackPage() {
     };
 
     processCallback().catch((err: unknown) => {
-      setErrorMessage(getErrorDetail(err, FALLBACK_ERROR_MESSAGE));
+      setErrorMessage(resolveGeneralApiErrorMessage(err, { fallback: FALLBACK_ERROR_MESSAGE }));
     });
   }, [initialTicket, signIn, navigate, queryClient]);
 

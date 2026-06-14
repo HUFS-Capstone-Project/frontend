@@ -17,7 +17,6 @@ import {
 import { MapPin, Pencil, Plus } from "lucide-react";
 import type { ClipboardEvent, FormEvent, KeyboardEvent, TouchEvent } from "react";
 import { Fragment, useCallback, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
@@ -127,7 +126,7 @@ export function CoursePlaceInfoPanel({
   const validateDraftTitle = () => {
     const nextTitle = draftTitle.trim() || courseTitle.trim();
     if (nextTitle.length > DATE_COURSE_MAX_NAME_LENGTH) {
-      setTitleError(`코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자 이하로 입력해 주세요.`);
+      setTitleError(`코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자 이하로 입력해 주세요`);
       return false;
     }
 
@@ -349,7 +348,7 @@ export function CoursePlaceInfoPanel({
             warning={
               titleError ??
               (titleLimitAttempted
-                ? `코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자까지 입력할 수 있어요.`
+                ? `코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자까지 입력할 수 있어요`
                 : null)
             }
           />
@@ -488,8 +487,8 @@ export function CoursePlaceInfoPanel({
         }
         description={
           currentSaveConfirmKind === "edit"
-            ? "코스와 장소 순서가 저장돼요."
-            : "선택한 장소들로 새 코스가 만들어져요."
+            ? "코스와 장소 순서가 저장돼요"
+            : "선택한 장소들로 새 코스가 만들어져요"
         }
         confirmLabel={currentSaveConfirmKind === "edit" ? "수정하기" : "저장하기"}
         historyStateKey="courseSaveConfirm"
@@ -630,15 +629,15 @@ function CourseConflictModal({
     return null;
   }
 
-  return createPortal(
+  return (
     <RoomConfirmModal
       open
       message={copy.message}
       description={copy.description}
       confirmLabel="확인"
       className="z-90"
+      historyStateKey="courseConflictAlert"
       onConfirm={onClose}
-    />,
-    document.body,
+    />
   );
 }

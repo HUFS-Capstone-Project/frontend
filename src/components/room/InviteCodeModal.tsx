@@ -2,12 +2,9 @@ import { Clipboard } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { useOverlayFlowController, useRoomActionModalPresence } from "@/features/room/hooks";
-import {
-  COPY_ERROR_TOAST_MESSAGE,
-  COPY_SUCCESS_TOAST_MESSAGE,
-  copyTextToClipboard,
-} from "@/features/room/utils/clipboard";
+import { copyTextToClipboard } from "@/features/room/utils/clipboard";
 import { formatInviteCodeForDisplay, getInviteCodeValue } from "@/features/room/utils/inviteCode";
+import { CLIPBOARD_TEXT } from "@/shared/config/text";
 import type { RoomListRow } from "@/shared/types/room";
 
 import { RoomModalShell } from "./RoomModalShell";
@@ -69,10 +66,10 @@ const InviteCodeModalInner = memo(function InviteCodeModalInner({
     try {
       await copyTextToClipboard(inviteCode);
       setCopyFeedback("success");
-      showToast?.(COPY_SUCCESS_TOAST_MESSAGE);
+      showToast?.(CLIPBOARD_TEXT.copySuccessToast);
     } catch {
       setCopyFeedback("error");
-      showToast?.(COPY_ERROR_TOAST_MESSAGE);
+      showToast?.(CLIPBOARD_TEXT.copyErrorToast);
     } finally {
       setIsCopying(false);
       resetFeedbackLater();

@@ -46,7 +46,7 @@ export function useBottomNavController() {
 
   const showToast = useCallback(
     (message: string, durationMs = 1500, placement: BottomNavToastPlacement = "bottom") => {
-      setToastState({ message, durationMs, placement });
+      setToastState({ message: message.trim(), durationMs, placement });
     },
     [],
   );
