@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { BrandMarkerLoader } from "@/components/ui/BrandMarkerLoader";
 import { webAuthApi } from "@/features/auth/api/web-auth-api";
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import { userQueryKeys, usersApi } from "@/features/users";
 import { resolveGeneralApiErrorMessage } from "@/shared/api/error";
 import { APP_ROUTES } from "@/shared/config/routes";
@@ -63,6 +64,7 @@ export default function AuthCallbackPage() {
       const res = await webAuthApi.exchangeTicket(initialTicket);
       const accessToken = res.data.token.accessToken;
 
+      await clearAuthenticatedSessionData(queryClient);
       useAuthStore.getState().setAccessToken(accessToken);
 
       const me = await usersApi.getMe();

@@ -38,10 +38,11 @@ export const roomPlaceApi = {
     roomId: string,
     params: RoomPlaceMapBoundsParams,
   ): Promise<RoomPlaceMapResponse> => {
+    const queryParams = toRoomPlaceMapQueryParams(params);
     const response = await api.get<CommonResponse<RoomPlaceMapResponse>>(
       API_PATHS.rooms.placesMap(roomId),
       {
-        params,
+        params: queryParams,
       },
     );
     return response.data.data;
@@ -97,6 +98,23 @@ function toRoomPlaceListQueryParams(params: NormalizedRoomPlaceListParams) {
     if (sigunguCode.length > 0 && sigunguCode !== "ALL") {
       queryParams.sigunguCode = sigunguCode;
     }
+  }
+
+  return queryParams;
+}
+
+function toRoomPlaceMapQueryParams(params: RoomPlaceMapBoundsParams) {
+  const queryParams: Record<string, string | number> = {
+    swLat: params.swLat,
+    swLng: params.swLng,
+    neLat: params.neLat,
+    neLng: params.neLng,
+    zoom: params.zoom,
+  };
+
+  const createdBy = params.createdBy == null ? "" : String(params.createdBy).trim();
+  if (createdBy.length > 0) {
+    queryParams.createdBy = createdBy;
   }
 
   return queryParams;

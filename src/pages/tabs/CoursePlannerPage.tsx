@@ -9,7 +9,11 @@ import { ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
 import { toCoursePlannerCategories } from "@/components/course-planner/course-category-options";
 import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
-import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
+import {
+  COURSE_ROUTE_COLLAPSED_SHEET_CONTENT_CLASS,
+  COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
+  COURSE_ROUTE_FIT_BOUNDS_PADDING,
+} from "@/components/course-planner/course-map-constants";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
@@ -736,9 +740,11 @@ export default function CoursePlannerPage() {
         overlayClassName="pointer-events-none bg-transparent"
         panelClassName={cn(
           "pointer-events-auto",
-          !isCourseSheetExpanded && "h-[24dvh] min-h-[9.5rem] max-h-[12rem]",
+          !isCourseSheetExpanded && COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
         )}
-        contentClassName={!isCourseSheetExpanded ? "h-full overflow-hidden!" : undefined}
+        contentClassName={
+          !isCourseSheetExpanded ? COURSE_ROUTE_COLLAPSED_SHEET_CONTENT_CLASS : undefined
+        }
         onHandleClick={() => setIsCourseSheetExpanded((current) => !current)}
         onDragDismiss={() => setIsCourseSheetExpanded(false)}
       >

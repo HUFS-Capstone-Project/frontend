@@ -20,6 +20,8 @@ export type KakaoMarkerImage = {
 
 export type KakaoCustomOverlay = {
   setMap: (map: KakaoMapInstance | null) => void;
+  setPosition: (position: KakaoLatLng) => void;
+  setZIndex: (zIndex: number) => void;
 };
 
 export type KakaoMapInstance = {
@@ -33,11 +35,16 @@ export type KakaoMapInstance = {
     paddingBottom?: number,
     paddingLeft?: number,
   ) => void;
-  setLevel: (level: number) => void;
+  setLevel: (level: number, options?: KakaoMapLevelOptions) => void;
   getLevel: () => number;
   setDraggable: (draggable: boolean) => void;
   setZoomable?: (zoomable: boolean) => void;
   relayout: () => void;
+};
+
+type KakaoMapLevelOptions = {
+  animate?: boolean | { duration: number };
+  anchor?: KakaoLatLng;
 };
 
 export type KakaoLatLngBounds = {

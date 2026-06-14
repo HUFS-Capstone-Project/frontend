@@ -6,6 +6,7 @@ import { webAuthApi } from "@/features/auth/api/web-auth-api";
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobile-refresh-token-storage";
 import { applyMobileTokenResponse } from "@/features/auth/lib/mobile-token-response";
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import { userQueryKeys, usersApi } from "@/features/users";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -26,7 +27,10 @@ export function useInitAuth(): void {
       if (authChannel === "mobile") {
         const rt = await resolveMobileRefreshToken();
         if (!rt) {
-          if (!cancelled) logout();
+          if (!cancelled) {
+            logout();
+            await clearAuthenticatedSessionData(queryClient);
+          }
           return;
         }
         const trWrapper = await mobileAuthApi.refresh({ refreshToken: rt });
@@ -82,7 +86,10 @@ export function useInitAuth(): void {
     };
 
     restore().catch(() => {
-      if (!cancelled) logout();
+      if (!cancelled) {
+        logout();
+        void clearAuthenticatedSessionData(queryClient);
+      }
     });
 
     return () => {

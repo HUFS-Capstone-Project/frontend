@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import { useUserMeQuery } from "@/features/users";
 import { isApiError } from "@/shared/api/axios";
 import { APP_ROUTES } from "@/shared/config/routes";
@@ -18,6 +20,7 @@ type OnboardingGateProps = {
  * - 온보딩 미완료 사용자만 접근 허용
  */
 export function OnboardingGate({ children }: OnboardingGateProps) {
+  const queryClient = useQueryClient();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const accessToken = useAuthStore((s) => s.accessToken);
   const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);
@@ -40,8 +43,9 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   useEffect(() => {
     if (shouldRedirectToLogin) {
       logout();
+      void clearAuthenticatedSessionData(queryClient);
     }
-  }, [logout, shouldRedirectToLogin]);
+  }, [logout, queryClient, shouldRedirectToLogin]);
 
   if (!isLoggedIn) {
     return <Navigate to={APP_ROUTES.login} replace />;

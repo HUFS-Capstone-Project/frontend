@@ -66,6 +66,8 @@ type PlaceMarkerRecord = {
 type ClusterMarkerRecord = {
   overlay: KakaoCustomOverlay;
   button: HTMLElement;
+  latitude: number;
+  longitude: number;
 };
 
 type PlaceMarkerItem =
@@ -290,13 +292,13 @@ export function KakaoMapView({
       const nextLevel = mapInstance.getLevel();
       return previousLevel === nextLevel ? previousLevel : nextLevel;
     });
-    maps.event.addListener(mapInstance, "zoom_changed", updateCurrentLevel);
+    maps.event.addListener(mapInstance, "idle", updateCurrentLevel);
 
     return () => {
       if (frameId != null) {
         cancelAnimationFrame(frameId);
       }
-      maps.event.removeListener(mapInstance, "zoom_changed", updateCurrentLevel);
+      maps.event.removeListener(mapInstance, "idle", updateCurrentLevel);
     };
   }, [loadState]);
 
@@ -837,14 +839,9 @@ function getMarkerLayoutItemKey(item: PlaceMarkerItem): string {
 
 function shouldRecreatePlaceMarkerRecord(
   record: PlaceMarkerRecord,
-  place: SavedPlace,
   routeMarkerLabel: string | undefined,
 ): boolean {
-  return (
-    record.latitude !== place.latitude ||
-    record.longitude !== place.longitude ||
-    record.routeLabel !== routeMarkerLabel
-  );
+  return record.routeLabel !== routeMarkerLabel;
 }
 
 function removePlaceMarkerRecord(
@@ -880,8 +877,10 @@ function createClusterMarkerRecord(
 ): ClusterMarkerRecord {
   const position = new maps.LatLng(cluster.latitude, cluster.longitude);
   const button = createClusterOverlayElement(cluster.places.length, () => {
-    mapInstance.setLevel(Math.max(CLUSTER_DETAIL_LEVEL, mapInstance.getLevel() - 2));
-    mapInstance.panTo(position);
+    mapInstance.setLevel(Math.max(CLUSTER_DETAIL_LEVEL, mapInstance.getLevel() - 2), {
+      anchor: position,
+      animate: true,
+    });
   });
   const overlay = new maps.CustomOverlay({
     map: mapInstance,
@@ -892,7 +891,12 @@ function createClusterMarkerRecord(
     zIndex: 20,
   });
 
-  return { overlay, button };
+  return {
+    overlay,
+    button,
+    latitude: cluster.latitude,
+    longitude: cluster.longitude,
+  };
 }
 
 function createPlaceMarkerRecord(
@@ -993,6 +997,14 @@ function syncMarkerLayoutItems({
     if (item.type === "cluster") {
       const clusterKey = getMarkerLayoutItemKey(item);
       let record = clusterRecords.get(clusterKey);
+      if (
+        record &&
+        (record.latitude !== item.cluster.latitude || record.longitude !== item.cluster.longitude)
+      ) {
+        removeClusterMarkerRecord(clusterKey, clusterRecords);
+        record = undefined;
+      }
+
       if (!record) {
         record = createClusterMarkerRecord(maps, mapInstance, item.cluster);
         clusterRecords.set(clusterKey, record);
@@ -1005,7 +1017,7 @@ function syncMarkerLayoutItems({
     const { place } = item;
     const routeMarkerLabel = activeMarkerLabels[place.id];
     let record = placeRecords.get(place.id);
-    if (record && shouldRecreatePlaceMarkerRecord(record, place, routeMarkerLabel)) {
+    if (record && shouldRecreatePlaceMarkerRecord(record, routeMarkerLabel)) {
       removePlaceMarkerRecord(place.id, placeRecords);
       record = undefined;
     }
@@ -1020,6 +1032,10 @@ function syncMarkerLayoutItems({
         onPlaceMarkerClick,
       );
       placeRecords.set(place.id, record);
+    } else if (record.latitude !== place.latitude || record.longitude !== place.longitude) {
+      record.overlay.setPosition(new maps.LatLng(place.latitude, place.longitude));
+      record.latitude = place.latitude;
+      record.longitude = place.longitude;
     }
 
     nextPlaceOverlays.push(record.overlay);
@@ -1064,8 +1080,10 @@ function syncPlaceMarkerSelection(
   records: Map<string, PlaceMarkerRecord>,
   selectedPlaceId: string | null,
 ): void {
-  records.forEach(({ button }, placeId) => {
-    setPlaceMarkerSelected(button, placeId === selectedPlaceId);
+  records.forEach(({ button, overlay }, placeId) => {
+    const selected = placeId === selectedPlaceId;
+    setPlaceMarkerSelected(button, selected);
+    overlay.setZIndex(selected ? 15 : 10);
   });
 }
 

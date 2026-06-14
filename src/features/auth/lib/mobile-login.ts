@@ -1,6 +1,8 @@
 import { mobileAuthApi } from "@/features/auth/api/mobile-auth-api";
 import { applyMobileTokenResponse } from "@/features/auth/lib/mobile-token-response";
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import { usersApi } from "@/features/users";
+import { appQueryClient } from "@/shared/lib/query-client";
 import { useAuthStore } from "@/store/auth-store";
 
 /**
@@ -13,6 +15,7 @@ export async function completeMobileLoginAfterExchange(params: {
   const common = await mobileAuthApi.exchange(params);
   const tr = common.data;
 
+  await clearAuthenticatedSessionData(appQueryClient);
   await applyMobileTokenResponse(tr);
 
   const me = await usersApi.getMe();

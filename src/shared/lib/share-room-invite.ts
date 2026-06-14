@@ -1,4 +1,4 @@
-import { type NativeShareResult,shareWithNativeFallback } from "@/shared/lib/native-share";
+import { type NativeShareResult, shareWithNativeFallback } from "@/shared/lib/native-share";
 
 const APP_DISPLAY_NAME = "어디더라";
 

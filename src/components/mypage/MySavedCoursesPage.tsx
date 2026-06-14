@@ -3,7 +3,11 @@ import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import { LIST_TOP_BAR_AFTER_TITLE_CLASS, ListTopBar } from "@/components/common/ListTopBar";
 import { MapBackdropLayer } from "@/components/common/MapBackdropLayer";
-import { COURSE_ROUTE_FIT_BOUNDS_PADDING } from "@/components/course-planner/course-map-constants";
+import {
+  COURSE_ROUTE_COLLAPSED_SHEET_CONTENT_CLASS,
+  COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
+  COURSE_ROUTE_FIT_BOUNDS_PADDING,
+} from "@/components/course-planner/course-map-constants";
 import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
@@ -464,9 +468,11 @@ export function MySavedCoursesPage({
         overlayClassName="pointer-events-none bg-transparent"
         panelClassName={cn(
           "pointer-events-auto",
-          !isCourseSheetExpanded && "h-[24dvh] min-h-[9.5rem] max-h-[12rem]",
+          !isCourseSheetExpanded && COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
         )}
-        contentClassName={!isCourseSheetExpanded ? "h-full overflow-hidden!" : undefined}
+        contentClassName={
+          !isCourseSheetExpanded ? COURSE_ROUTE_COLLAPSED_SHEET_CONTENT_CLASS : undefined
+        }
         onHandleClick={() => setIsCourseSheetExpanded((current) => !current)}
         onDragDismiss={() => setIsCourseSheetExpanded(false)}
       >

@@ -6,9 +6,11 @@ import { clearMobileAuthArtifacts } from "@/features/auth/lib/mobile-auth-cleanu
 import { resolveMobileRefreshToken } from "@/features/auth/lib/mobile-refresh-token";
 import { mobileRefreshTokenStorage } from "@/features/auth/lib/mobile-refresh-token-storage";
 import { applyMobileTokenResponse } from "@/features/auth/lib/mobile-token-response";
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import type { TokenResponse } from "@/features/auth/types";
 import { API_PATHS } from "@/shared/api/api-paths";
 import { normalizeAxiosError } from "@/shared/api/error";
+import { appQueryClient } from "@/shared/lib/query-client";
 import type { ApiErrorResponse, CommonResponse } from "@/shared/types/api-types";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -113,6 +115,7 @@ api.interceptors.response.use(
         await clearMobileAuthArtifacts();
       }
       useAuthStore.getState().logout();
+      await clearAuthenticatedSessionData(appQueryClient);
       rejectRefreshQueue(new Error("refresh failed"));
       return Promise.reject(normalizeAxiosError(error));
     } finally {

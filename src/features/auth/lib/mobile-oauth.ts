@@ -7,7 +7,9 @@ import { completeMobileLoginAfterExchange } from "@/features/auth/lib/mobile-log
 import { mobileOAuthCodeVerifierStorage } from "@/features/auth/lib/mobile-oauth-code-verifier-storage";
 import { setMobileOAuthUserError } from "@/features/auth/lib/mobile-oauth-error";
 import { generateCodeChallenge, generateCodeVerifier } from "@/features/auth/lib/mobile-oauth-pkce";
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import { APP_ROUTES } from "@/shared/config/routes";
+import { appQueryClient } from "@/shared/lib/query-client";
 import { useAuthStore } from "@/store/auth-store";
 
 const MOBILE_CALLBACK_PROTOCOL = "udidura:";
@@ -99,6 +101,7 @@ export function registerMobileOAuthCallbackHandler(
       await clearMobileAuthArtifacts();
       setMobileOAuthUserError();
       useAuthStore.getState().logout();
+      await clearAuthenticatedSessionData(appQueryClient);
       await options.navigate(APP_ROUTES.login);
     } finally {
       callbackInFlight = false;

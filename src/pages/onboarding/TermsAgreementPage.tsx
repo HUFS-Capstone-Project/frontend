@@ -1,6 +1,8 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { clearAuthenticatedSessionData } from "@/features/auth/lib/session-cleanup";
 import {
   AgreementList,
   getFirstUnmappedOnboardingFieldError,
@@ -34,6 +36,7 @@ type TermsLocationState = {
 export default function TermsAgreementPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const idPrefix = useId();
   const logout = useAuthStore((s) => s.logout);
 
@@ -103,6 +106,7 @@ export default function TermsAgreementPage() {
 
           if (error.status === 401 || error.code === "E401_UNAUTHORIZED") {
             logout();
+            void clearAuthenticatedSessionData(queryClient);
             void navigate(APP_ROUTES.login, { replace: true });
             return;
           }

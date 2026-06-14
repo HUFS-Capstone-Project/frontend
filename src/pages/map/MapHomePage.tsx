@@ -59,12 +59,6 @@ type SelectedMemberFilter = {
   userId: number;
 };
 
-type MemberViewportRequest = {
-  roomId: string;
-  userId: number | null;
-  key: string;
-};
-
 type MapHomePageContentProps = {
   defaultFilterPanelOpen?: boolean;
   filterDataOverride?: PlaceFilterData | null;
@@ -81,9 +75,6 @@ export function MapHomePageContent({
   const [friendMenuOpen, setFriendMenuOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState<SelectedMemberFilter | null>(
-    null,
-  );
-  const [memberViewportRequest, setMemberViewportRequest] = useState<MemberViewportRequest | null>(
     null,
   );
   const [selectedSearchPlaceId, setSelectedSearchPlaceId] = useState<string | null>(null);
@@ -180,43 +171,6 @@ export function MapHomePageContent({
     [searchedPlaces, searchKeyword],
   );
   const isSearchSuggestionsOpen = trimmedSearchInput.length > 0 && !isSearchSuggestionDismissed;
-  const memberRequestedViewport = useMemo((): MapViewport | null => {
-    if (
-      !selectedRoom ||
-      !memberViewportRequest ||
-      memberViewportRequest.roomId !== selectedRoom.id ||
-      memberViewportRequest.userId !== selectedMemberId ||
-      !roomPlaceMapPinsQuery.isFetched ||
-      roomPlaceMapPinsQuery.isFetching ||
-      filteredPlaces.length === 0
-    ) {
-      return null;
-    }
-
-    return {
-      center: averageMapCenter(filteredPlaces),
-      fitBoundsPlaces: filteredPlaces,
-      fitBoundsCoordinates: [],
-      geocodeKeyword: "",
-      key: `${memberViewportRequest.key}-${roomPlaceMapPinsQuery.dataUpdatedAt}-${filteredPlaces.length}`,
-    };
-  }, [
-    filteredPlaces,
-    memberViewportRequest,
-    roomPlaceMapPinsQuery.dataUpdatedAt,
-    roomPlaceMapPinsQuery.isFetched,
-    roomPlaceMapPinsQuery.isFetching,
-    selectedMemberId,
-    selectedRoom,
-  ]);
-  const effectiveMapViewport = useMemo((): MapViewport => {
-    if (memberRequestedViewport) {
-      return memberRequestedViewport;
-    }
-
-    return mapViewport;
-  }, [mapViewport, memberRequestedViewport]);
-
   const clearSearchKeepViewport = useCallback(() => {
     if (!appliedKeyword && !searchInput && !selectedSearchPlaceId) {
       return;
@@ -291,7 +245,6 @@ export function MapHomePageContent({
 
   const handleSubmitSearch = useCallback(() => {
     const nextKeyword = searchInput.trim();
-    setMemberViewportRequest(null);
     setSelectedSearchPlaceId(null);
     setIsSearchSuggestionDismissed(true);
 
@@ -316,7 +269,7 @@ export function MapHomePageContent({
             latitude: matchedPlaces[0].latitude,
             longitude: matchedPlaces[0].longitude,
           }
-        : findMapSearchCenter(searchSourcePlaces, nextKeyword, effectiveMapViewport.center);
+        : findMapSearchCenter(searchSourcePlaces, nextKeyword, mapViewport.center);
 
     setAppliedKeyword(isLocationSearch || shouldUseKakaoSearch ? "" : nextKeyword);
     setMapViewport({
@@ -328,7 +281,6 @@ export function MapHomePageContent({
     });
     pushSearchHistory();
   }, [
-    effectiveMapViewport.center,
     isAndroidApp,
     mapViewport.center,
     places,
@@ -360,7 +312,6 @@ export function MapHomePageContent({
         return;
       }
 
-      setMemberViewportRequest(null);
       setSelectedSearchPlaceId(place.id);
       setIsSearchSuggestionDismissed(true);
       setSearchInput(place.name);
@@ -414,19 +365,20 @@ export function MapHomePageContent({
         return;
       }
 
+      setSelectedSearchPlaceId(null);
+      setIsSearchSuggestionDismissed(true);
+      setSearchInput("");
+      setAppliedKeyword("");
+      setViewportSnapshot(null);
+
       if (friendId == null) {
         setSelectedMemberFilter(null);
-      } else {
-        setSelectedMemberFilter({ roomId: selectedRoom.id, userId: friendId });
+        return;
       }
 
-      setMemberViewportRequest({
-        roomId: selectedRoom.id,
-        userId: friendId,
-        key: `member-${friendId ?? "all"}-${Date.now()}`,
-      });
+      setSelectedMemberFilter({ roomId: selectedRoom.id, userId: friendId });
     },
-    [selectedRoom],
+    [selectedRoom, setAppliedKeyword],
   );
 
   if (!selectedRoom) {
@@ -442,11 +394,11 @@ export function MapHomePageContent({
           <KakaoMapView
             appKey={KAKAO_MAP_APP_KEY}
             places={filteredPlaces}
-            center={effectiveMapViewport.center}
-            fitBoundsPlaces={effectiveMapViewport.fitBoundsPlaces}
-            fitBoundsCoordinates={effectiveMapViewport.fitBoundsCoordinates}
-            geocodeKeyword={effectiveMapViewport.geocodeKeyword}
-            viewportKey={effectiveMapViewport.key}
+            center={mapViewport.center}
+            fitBoundsPlaces={mapViewport.fitBoundsPlaces}
+            fitBoundsCoordinates={mapViewport.fitBoundsCoordinates}
+            geocodeKeyword={mapViewport.geocodeKeyword}
+            viewportKey={mapViewport.key}
             showCurrentLocationButton
             onMapClick={handleMapClick}
             onPlaceMarkerClick={handlePlaceMarkerClick}
@@ -504,25 +456,6 @@ export function MapHomePageContent({
       </div>
     </div>
   );
-}
-
-function averageMapCenter(places: Pick<SavedPlace, "latitude" | "longitude">[]): MapCoordinate {
-  if (places.length === 0) {
-    return MAP_INITIAL_CENTER;
-  }
-
-  const total = places.reduce(
-    (acc, place) => ({
-      latitude: acc.latitude + place.latitude,
-      longitude: acc.longitude + place.longitude,
-    }),
-    { latitude: 0, longitude: 0 },
-  );
-
-  return {
-    latitude: total.latitude / places.length,
-    longitude: total.longitude / places.length,
-  };
 }
 
 function createKoreaMapViewport(isAndroidApp: boolean): MapViewport {

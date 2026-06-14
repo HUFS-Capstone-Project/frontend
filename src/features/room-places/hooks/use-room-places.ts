@@ -20,6 +20,9 @@ const DEFAULT_ROOM_PLACE_LIMIT = 20;
 
 type RoomPlacesQueryKey = ReturnType<typeof roomPlaceQueryKeys.list>;
 type RoomPlaceMapQueryKey = ReturnType<typeof roomPlaceQueryKeys.map>;
+type RoomPlaceMapQuery = {
+  queryKey?: readonly unknown[];
+};
 
 type UseRoomPlacesOptions = {
   roomId: string | null;
@@ -134,7 +137,46 @@ export function useRoomPlaceMapPins({
       return roomPlaceApi.getRoomPlaceMapPins(roomId, bounds);
     },
     enabled: enabled && Boolean(roomId) && bounds != null,
+    placeholderData: (previousData, previousQuery) =>
+      shouldKeepPreviousMapPinData(previousQuery, resolvedRoomId, resolvedBounds)
+        ? previousData
+        : undefined,
     staleTime: 1000 * 20,
     ...(queryOptions ?? {}),
   });
+}
+
+function shouldKeepPreviousMapPinData(
+  previousQuery: RoomPlaceMapQuery | undefined,
+  roomId: string,
+  bounds: RoomPlaceMapBoundsParams,
+): boolean {
+  const queryKey = previousQuery?.queryKey;
+  const previousRoomId = queryKey?.[2];
+  const previousBounds = queryKey?.[4];
+
+  if (previousRoomId !== roomId || !isRoomPlaceMapBoundsParams(previousBounds)) {
+    return false;
+  }
+
+  return normalizeCreatedBy(previousBounds.createdBy) === normalizeCreatedBy(bounds.createdBy);
+}
+
+function isRoomPlaceMapBoundsParams(value: unknown): value is RoomPlaceMapBoundsParams {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const bounds = value as Partial<RoomPlaceMapBoundsParams>;
+  return (
+    typeof bounds.swLat === "number" &&
+    typeof bounds.swLng === "number" &&
+    typeof bounds.neLat === "number" &&
+    typeof bounds.neLng === "number" &&
+    typeof bounds.zoom === "number"
+  );
+}
+
+function normalizeCreatedBy(value: RoomPlaceMapBoundsParams["createdBy"]): string {
+  return value == null ? "" : String(value).trim();
 }
