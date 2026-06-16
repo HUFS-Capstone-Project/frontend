@@ -154,6 +154,10 @@ export function LinkAddFlowView({
   }
 
   if (candidatesOnly) {
+    if (renderStep === "processing") {
+      return <LinkProcessingScreen />;
+    }
+
     if (renderStep !== "analysisResult" || renderAnalysisResult == null) {
       return (
         <div className="flex flex-1 items-center justify-center px-6 pt-24 pb-10">

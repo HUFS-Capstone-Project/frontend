@@ -29,6 +29,7 @@ import { APP_ROUTES } from "@/shared/config/routes";
 import type { SavedPlace } from "@/shared/types/map-home";
 
 import { SupportedPlatformList } from "./SupportedPlatformList";
+import { formatCooldown, useCooldownCountdown } from "./use-cooldown-countdown";
 
 export type CandidatePlaceResultScreenProps = {
   linkAddRoomId: string;
@@ -46,7 +47,17 @@ export type CandidatePlaceResultScreenProps = {
   persistDraftForEdit: () => string;
 };
 
-export function CandidatePlaceResultScreen({
+export function CandidatePlaceResultScreen({ result, ...props }: CandidatePlaceResultScreenProps) {
+  const cooldownResetKey = [
+    result.analysisRequestId ?? "none",
+    result.errorCode ?? "none",
+    result.cooldownSeconds ?? "none",
+  ].join(":");
+
+  return <CandidatePlaceResultScreenContent key={cooldownResetKey} result={result} {...props} />;
+}
+
+function CandidatePlaceResultScreenContent({
   linkAddRoomId,
   result,
   selectedKakaoPlaceIds,
@@ -66,11 +77,21 @@ export function CandidatePlaceResultScreen({
   const isSucceeded = result.status === "SUCCEEDED";
   const isInstagramRateLimited = isInstagramRateLimitedError(result.errorCode);
   const isUnsupportedPlatform = isUnsupportedPlatformUrlError(result.errorCode);
-  const canRetry = !isUnsupportedPlatform && canRetryLinkAnalysis(result.status, result.retryable);
+  const {
+    isActive: isInstagramCooldownActive,
+    remainingSeconds: cooldownRemainingSeconds,
+  } = useCooldownCountdown({
+    active: isInstagramRateLimited,
+    seconds: result.cooldownSeconds,
+  });
+  const canRetry =
+    !isUnsupportedPlatform &&
+    !isInstagramCooldownActive &&
+    canRetryLinkAnalysis(result.status, result.retryable);
   const notFoundTitle = getNotFoundTitle({ isInstagramRateLimited });
   const notFoundHint = getNotFoundHint({
     isInstagramRateLimited,
-    errorMessage: result.errorMessage,
+    cooldownRemainingSeconds,
   });
   const selectedCount = selectedKakaoPlaceIds.length;
   const selectableCount = result.candidatePlaces.filter(canSelectCandidatePlace).length;
@@ -222,6 +243,10 @@ export function CandidatePlaceResultScreen({
               <PillButton type="button" variant="onboarding" onClick={onReenterLink}>
                 {PLACE_FLOW_COPY.reenterLink}
               </PillButton>
+            ) : isInstagramCooldownActive ? (
+              <PillButton type="button" variant="onboardingMuted" disabled>
+                {PLACE_FLOW_COPY.retry}
+              </PillButton>
             ) : canRetry ? (
               <PillButton type="button" variant="onboarding" onClick={onRetry}>
                 {PLACE_FLOW_COPY.retry}
@@ -274,13 +299,16 @@ function getNotFoundTitle({ isInstagramRateLimited }: { isInstagramRateLimited: 
 
 function getNotFoundHint({
   isInstagramRateLimited,
-  errorMessage,
+  cooldownRemainingSeconds,
 }: {
   isInstagramRateLimited: boolean;
-  errorMessage?: string;
+  cooldownRemainingSeconds: number;
 }): string {
   if (isInstagramRateLimited) {
-    return errorMessage ?? "";
+    if (cooldownRemainingSeconds > 0) {
+      return `${formatCooldown(cooldownRemainingSeconds)} 후 다시 시도할 수 있어요`;
+    }
+    return "제한이 풀렸어요. 다시 시도해 주세요";
   }
 
   return PLACE_FLOW_COPY.notFoundHint;
