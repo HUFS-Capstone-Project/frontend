@@ -82,10 +82,7 @@ export function useRoomMainModals(options?: UseRoomMainModalsOptions) {
       avatarSeed: detail.avatarSeed,
       inviteCode: detail.inviteCode,
       memberCount: toNonNegativeRoomCount(detail.memberCount, inviteCodeRoom.memberCount),
-      placeCount: toNonNegativeRoomCount(
-        detail.placeCount ?? detail.linkCount,
-        inviteCodeRoom.placeCount,
-      ),
+      placeCount: toNonNegativeRoomCount(detail.placeCount, inviteCodeRoom.placeCount),
       isPinned: detail.pinned,
     };
   }, [inviteCodeRoom, inviteCodeRoomDetailQuery.data]);

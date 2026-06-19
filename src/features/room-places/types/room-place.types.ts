@@ -35,11 +35,11 @@ export type RoomPlaceDto = {
   name: string;
   address: string | null;
   roadAddress: string | null;
-  latitude: string | number | null;
-  longitude: string | number | null;
-  originalUrl?: string | null;
-  linkSourceType?: LinkSourceType | null;
-  addedVia?: PlaceAddedVia | null;
+  latitude: number | null;
+  longitude: number | null;
+  originalUrl: string | null;
+  linkSourceType: LinkSourceType | null;
+  addedVia: PlaceAddedVia | null;
   categoryName: string | null;
   categoryGroupCode: string | null;
   serviceCategoryCode: ServiceCategoryCode;
@@ -52,13 +52,13 @@ export type RoomPlaceDto = {
   sigunguName: string | null;
   memo: string | null;
   memos: RoomPlaceMemo[];
-  sourceRoomLinkId: number | null;
+  originRoomLinkId: number | null;
   createdBy: number | null;
   createdAt: string | null;
   businessHours: RoomPlaceBusinessHours | null;
   businessHoursStatus: RoomPlaceBusinessHoursStatus;
-  businessHoursFetchedAt?: string | null;
-  businessHoursExpiresAt?: string | null;
+  businessHoursFetchedAt: string | null;
+  businessHoursExpiresAt: string | null;
 };
 
 export type RoomPlace = RoomPlaceDto;
@@ -66,7 +66,7 @@ export type RoomPlace = RoomPlaceDto;
 export type RoomPlaceListResponse = {
   items: RoomPlaceDto[];
   limit: number;
-  totalCount: number;
+  roomPlaceTotalCount: number;
   nextCursor: string | null;
   hasNext: boolean;
 };
@@ -89,12 +89,10 @@ export type RoomPlaceMapBoundsParams = {
 export type RoomPlaceMapPinDto = {
   roomPlaceId: number;
   name: string;
-  latitude: string | number | null;
-  longitude: string | number | null;
+  latitude: number | null;
+  longitude: number | null;
   categoryCode: ServiceCategoryCode | string;
-  categoryName?: string | null;
-  tagCode?: string | null;
-  tagName?: string | null;
+  tagCode: string | null;
 };
 
 export type RoomPlaceMapResponse = {

@@ -169,7 +169,10 @@ export function PlaceListSavedCoursesPage({
     return courseOverrides[detailCourse.id] ?? detailCourse;
   }, [courseOverrides, dateCourseDetailQuery.data, roomId, selectedCourse]);
 
-  const totalCourseCount = roomDateCoursesQuery.data?.pages[0]?.totalCount ?? savedCourses.length;
+  const firstRoomDateCoursePage = roomDateCoursesQuery.data?.pages[0] ?? null;
+  const totalCourseCount = firstRoomDateCoursePage
+    ? firstRoomDateCoursePage.totalCount
+    : savedCourses.length;
   const isInitialCoursesLoading =
     roomDateCoursesQuery.isLoading && roomDateCoursesQuery.data == null;
   const emptyTitle =

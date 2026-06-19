@@ -90,7 +90,7 @@ export function useCoursePlannerCourses(roomId: string | null): UseCoursePlanner
       setIsGenerating(true);
       try {
         const response = await dateCourseApi.generateDateCourses(roomId, payload);
-        setGeneratedCourses(response.courses ?? []);
+        setGeneratedCourses(response.courses);
       } finally {
         setIsGenerating(false);
       }

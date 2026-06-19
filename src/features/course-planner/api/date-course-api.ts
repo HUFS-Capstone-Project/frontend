@@ -26,24 +26,24 @@ export type GenerateDateCourseRequest = {
 
 export type DateCourseCoordinateResponse = {
   sequenceOrder: number;
-  latitude: string | number | null;
-  longitude: string | number | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type DateCoursePlaceResponse = {
   roomPlaceId: number;
+  placeId: number | null;
+  kakaoPlaceId: string | null;
   sequenceOrder: number;
   name: string;
   address: string;
-  latitude: string | number | null;
-  longitude: string | number | null;
+  roadAddress: string | null;
+  latitude: number | null;
+  longitude: number | null;
   categoryCode: string;
+  categoryName: string | null;
   tagCode: string;
-  placeId?: string | number | null;
-  kakaoPlaceId?: string | null;
-  roadAddress?: string | null;
-  categoryName?: string | null;
-  tagName?: string | null;
+  tagName: string | null;
 };
 
 export type DateCourseCandidateResponse = {
@@ -51,11 +51,17 @@ export type DateCourseCandidateResponse = {
   /** 저장 전까지 `null` — UI 기본값은 `mode` 기반 이름 */
   courseName: string | null;
   mode: DateCourseMode;
+  generationBatchId: string | null;
   startDateTime: string;
   endDateTime: string;
+  createdAt: string | null;
   places: DateCoursePlaceResponse[];
   orderedCoordinates: DateCourseCoordinateResponse[];
-  skippedSlotIndices?: number[];
+  skippedSlotIndices: number[];
+  savedByUserId: number | null;
+  savedByNickname: string | null;
+  savedByProfileImageUrl: string | null;
+  savedAt: string | null;
 };
 
 export type SaveDateCourseRequest = {
@@ -75,17 +81,19 @@ export type GenerateDateCoursesResponse = {
 
 export type SavedRoomDateCourseItemResponse = {
   dateCourseId: string;
-  courseName: string | null;
-  mode?: DateCourseMode | null;
-  startDateTime?: string | null;
-  endDateTime?: string | null;
-  savedByUserId: number | string | null;
+  courseName: string;
+  mode: DateCourseMode;
+  generationBatchId: string | null;
+  startDateTime: string;
+  endDateTime: string;
+  createdAt: string | null;
+  savedByUserId: number | null;
   savedByNickname: string | null;
   savedByProfileImageUrl: string | null;
   savedAt: string | null;
-  roomPublicId?: string | null;
-  places?: DateCoursePlaceResponse[];
-  orderedCoordinates?: DateCourseCoordinateResponse[];
+  places: DateCoursePlaceResponse[];
+  orderedCoordinates: DateCourseCoordinateResponse[];
+  skippedSlotIndices: number[];
 };
 
 export type DateCourseCursorListResponse<T> = {
@@ -100,20 +108,24 @@ export type DateCourseDetailResponse = {
   dateCourseId: string;
   courseName: string;
   mode: DateCourseMode;
+  generationBatchId: string | null;
   startDateTime: string;
   endDateTime: string;
-  savedByUserId?: number | string | null;
-  savedByNickname?: string | null;
-  savedByProfileImageUrl?: string | null;
-  savedAt?: string | null;
-  roomPublicId?: string | null;
+  createdAt: string | null;
+  savedByUserId: number | null;
+  savedByNickname: string | null;
+  savedByProfileImageUrl: string | null;
+  savedAt: string | null;
   places: DateCoursePlaceResponse[];
   orderedCoordinates: DateCourseCoordinateResponse[];
+  skippedSlotIndices: number[];
 };
 
 export type MySavedDateCourseItemResponse = {
   dateCourseId: string;
   courseName: string;
+  mode: DateCourseMode;
+  generationBatchId: string | null;
   roomPublicId: string;
   roomName: string;
   startDateTime: string;
@@ -121,6 +133,7 @@ export type MySavedDateCourseItemResponse = {
   savedAt: string;
   places: DateCoursePlaceResponse[];
   orderedCoordinates: DateCourseCoordinateResponse[];
+  skippedSlotIndices: number[];
 };
 
 export type DateCourseListParams = {
@@ -150,7 +163,7 @@ export const dateCourseApi = {
     const response = await api.get<CommonResponse<DateCourseRegionFilterOption[]>>(
       API_PATHS.rooms.dateCourseSidos(roomId),
     );
-    return sortRegionFilterOptions(response.data.data ?? []);
+    return sortRegionFilterOptions(response.data.data);
   },
 
   listDateCourseSigungus: async (
@@ -160,7 +173,7 @@ export const dateCourseApi = {
     const response = await api.get<CommonResponse<DateCourseRegionFilterOption[]>>(
       API_PATHS.rooms.dateCourseSigungus(roomId, sidoCode),
     );
-    return sortRegionFilterOptions(response.data.data ?? []);
+    return sortRegionFilterOptions(response.data.data);
   },
 
   generateDateCourses: async (

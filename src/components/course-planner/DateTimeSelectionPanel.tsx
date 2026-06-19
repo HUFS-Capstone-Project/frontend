@@ -86,11 +86,7 @@ export function DateCalendarPanel({
     [visibleMonth],
   );
   const monthLabel = `${visibleMonth.getFullYear()}년 ${visibleMonth.getMonth() + 1}월`;
-  const previousMonthLastDate = new Date(
-    visibleMonth.getFullYear(),
-    visibleMonth.getMonth(),
-    0,
-  );
+  const previousMonthLastDate = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 0);
   const canMoveToPreviousMonth =
     minSelectableDate == null || previousMonthLastDate >= minSelectableDate;
 

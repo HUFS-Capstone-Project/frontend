@@ -60,7 +60,7 @@ function filterChipClass(active: boolean) {
 
 type MySavedCoursesPageProps = {
   courses: SavedCourse[];
-  totalCount?: number;
+  totalCount: number;
   savedPlaces: SavedPlace[];
   selectedCourse: SavedCourse | null;
   hasNextPage?: boolean;
@@ -132,7 +132,7 @@ export function MySavedCoursesPage({
     return [...list].sort((a, b) => Number(b.pinned) - Number(a.pinned));
   }, [roomsFromApi]);
 
-  const totalCourseCount = totalCount ?? courses.length;
+  const totalCourseCount = totalCount;
   const isInitialCoursesLoading = isLoading && courses.length === 0;
   const emptyTitle =
     courses.length === 0 ? "아직 저장한 데이트코스가 없어요" : "조건에 맞는 데이트코스가 없어요";

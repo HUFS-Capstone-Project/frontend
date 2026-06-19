@@ -21,25 +21,24 @@ export type LinkAnalysisRequestResultDto = {
   linkId: number;
   jobId: string | null;
   status: LinkAnalysisStatus;
-  errorCode?: string | null;
-  errorMessage?: string | null;
-  retryable?: boolean | null;
-  cooldownSeconds?: number | null;
-  linkSourceType?: LinkSourceType | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  retryable: boolean | null;
+  cooldownSeconds: number | null;
 };
 
 export type LinkAnalysisDto = {
   linkId: number;
   status: LinkAnalysisStatus;
-  originalUrl?: string | null;
-  contentText?: string | null;
+  originalUrl: string | null;
+  linkSourceType: LinkSourceType | null;
+  contentText: string | null;
   linkStats: LinkStatsDto | null;
   candidatePlaces: CandidatePlaceDto[];
   errorCode: string | null;
   errorMessage: string | null;
-  retryable?: boolean | null;
-  cooldownSeconds?: number | null;
-  linkSourceType?: LinkSourceType | null;
+  retryable: boolean | null;
+  cooldownSeconds: number | null;
 };
 
 export type LinkStatsDto = {
@@ -86,7 +85,6 @@ export type LinkAnalysisRequestResult = {
   errorMessage?: string;
   retryable?: boolean;
   cooldownSeconds?: number;
-  linkSourceType?: LinkSourceType;
 };
 
 export type LinkAnalysis = {
@@ -164,7 +162,7 @@ export type SavedCandidatePlaceDto = {
   roomPlaceId: number;
   placeId: number | null;
   kakaoPlaceId: string;
-  placeName: string;
+  name: string;
   created: boolean;
   alreadyInRoom: boolean;
 };

@@ -33,20 +33,20 @@ export type UserPlaceRoomResponse = {
 
 export type UserPlaceResponse = {
   roomPlaceId: number;
-  placeId?: number | null;
-  kakaoPlaceId?: string | null;
+  placeId: number | null;
+  kakaoPlaceId: string | null;
   name: string;
   address: string | null;
   roadAddress: string | null;
-  latitude?: string | number | null;
-  longitude?: string | number | null;
-  originalUrl?: string | null;
-  linkSourceType?: LinkSourceType | null;
-  addedVia?: PlaceAddedVia | null;
-  serviceCategoryCode: ServiceCategoryCode | string | null;
-  serviceCategoryName: string | null;
-  serviceTagCode: string | null;
-  serviceTagName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  originalUrl: string | null;
+  linkSourceType: LinkSourceType | null;
+  addedVia: PlaceAddedVia | null;
+  serviceCategoryCode: ServiceCategoryCode;
+  serviceCategoryName: string;
+  serviceTagCode: string;
+  serviceTagName: string;
   memo: string | null;
   memos: RoomPlaceMemo[];
   businessHoursStatus: BusinessHoursStatus;
@@ -57,7 +57,7 @@ export type UserPlaceResponse = {
 export type UserPlaceListResponse = {
   items: UserPlaceResponse[];
   limit: number;
-  totalCount: number;
+  mySavedPlaceTotalCount: number;
   nextCursor: string | null;
   hasNext: boolean;
 };
@@ -73,8 +73,8 @@ export function userPlaceToSavedPlace(item: UserPlaceResponse): SavedPlace {
     kakaoPlaceId: item.kakaoPlaceId ?? null,
     name: item.name,
     address: item.roadAddress?.trim() || item.address?.trim() || "",
-    category: item.serviceCategoryCode?.trim() || item.serviceTagCode?.trim() || "",
-    categoryName: item.serviceCategoryName?.trim() || item.serviceTagName?.trim() || null,
+    category: item.serviceCategoryCode,
+    categoryName: item.serviceCategoryName,
     tagKeys: item.serviceTagCode ? [item.serviceTagCode] : undefined,
     tagNames: item.serviceTagName ? [item.serviceTagName] : undefined,
     shareLinkUrl: item.originalUrl ?? null,

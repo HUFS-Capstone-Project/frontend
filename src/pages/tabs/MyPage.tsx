@@ -120,8 +120,14 @@ export default function MyPage() {
     [myPlacesQuery.data?.pages],
   );
   const summaryPlaces = myPlacesQuery.data ? apiPlaces : places;
-  const summaryPlaceCount = myPlacesQuery.data?.pages[0]?.totalCount ?? summaryPlaces.length;
-  const totalDateCourseCount = myDateCoursesQuery.data?.pages[0]?.totalCount ?? coursesList.length;
+  const firstMyPlacePage = myPlacesQuery.data?.pages[0] ?? null;
+  const firstMyDateCoursePage = myDateCoursesQuery.data?.pages[0] ?? null;
+  const summaryPlaceCount = firstMyPlacePage
+    ? firstMyPlacePage.mySavedPlaceTotalCount
+    : summaryPlaces.length;
+  const totalDateCourseCount = firstMyDateCoursePage
+    ? firstMyDateCoursePage.totalCount
+    : coursesList.length;
 
   const openPlaceDetail = usePlaceDetailStore((s) => s.openDetail);
   const closePlaceDetail = usePlaceDetailStore((s) => s.closeDetail);

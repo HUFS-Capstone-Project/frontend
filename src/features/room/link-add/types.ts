@@ -71,7 +71,6 @@ export function mapLinkAnalysisRequestToResult(params: {
     errorMessage: requested.errorMessage ?? resolveAnalysisErrorMessageFromStatus(requested.status),
     retryable: requested.retryable,
     cooldownSeconds: requested.cooldownSeconds,
-    linkSourceType: requested.linkSourceType,
   };
 }
 

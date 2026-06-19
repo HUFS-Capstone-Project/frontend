@@ -20,7 +20,7 @@ export type RoomSummaryResponse = {
   createdAt: string;
   linkCount: number;
   placeCount: number;
-  memberCount?: number | null;
+  memberCount: number;
 };
 
 export type RoomDetailResponse = {

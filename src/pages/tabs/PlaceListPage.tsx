@@ -327,7 +327,10 @@ export default function PlaceListPage() {
     setIsRegionPanelOpen(false);
   };
 
-  const totalPlaceCount = roomPlacesQuery.data?.pages[0]?.totalCount ?? displayedPlaces.length;
+  const firstRoomPlacePage = roomPlacesQuery.data?.pages[0] ?? null;
+  const totalPlaceCount = firstRoomPlacePage
+    ? firstRoomPlacePage.roomPlaceTotalCount
+    : displayedPlaces.length;
   const displayedCountLabel = `${formatCount(totalPlaceCount)}개`;
   const roomName =
     selectedRoom?.id === effectiveRoomId ? selectedRoom.name : roomDetailQuery.data?.roomName;

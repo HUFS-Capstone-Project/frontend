@@ -23,7 +23,6 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   const queryClient = useQueryClient();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const hasCompletedOnboarding = useAuthStore((s) => s.hasCompletedOnboarding);
 
   const logout = useAuthStore((s) => s.logout);
 
@@ -63,7 +62,11 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
     return null;
   }
 
-  const completed = me?.onboardingCompleted ?? hasCompletedOnboarding;
+  if (!me) {
+    return null;
+  }
+
+  const completed = me.onboardingCompleted;
 
   if (completed) {
     return <Navigate to={APP_ROUTES.room} replace />;

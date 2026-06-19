@@ -77,7 +77,6 @@ export function toLinkAnalysisRequestResult(
     errorMessage: normalizeOptionalString(dto.errorMessage) ?? undefined,
     retryable: dto.retryable ?? undefined,
     cooldownSeconds: normalizeOptionalNumber(dto.cooldownSeconds),
-    linkSourceType: dto.linkSourceType ?? undefined,
   };
 }
 
@@ -177,7 +176,7 @@ export function toSaveCandidatePlacesResult(
       roomPlaceId: place.roomPlaceId,
       placeId: place.placeId,
       kakaoPlaceId: place.kakaoPlaceId,
-      placeName: place.placeName,
+      placeName: place.name,
       created: place.created,
       alreadyInRoom: place.alreadyInRoom,
     })),

@@ -39,7 +39,6 @@ export function mapRoomSavedDateCourseToSavedCourse(
 ): SavedCourse {
   const courseName = item.courseName?.trim() || "저장된 데이트 코스";
   const savedAt = item.savedAt ?? null;
-  const places = item.places ?? [];
 
   return {
     id: item.dateCourseId,
@@ -51,10 +50,10 @@ export function mapRoomSavedDateCourseToSavedCourse(
     savedByProfileImageUrl: item.savedByProfileImageUrl ?? null,
     savedAt,
     savedFromRoomName: null,
-    savedFromRoomId: item.roomPublicId ?? roomId ?? null,
+    savedFromRoomId: roomId ?? null,
     courseDateKey:
       toCourseDateKey(item.startDateTime) ?? (savedAt ? toCourseDateKey(savedAt) : null),
-    stops: places
+    stops: item.places
       .slice()
       .sort((left, right) => left.sequenceOrder - right.sequenceOrder)
       .map(mapPlaceToSavedCourseStop),

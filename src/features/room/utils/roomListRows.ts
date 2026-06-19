@@ -19,7 +19,7 @@ export function mapRoomSummaryToRoomListRow(room: RoomSummaryResponse): RoomList
     avatarSeed: room.avatarSeed,
     inviteCode: room.inviteCode,
     memberCount: toNonNegativeRoomCount(room.memberCount, 1),
-    placeCount: toNonNegativeRoomCount(room.placeCount ?? room.linkCount, 0),
+    placeCount: toNonNegativeRoomCount(room.placeCount, 0),
     isPinned: room.pinned,
   };
 }

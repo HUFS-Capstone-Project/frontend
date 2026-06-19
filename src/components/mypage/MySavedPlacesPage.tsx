@@ -210,7 +210,10 @@ export function MySavedPlacesPage({ onBack, onSelectPlace }: MySavedPlacesPagePr
     onBack();
   };
 
-  const totalPlaceCount = myPlacesQuery.data?.pages[0]?.totalCount ?? listPlaces.length;
+  const firstMyPlacePage = myPlacesQuery.data?.pages[0] ?? null;
+  const totalPlaceCount = firstMyPlacePage
+    ? firstMyPlacePage.mySavedPlaceTotalCount
+    : listPlaces.length;
   const displayedCountLabel =
     myPlacesQuery.isLoading && myPlacesQuery.data == null ? (
       <span
