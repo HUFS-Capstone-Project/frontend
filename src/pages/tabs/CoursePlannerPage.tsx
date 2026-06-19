@@ -15,7 +15,10 @@ import {
   COURSE_ROUTE_FIT_BOUNDS_PADDING,
 } from "@/components/course-planner/course-map-constants";
 import { CourseGenerationLoadingPanel } from "@/components/course-planner/CourseGenerationLoadingPanel";
-import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
+import {
+  type CourseEditDraftSnapshot,
+  CoursePlaceInfoPanel,
+} from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerActions } from "@/components/course-planner/CoursePlannerActions";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import {
@@ -38,6 +41,12 @@ import { useCoursePlannerCourses } from "@/features/course-planner/hooks/use-cou
 import { useCoursePlannerState } from "@/features/course-planner/hooks/use-course-planner-state";
 import { useDateCourseSidosQuery } from "@/features/course-planner/hooks/use-date-course-sidos-query";
 import { useDateCourseSigungusQuery } from "@/features/course-planner/hooks/use-date-course-sigungus-query";
+import {
+  courseStopOrderSignature,
+  createMapRouteViewportKey,
+  mapCourseStopsToMapPlaces,
+  mapCourseStopsToRouteCoordinates,
+} from "@/features/course-planner/lib/course-stop-map-data";
 import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { dateCourseQueryKeys } from "@/features/course-planner/query-keys";
 import { usePlaceFilterViewModel } from "@/features/map/hooks/use-place-filter-view-model";
@@ -157,7 +166,7 @@ export default function CoursePlannerPage() {
   const [draftSigunguCode, setDraftSigunguCode] = useState("");
   const [selectedSigunguCode, setSelectedSigunguCode] = useState("");
   const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
-  const [routeViewportKey, setRouteViewportKey] = useState(0);
+  const [courseEditDraft, setCourseEditDraft] = useState<CourseEditDraftSnapshot | null>(null);
 
   const {
     mode,
@@ -403,6 +412,7 @@ export default function CoursePlannerPage() {
     setDraftSidoCode("");
     setDraftSigunguCode("");
     setSelectedSigunguCode("");
+    setCourseEditDraft(null);
     clearCourses();
     resetPlannerBase();
   }, [clearCourses, resetPlannerBase]);
@@ -506,12 +516,18 @@ export default function CoursePlannerPage() {
   ]);
 
   const selectedCourseMapPins = useMemo(
-    () => getCourseMapPlaces(selectedCourseId || defaultCourseId),
-    [defaultCourseId, getCourseMapPlaces, selectedCourseId],
+    () =>
+      courseEditDraft
+        ? mapCourseStopsToMapPlaces(courseEditDraft.stops)
+        : getCourseMapPlaces(selectedCourseId || defaultCourseId),
+    [courseEditDraft, defaultCourseId, getCourseMapPlaces, selectedCourseId],
   );
   const selectedCourseRouteCoordinates = useMemo(
-    () => getCourseRouteCoordinates(selectedCourseId || defaultCourseId),
-    [defaultCourseId, getCourseRouteCoordinates, selectedCourseId],
+    () =>
+      courseEditDraft
+        ? mapCourseStopsToRouteCoordinates(courseEditDraft.stops)
+        : getCourseRouteCoordinates(selectedCourseId || defaultCourseId),
+    [courseEditDraft, defaultCourseId, getCourseRouteCoordinates, selectedCourseId],
   );
   const selectedCourseMarkerLabelByPlaceId = useMemo(
     () =>
@@ -527,6 +543,18 @@ export default function CoursePlannerPage() {
         ? weightedMapCenter(selectedCourseMapPins)
         : MAP_INITIAL_CENTER,
     [selectedCourseMapPins],
+  );
+
+  const courseStopsOrderKey = useMemo(() => courseStopOrderSignature(courseStops), [courseStops]);
+  const mapRouteViewportKey = useMemo(
+    () =>
+      createMapRouteViewportKey({
+        courseId: selectedCourseId,
+        courseEditDraft,
+        fallbackOrderKey: courseStopsOrderKey,
+        isSheetExpanded: isCourseSheetExpanded,
+      }),
+    [courseEditDraft, courseStopsOrderKey, isCourseSheetExpanded, selectedCourseId],
   );
 
   const handleSaveSelectedCourse = useCallback(
@@ -562,7 +590,7 @@ export default function CoursePlannerPage() {
   const handleSelectCourseRoute = useCallback(
     (courseId: string) => {
       setIsCourseSheetExpanded(false);
-      setRouteViewportKey((current) => current + 1);
+      setCourseEditDraft(null);
       handleSelectCourse(courseId);
     },
     [handleSelectCourse],
@@ -570,12 +598,12 @@ export default function CoursePlannerPage() {
 
   const handleBackToCourseResultsRoute = useCallback(() => {
     setIsCourseSheetExpanded(false);
+    setCourseEditDraft(null);
     handleBackToCourseResults();
   }, [handleBackToCourseResults]);
 
   const handleShowRoute = useCallback(() => {
     setIsCourseSheetExpanded(false);
-    setRouteViewportKey((current) => current + 1);
   }, []);
 
   if (!selectedRoom) {
@@ -595,7 +623,7 @@ export default function CoursePlannerPage() {
               fitBoundsPadding={COURSE_ROUTE_FIT_BOUNDS_PADDING}
               routeCoordinates={selectedCourseRouteCoordinates}
               markerLabelByPlaceId={selectedCourseMarkerLabelByPlaceId}
-              viewportKey={`course-detail-${selectedCourseId ?? "default"}-${routeViewportKey}`}
+              viewportKey={`course-detail-${mapRouteViewportKey}`}
               className="h-full w-full"
             />
           </Suspense>
@@ -756,6 +784,7 @@ export default function CoursePlannerPage() {
           onSave={handleSaveSelectedCourse}
           collapsed={!isCourseSheetExpanded}
           onExpand={() => setIsCourseSheetExpanded(true)}
+          onDraftChange={setCourseEditDraft}
         />
       </CoursePlannerBottomSheet>
 

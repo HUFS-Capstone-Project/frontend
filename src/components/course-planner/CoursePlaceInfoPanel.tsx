@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { MapPin, Pencil, Plus } from "lucide-react";
 import type { ClipboardEvent, FormEvent, KeyboardEvent, TouchEvent } from "react";
-import { Fragment, useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { CharacterLimitFeedback } from "@/components/common/CharacterLimitFeedback";
 import { courseStopFromSavedPlace } from "@/components/course-planner/course-place-stop";
@@ -45,6 +45,11 @@ type CourseConflictModalCopy = {
   description: string;
 };
 
+export type CourseEditDraftSnapshot = {
+  title: string;
+  stops: CourseStop[];
+};
+
 const COLLAPSED_ROUTE_SUMMARY_MAX_ITEMS = 3;
 
 type CoursePlaceInfoPanelProps = {
@@ -53,10 +58,11 @@ type CoursePlaceInfoPanelProps = {
   roomId?: string | null;
   onBack: () => void;
   onSave: (payload: CourseSavePayload) => void | Promise<void>;
-  /** true면 조회 모드에서 「데이트 코스 저장하기」 버튼을 숨김 — 이미 저장된 코스(마이 페이지 등) */
+  /** true면 저장된 코스 — 평소 저장 버튼 숨김, 편집 미리보기 후에만 「데이트 코스 저장하기」 표시 */
   hideNewCourseSaveButton?: boolean;
   collapsed?: boolean;
   onExpand?: () => void;
+  onDraftChange?: (draft: CourseEditDraftSnapshot | null) => void;
   className?: string;
 };
 
@@ -68,6 +74,7 @@ export function CoursePlaceInfoPanel({
   hideNewCourseSaveButton = false,
   collapsed = false,
   onExpand,
+  onDraftChange,
   className,
 }: CoursePlaceInfoPanelProps) {
   const openDetail = usePlaceDetailStore((s) => s.openDetail);
@@ -80,12 +87,14 @@ export function CoursePlaceInfoPanel({
     setSelectedStopId,
     setIsEditing,
     startEdit,
+    resumeEdit,
     cancelEdit,
     addDraftPlace,
     removeDraftStop,
     moveDraftStop,
   } = useCourseEditDraft({ courseTitle, stops });
   const [saveConfirmKind, setSaveConfirmKind] = useState<SaveConfirmKind | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<CourseEditDraftSnapshot | null>(null);
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
   const [isAddPlaceOpen, setIsAddPlaceOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -100,6 +109,24 @@ export function CoursePlaceInfoPanel({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  useEffect(() => {
+    if (!onDraftChange) {
+      return;
+    }
+    if (isEditing) {
+      onDraftChange({
+        title: draftTitle,
+        stops: draftStops,
+      });
+      return;
+    }
+    if (pendingPreview) {
+      onDraftChange(pendingPreview);
+      return;
+    }
+    onDraftChange(null);
+  }, [draftStops, draftTitle, isEditing, pendingPreview, onDraftChange]);
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
@@ -113,18 +140,27 @@ export function CoursePlaceInfoPanel({
   const handleStartEdit = () => {
     setTitleError(null);
     setTitleLimitAttempted(false);
+    if (pendingPreview) {
+      resumeEdit(pendingPreview);
+      setPendingPreview(null);
+      return;
+    }
     startEdit();
   };
 
   const handleCancelEdit = () => {
     setTitleError(null);
     setTitleLimitAttempted(false);
+    setPendingPreview(null);
     cancelEdit();
     setIsAddPlaceOpen(false);
   };
 
+  const resolveDraftTitle = () =>
+    (isEditing ? draftTitle : (pendingPreview?.title ?? draftTitle)).trim() || courseTitle.trim();
+
   const validateDraftTitle = () => {
-    const nextTitle = draftTitle.trim() || courseTitle.trim();
+    const nextTitle = resolveDraftTitle();
     if (nextTitle.length > DATE_COURSE_MAX_NAME_LENGTH) {
       setTitleError(`코스 이름은 ${DATE_COURSE_MAX_NAME_LENGTH}자 이하로 입력해 주세요`);
       return false;
@@ -228,7 +264,16 @@ export function CoursePlaceInfoPanel({
       return;
     }
 
-    setSaveConfirmKind("edit");
+    setPendingPreview({
+      title: draftTitle,
+      stops: draftStops,
+    });
+    setIsEditing(false);
+    setSelectedStopId(null);
+  };
+
+  const handleRequestCourseSave = () => {
+    setSaveConfirmKind(hideNewCourseSaveButton ? "edit" : "create");
     setIsSaveConfirmOpen(true);
   };
 
@@ -248,9 +293,13 @@ export function CoursePlaceInfoPanel({
       return;
     }
 
+    const editSnapshot = isEditing ? { title: draftTitle, stops: draftStops } : pendingPreview;
+    const titleSource =
+      pendingPreview?.title ?? (isEditSave ? editSnapshot?.title : draftTitle) ?? draftTitle;
     const nextTitle =
-      normalizeDateCourseName(draftTitle.trim() || courseTitle.trim()) || courseTitle;
-    const nextStops = isEditSave ? draftStops : stops;
+      normalizeDateCourseName(titleSource.trim() || courseTitle.trim()) || courseTitle;
+    const nextStops =
+      pendingPreview?.stops ?? (isEditSave ? (editSnapshot?.stops ?? draftStops) : stops);
     setIsSaving(true);
     try {
       await onSave({
@@ -259,6 +308,7 @@ export function CoursePlaceInfoPanel({
         stops: nextStops,
       });
       setIsSaveConfirmOpen(false);
+      setPendingPreview(null);
       setIsEditing(false);
       setSelectedStopId(null);
     } catch (error) {
@@ -273,10 +323,15 @@ export function CoursePlaceInfoPanel({
     }
   };
 
-  const displayStops = isEditing ? draftStops : stops;
+  const previewStops = pendingPreview?.stops ?? stops;
+  const previewTitle = pendingPreview?.title.trim() || courseTitle;
+  const displayStops = isEditing ? draftStops : previewStops;
   const currentSaveConfirmKind = saveConfirmKind ?? "create";
+  const collapsedTitle = isEditing ? draftTitle.trim() || courseTitle : previewTitle;
+  const viewModeTitle = previewTitle;
+  const showSaveButton = !hideNewCourseSaveButton || pendingPreview != null;
 
-  if (collapsed && !isEditing) {
+  if (collapsed) {
     return (
       <section
         className={cn(
@@ -290,23 +345,26 @@ export function CoursePlaceInfoPanel({
         <header className="flex min-w-0 items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
-              {courseTitle}
+              {collapsedTitle}
             </h1>
-            <button
-              type="button"
-              onClick={() => {
-                onExpand?.();
-                handleStartEdit();
-              }}
-              className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-              aria-label="코스 편집하기"
-            >
-              <Pencil className="size-3.5" aria-hidden />
-            </button>
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onExpand?.();
+                  handleStartEdit();
+                }}
+                className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+                aria-label="코스 편집하기"
+              >
+                <Pencil className="size-3.5" aria-hidden />
+              </button>
+            ) : null}
           </div>
         </header>
 
-        <CourseRouteSummary stops={stops} className="mt-4" />
+        <CourseRouteSummary stops={displayStops} className="mt-4" />
       </section>
     );
   }
@@ -357,7 +415,7 @@ export function CoursePlaceInfoPanel({
         <header className="flex w-full items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <h1 className="text-foreground min-w-0 shrink truncate text-lg leading-snug font-semibold">
-              {courseTitle}
+              {viewModeTitle}
             </h1>
             <button
               type="button"
@@ -462,13 +520,10 @@ export function CoursePlaceInfoPanel({
             </button>
           </div>
         </>
-      ) : hideNewCourseSaveButton ? null : (
+      ) : showSaveButton ? (
         <button
           type="button"
-          onClick={() => {
-            setSaveConfirmKind("create");
-            setIsSaveConfirmOpen(true);
-          }}
+          onClick={handleRequestCourseSave}
           className={cn(
             "focus-visible:ring-ring/50 text-primary-foreground mt-6 inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none",
             "bg-primary hover:bg-primary/90",
@@ -476,7 +531,7 @@ export function CoursePlaceInfoPanel({
         >
           데이트 코스 저장하기
         </button>
-      )}
+      ) : null}
 
       <CourseConfirmModal
         open={isSaveConfirmOpen}
@@ -566,6 +621,13 @@ function useCourseEditDraft({ courseTitle, stops }: { courseTitle: string; stops
     setIsEditing(true);
   }, [courseTitle, stops]);
 
+  const resumeEdit = useCallback((snapshot: CourseEditDraftSnapshot) => {
+    setDraftTitle(snapshot.title);
+    setDraftStops([...snapshot.stops]);
+    setSelectedStopId(null);
+    setIsEditing(true);
+  }, []);
+
   const cancelEdit = useCallback(() => {
     setDraftTitle(courseTitle);
     setDraftStops(stops);
@@ -611,6 +673,7 @@ function useCourseEditDraft({ courseTitle, stops }: { courseTitle: string; stops
     setSelectedStopId,
     setIsEditing,
     startEdit,
+    resumeEdit,
     cancelEdit,
     addDraftPlace,
     removeDraftStop,

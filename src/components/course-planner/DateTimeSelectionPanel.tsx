@@ -21,6 +21,10 @@ function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 function formatDateValue(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -45,6 +49,7 @@ function getMonthMatrixBase(date: Date) {
 type DateCalendarPanelProps = {
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  disablePastDates?: boolean;
   className?: string;
 };
 
@@ -52,10 +57,20 @@ type DateCalendarPanelProps = {
 export function DateCalendarPanel({
   selectedDate,
   onSelectDate,
+  disablePastDates = false,
   className,
 }: DateCalendarPanelProps) {
   const parsedAnchorDate = useMemo(() => parseDateAnchor(selectedDate), [selectedDate]);
-  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(parsedAnchorDate));
+  const minSelectableDate = useMemo(
+    () => (disablePastDates ? startOfDay(new Date()) : null),
+    [disablePastDates],
+  );
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    if (minSelectableDate && parsedAnchorDate < minSelectableDate) {
+      return startOfMonth(minSelectableDate);
+    }
+    return startOfMonth(parsedAnchorDate);
+  });
 
   useEffect(() => {
     if (selectedDate !== null) return;
@@ -71,6 +86,13 @@ export function DateCalendarPanel({
     [visibleMonth],
   );
   const monthLabel = `${visibleMonth.getFullYear()}년 ${visibleMonth.getMonth() + 1}월`;
+  const previousMonthLastDate = new Date(
+    visibleMonth.getFullYear(),
+    visibleMonth.getMonth(),
+    0,
+  );
+  const canMoveToPreviousMonth =
+    minSelectableDate == null || previousMonthLastDate >= minSelectableDate;
 
   const moveMonth = (offset: number) => {
     setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -82,7 +104,8 @@ export function DateCalendarPanel({
         <button
           type="button"
           onClick={() => moveMonth(-1)}
-          className="text-primary hover:bg-primary/10 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
+          disabled={!canMoveToPreviousMonth}
+          className="text-primary hover:bg-primary/10 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35"
           aria-label="이전 달"
         >
           <ChevronLeft className="size-4" aria-hidden />
@@ -120,14 +143,16 @@ export function DateCalendarPanel({
             const date = new Date(year, month, day);
             const dateValue = formatDateValue(date);
             const selected = selectedDate !== null && dateValue === selectedDate;
+            const disabled = minSelectableDate !== null && date < minSelectableDate;
 
             return (
               <button
                 key={dateValue}
                 type="button"
                 onClick={() => onSelectDate(dateValue)}
+                disabled={disabled}
                 className={cn(
-                  "focus-visible:ring-ring/50 mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none",
+                  "focus-visible:ring-ring/50 mx-auto flex size-8 items-center justify-center rounded-full text-[0.8rem] font-medium transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35",
                   selected
                     ? "bg-primary text-primary-foreground font-bold"
                     : "text-foreground hover:bg-muted/60",

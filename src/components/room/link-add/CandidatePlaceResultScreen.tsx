@@ -77,13 +77,11 @@ function CandidatePlaceResultScreenContent({
   const isSucceeded = result.status === "SUCCEEDED";
   const isInstagramRateLimited = isInstagramRateLimitedError(result.errorCode);
   const isUnsupportedPlatform = isUnsupportedPlatformUrlError(result.errorCode);
-  const {
-    isActive: isInstagramCooldownActive,
-    remainingSeconds: cooldownRemainingSeconds,
-  } = useCooldownCountdown({
-    active: isInstagramRateLimited,
-    seconds: result.cooldownSeconds,
-  });
+  const { isActive: isInstagramCooldownActive, remainingSeconds: cooldownRemainingSeconds } =
+    useCooldownCountdown({
+      active: isInstagramRateLimited,
+      seconds: result.cooldownSeconds,
+    });
   const canRetry =
     !isUnsupportedPlatform &&
     !isInstagramCooldownActive &&

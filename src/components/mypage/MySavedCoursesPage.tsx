@@ -8,7 +8,10 @@ import {
   COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
   COURSE_ROUTE_FIT_BOUNDS_PADDING,
 } from "@/components/course-planner/course-map-constants";
-import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
+import {
+  type CourseEditDraftSnapshot,
+  CoursePlaceInfoPanel,
+} from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
 import {
@@ -17,9 +20,15 @@ import {
   MAP_CHIP_UNSELECTED_CLASS,
   MAP_FILTER_PANEL_BASE_CLASS,
 } from "@/components/map/chip-style";
+import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { savedCourseToPlannerStops } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { RoomAvatar } from "@/components/room/RoomAvatar";
+import {
+  createMapRouteViewportKey,
+  getCourseStopRouteMapData,
+  mapPlacesOrderSignature,
+} from "@/features/course-planner/lib/course-stop-map-data";
 import { useRoomsQuery } from "@/features/room";
 import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll-trigger";
 import { usePointerDownOutside } from "@/hooks/use-pointer-down-outside";
@@ -82,7 +91,7 @@ export function MySavedCoursesPage({
 }: MySavedCoursesPageProps) {
   const { data: roomsFromApi, isLoading: isRoomsLoading } = useRoomsQuery();
   const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
-  const [routeViewportKey, setRouteViewportKey] = useState(0);
+  const [courseEditDraft, setCourseEditDraft] = useState<CourseEditDraftSnapshot | null>(null);
   const {
     openPopup,
     selectedRoomIds,
@@ -132,17 +141,40 @@ export function MySavedCoursesPage({
       ? "코스를 만들면 이곳에 차곡차곡 모아둘게요"
       : "필터를 바꾸면 저장해둔 다른 코스를 볼 수 있어요";
 
+  const draftRouteMapData = useMemo(
+    () => (courseEditDraft ? getCourseStopRouteMapData(courseEditDraft.stops) : null),
+    [courseEditDraft],
+  );
+
   const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
     courses: visibleCourses,
-    selectedCourse,
+    selectedCourse: courseEditDraft ? null : selectedCourse,
     savedPlaces,
     detailOpen,
     selectedPlaceId,
   });
 
+  const resolvedMapPins = draftRouteMapData?.places ?? mapPins;
+  const resolvedRouteMapData = draftRouteMapData ?? selectedCourseRouteMapData;
+  const resolvedMapCenter = useMemo(
+    () => (resolvedMapPins.length > 0 ? weightedMapCenter(resolvedMapPins) : mapCenter),
+    [mapCenter, resolvedMapPins],
+  );
+
+  const mapRouteViewportKey = useMemo(
+    () =>
+      createMapRouteViewportKey({
+        courseId: selectedCourse?.id,
+        courseEditDraft,
+        fallbackOrderKey: mapPlacesOrderSignature(resolvedMapPins),
+        isSheetExpanded: isCourseSheetExpanded,
+      }),
+    [courseEditDraft, isCourseSheetExpanded, resolvedMapPins, selectedCourse?.id],
+  );
+
   const handleSelectCourse = (course: SavedCourse) => {
     setIsCourseSheetExpanded(false);
-    setRouteViewportKey((current) => current + 1);
+    setCourseEditDraft(null);
     onSelectCourse(course);
   };
 
@@ -152,6 +184,7 @@ export function MySavedCoursesPage({
       return;
     }
     if (selectedCourse) {
+      setCourseEditDraft(null);
       onCloseCourseSheet();
       return;
     }
@@ -160,7 +193,6 @@ export function MySavedCoursesPage({
 
   const handleShowRoute = () => {
     setIsCourseSheetExpanded(false);
-    setRouteViewportKey((current) => current + 1);
   };
 
   return (
@@ -175,20 +207,14 @@ export function MySavedCoursesPage({
           <Suspense fallback={<div className="bg-muted h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
-              places={mapPins}
-              center={mapPins.length > 0 ? mapCenter : MAP_INITIAL_CENTER}
-              fitBoundsCoordinates={
-                selectedCourse ? selectedCourseRouteMapData.routeCoordinates : []
-              }
+              places={resolvedMapPins}
+              center={resolvedMapPins.length > 0 ? resolvedMapCenter : MAP_INITIAL_CENTER}
+              fitBoundsCoordinates={selectedCourse ? resolvedRouteMapData.routeCoordinates : []}
               fitBoundsPadding={selectedCourse ? COURSE_ROUTE_FIT_BOUNDS_PADDING : undefined}
-              routeCoordinates={selectedCourse ? selectedCourseRouteMapData.routeCoordinates : []}
-              markerLabelByPlaceId={
-                selectedCourse ? selectedCourseRouteMapData.markerLabelByPlaceId : {}
-              }
+              routeCoordinates={selectedCourse ? resolvedRouteMapData.routeCoordinates : []}
+              markerLabelByPlaceId={selectedCourse ? resolvedRouteMapData.markerLabelByPlaceId : {}}
               viewportKey={
-                selectedCourse
-                  ? `saved-course-route-${selectedCourse.id}-${routeViewportKey}`
-                  : "my-courses"
+                selectedCourse ? `saved-course-route-${mapRouteViewportKey}` : "my-courses"
               }
               className="h-full w-full"
             />
@@ -209,7 +235,7 @@ export function MySavedCoursesPage({
               aria-label="저장된 데이트 코스 개수 불러오는 중"
             />
           ) : selectedCourse ? (
-            `${selectedCourseRouteMapData.places.length}개 장소`
+            `${resolvedRouteMapData.places.length}개 장소`
           ) : (
             `${formatCount(totalCourseCount)}개`
           )
@@ -463,7 +489,10 @@ export function MySavedCoursesPage({
 
       <CoursePlannerBottomSheet
         open={Boolean(selectedCourse)}
-        onClose={onCloseCourseSheet}
+        onClose={() => {
+          setCourseEditDraft(null);
+          onCloseCourseSheet();
+        }}
         className="pointer-events-none"
         overlayClassName="pointer-events-none bg-transparent"
         panelClassName={cn(
@@ -486,6 +515,7 @@ export function MySavedCoursesPage({
             onSave={(payload) => onPersistCourse(selectedCourse.id, payload)}
             collapsed={!isCourseSheetExpanded}
             onExpand={() => setIsCourseSheetExpanded(true)}
+            onDraftChange={setCourseEditDraft}
           />
         ) : null}
       </CoursePlannerBottomSheet>

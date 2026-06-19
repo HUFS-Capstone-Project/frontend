@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
   type DateTimeSelection,
   getDateTimeDisplayValue,
+  isDateBeforeToday,
   isEndAfterStart,
   isHmString,
 } from "@/components/course-planner/course-date-time";
@@ -103,6 +104,7 @@ export function useCoursePlannerState({
   const handleConfirmDateTime = useCallback(() => {
     if (
       !draftDate ||
+      isDateBeforeToday(draftDate) ||
       !isHmString(draftStartTime) ||
       !isHmString(draftEndTime) ||
       !isEndAfterStart(draftStartTime, draftEndTime)

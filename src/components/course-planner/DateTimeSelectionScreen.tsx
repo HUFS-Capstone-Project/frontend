@@ -1,7 +1,11 @@
 import { ChevronLeft, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { isEndAfterStart, isHmString } from "@/components/course-planner/course-date-time";
+import {
+  isDateBeforeToday,
+  isEndAfterStart,
+  isHmString,
+} from "@/components/course-planner/course-date-time";
 import {
   DateCalendarPanel,
   DateTimeWheelsPanel,
@@ -50,12 +54,16 @@ export function DateTimeSelectionScreen({
   }, [selectedDate]);
 
   const handlePickDate = (date: string) => {
+    if (isDateBeforeToday(date)) {
+      return;
+    }
     onSelectDate(date);
     setStep("time");
   };
 
   const canConfirm =
     selectedDate !== null &&
+    !isDateBeforeToday(selectedDate) &&
     isHmString(selectedStartTime) &&
     isHmString(selectedEndTime) &&
     isEndAfterStart(selectedStartTime, selectedEndTime);
@@ -98,7 +106,11 @@ export function DateTimeSelectionScreen({
 
       <div className="mt-4">
         {step === "date" ? (
-          <DateCalendarPanel selectedDate={selectedDate} onSelectDate={handlePickDate} />
+          <DateCalendarPanel
+            selectedDate={selectedDate}
+            onSelectDate={handlePickDate}
+            disablePastDates
+          />
         ) : (
           <DateTimeWheelsPanel
             selectedDate={selectedDate}

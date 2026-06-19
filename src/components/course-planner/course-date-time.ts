@@ -23,6 +23,25 @@ export function isEndAfterStart(start: string, end: string): boolean {
   return hmToMinutes(end) > hmToMinutes(start);
 }
 
+function parseDateValue(value: string): Date | null {
+  const match = /^(\d{4})\.(\d{2})\.(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const [, year, month, day] = match;
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function isDateBeforeToday(value: string): boolean {
+  const date = parseDateValue(value);
+  if (!date) return true;
+  return startOfDay(date) < startOfDay(new Date());
+}
+
 export function getDateTimeDisplayValue(selection: DateTimeSelection | null) {
   if (!selection) return "";
   const startOk = isHmString(selection.startTime);

@@ -5,10 +5,7 @@ type UseCooldownCountdownParams = {
   seconds?: number;
 };
 
-export function useCooldownCountdown({
-  active,
-  seconds,
-}: UseCooldownCountdownParams): {
+export function useCooldownCountdown({ active, seconds }: UseCooldownCountdownParams): {
   isActive: boolean;
   remainingSeconds: number;
 } {

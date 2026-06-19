@@ -10,7 +10,10 @@ import {
   COURSE_ROUTE_COLLAPSED_SHEET_PANEL_CLASS,
   COURSE_ROUTE_FIT_BOUNDS_PADDING,
 } from "@/components/course-planner/course-map-constants";
-import { CoursePlaceInfoPanel } from "@/components/course-planner/CoursePlaceInfoPanel";
+import {
+  type CourseEditDraftSnapshot,
+  CoursePlaceInfoPanel,
+} from "@/components/course-planner/CoursePlaceInfoPanel";
 import { CoursePlannerBottomSheet } from "@/components/course-planner/CoursePlannerBottomSheet";
 import { DateCalendarPanel } from "@/components/course-planner/DateTimeSelectionPanel";
 import {
@@ -19,6 +22,7 @@ import {
   MAP_CHIP_UNSELECTED_CLASS,
   MAP_FILTER_PANEL_BASE_CLASS,
 } from "@/components/map/chip-style";
+import { weightedMapCenter } from "@/components/mypage/map-places-from-my-saved";
 import { savedCourseToPlannerStops } from "@/components/mypage/saved-course-planner-map";
 import { SavedCourseCard } from "@/components/mypage/SavedCourseCard";
 import { useSavedCourseMapData } from "@/components/mypage/use-saved-course-map-data";
@@ -28,6 +32,11 @@ import { COURSE_TOAST_DURATION_MS } from "@/features/course-planner/constants";
 import { useDateCourseDetailQuery } from "@/features/course-planner/hooks/use-date-course-detail-query";
 import { useRoomDateCoursesQuery } from "@/features/course-planner/hooks/use-room-date-courses-query";
 import { useUpdateDateCourseMutation } from "@/features/course-planner/hooks/use-update-date-course-mutation";
+import {
+  createMapRouteViewportKey,
+  getCourseStopRouteMapData,
+  mapPlacesOrderSignature,
+} from "@/features/course-planner/lib/course-stop-map-data";
 import { isDateCourseConflictError } from "@/features/course-planner/lib/date-course-errors";
 import { mapRoomSavedDateCourseToSavedCourse } from "@/features/course-planner/lib/map-room-saved-date-course";
 import type { BottomNavToastPlacement } from "@/hooks/use-bottom-nav-controller";
@@ -87,7 +96,7 @@ export function PlaceListSavedCoursesPage({
   const [selectedCourse, setSelectedCourse] = useState<SavedCourse | null>(null);
   const [courseOverrides, setCourseOverrides] = useState<Record<string, SavedCourse>>({});
   const [isCourseSheetExpanded, setIsCourseSheetExpanded] = useState(false);
-  const [routeViewportKey, setRouteViewportKey] = useState(0);
+  const [courseEditDraft, setCourseEditDraft] = useState<CourseEditDraftSnapshot | null>(null);
   const roomDateCoursesQuery = useRoomDateCoursesQuery({
     roomId,
     enabled: Boolean(roomId),
@@ -172,23 +181,45 @@ export function PlaceListSavedCoursesPage({
       ? "코스를 만들면 이곳에 차곡차곡 모아둘게요"
       : "필터를 바꾸면 저장해둔 다른 코스를 볼 수 있어요";
 
+  const draftRouteMapData = useMemo(
+    () => (courseEditDraft ? getCourseStopRouteMapData(courseEditDraft.stops) : null),
+    [courseEditDraft],
+  );
+
   const { mapPins, selectedCourseRouteMapData, mapCenter } = useSavedCourseMapData({
     courses: visibleCourses,
-    selectedCourse: selectedCourseWithDetail,
+    selectedCourse: courseEditDraft ? null : selectedCourseWithDetail,
     savedPlaces,
     detailOpen,
     selectedPlaceId,
   });
 
+  const resolvedMapPins = draftRouteMapData?.places ?? mapPins;
+  const resolvedRouteMapData = draftRouteMapData ?? selectedCourseRouteMapData;
+  const resolvedMapCenter = useMemo(
+    () => (resolvedMapPins.length > 0 ? weightedMapCenter(resolvedMapPins) : mapCenter),
+    [mapCenter, resolvedMapPins],
+  );
+
+  const mapRouteViewportKey = useMemo(
+    () =>
+      createMapRouteViewportKey({
+        courseId: selectedCourseWithDetail?.id,
+        courseEditDraft,
+        fallbackOrderKey: mapPlacesOrderSignature(resolvedMapPins),
+        isSheetExpanded: isCourseSheetExpanded,
+      }),
+    [courseEditDraft, isCourseSheetExpanded, resolvedMapPins, selectedCourseWithDetail?.id],
+  );
+
   const handleSelectCourse = (course: SavedCourse) => {
     setIsCourseSheetExpanded(false);
-    setRouteViewportKey((current) => current + 1);
+    setCourseEditDraft(null);
     setSelectedCourse(course);
   };
 
   const handleShowRoute = () => {
     setIsCourseSheetExpanded(false);
-    setRouteViewportKey((current) => current + 1);
   };
 
   const handlePersistCourse = async (prevCourseId: string, payload: CourseSavePayload) => {
@@ -245,23 +276,23 @@ export function PlaceListSavedCoursesPage({
           <Suspense fallback={<div className="bg-muted h-full w-full" aria-hidden />}>
             <KakaoMapView
               appKey={KAKAO_MAP_APP_KEY}
-              places={mapPins}
-              center={mapPins.length > 0 ? mapCenter : MAP_INITIAL_CENTER}
+              places={resolvedMapPins}
+              center={resolvedMapPins.length > 0 ? resolvedMapCenter : MAP_INITIAL_CENTER}
               fitBoundsCoordinates={
-                selectedCourseWithDetail ? selectedCourseRouteMapData.routeCoordinates : []
+                selectedCourseWithDetail ? resolvedRouteMapData.routeCoordinates : []
               }
               fitBoundsPadding={
                 selectedCourseWithDetail ? COURSE_ROUTE_FIT_BOUNDS_PADDING : undefined
               }
               routeCoordinates={
-                selectedCourseWithDetail ? selectedCourseRouteMapData.routeCoordinates : []
+                selectedCourseWithDetail ? resolvedRouteMapData.routeCoordinates : []
               }
               markerLabelByPlaceId={
-                selectedCourseWithDetail ? selectedCourseRouteMapData.markerLabelByPlaceId : {}
+                selectedCourseWithDetail ? resolvedRouteMapData.markerLabelByPlaceId : {}
               }
               viewportKey={
                 selectedCourseWithDetail
-                  ? `room-course-route-${selectedCourseWithDetail.id}-${routeViewportKey}`
+                  ? `room-course-route-${mapRouteViewportKey}`
                   : "room-courses"
               }
               className="h-full w-full"
@@ -274,7 +305,7 @@ export function PlaceListSavedCoursesPage({
         title={roomName}
         trailing={
           selectedCourseWithDetail
-            ? `${selectedCourseRouteMapData.places.length}개 장소`
+            ? `${resolvedRouteMapData.places.length}개 장소`
             : `${formatCount(totalCourseCount)}개`
         }
         variant={overlayMapOpen ? "overlay" : "sticky"}
@@ -287,6 +318,7 @@ export function PlaceListSavedCoursesPage({
             return;
           }
           if (selectedCourse) {
+            setCourseEditDraft(null);
             setSelectedCourse(null);
             return;
           }
@@ -517,7 +549,10 @@ export function PlaceListSavedCoursesPage({
 
       <CoursePlannerBottomSheet
         open={Boolean(selectedCourse)}
-        onClose={() => setSelectedCourse(null)}
+        onClose={() => {
+          setCourseEditDraft(null);
+          setSelectedCourse(null);
+        }}
         className="pointer-events-none"
         overlayClassName="pointer-events-none bg-transparent"
         panelClassName={cn(
@@ -540,6 +575,7 @@ export function PlaceListSavedCoursesPage({
             hideNewCourseSaveButton
             collapsed={!isCourseSheetExpanded}
             onExpand={() => setIsCourseSheetExpanded(true)}
+            onDraftChange={setCourseEditDraft}
           />
         ) : null}
       </CoursePlannerBottomSheet>

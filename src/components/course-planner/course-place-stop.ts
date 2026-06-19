@@ -16,5 +16,7 @@ export function courseStopFromSavedPlace(place: SavedPlace): CourseStop {
     categoryName: place.categoryName ?? null,
     tagCode: place.tagKeys?.[0] ?? null,
     tagName: place.tagNames?.[0] ?? null,
+    latitude: place.latitude ?? null,
+    longitude: place.longitude ?? null,
   };
 }
