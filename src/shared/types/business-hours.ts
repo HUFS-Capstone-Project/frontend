@@ -20,6 +20,7 @@ export type BusinessHoursDisplay = {
   todayDisplayText: string | null;
   nextOpenAt: string | null;
   nextCloseAt: string | null;
+  nextStatusChangeAt: string | null;
   today: unknown | null;
   weeklyHours: WeeklyBusinessHour[];
 };

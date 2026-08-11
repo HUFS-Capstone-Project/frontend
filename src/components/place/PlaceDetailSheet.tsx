@@ -105,6 +105,9 @@ export function PlaceDetailSheet({
       refetchIntervalInBackground: false,
     },
   });
+  const nextBusinessHoursStatusChangeAt =
+    roomPlaceDetailQuery.data?.businessHours?.nextStatusChangeAt;
+  const refetchRoomPlaceDetail = roomPlaceDetailQuery.refetch;
 
   const places = useMemo(() => {
     let sourcePlaces: MapSavedPlace[];
@@ -175,6 +178,28 @@ export function PlaceDetailSheet({
       cancelled = true;
     };
   }, [isOpen, selectedRoomPlaceId, shouldFetchRoomPlaceDetail]);
+
+  useEffect(() => {
+    if (!isOpen || !shouldFetchRoomPlaceDetail || !nextBusinessHoursStatusChangeAt) {
+      return;
+    }
+
+    const boundaryTime = Date.parse(nextBusinessHoursStatusChangeAt);
+    if (!Number.isFinite(boundaryTime)) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => {
+        void refetchRoomPlaceDetail();
+      },
+      Math.max(1_000, boundaryTime - Date.now() + 100),
+    );
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isOpen, nextBusinessHoursStatusChangeAt, refetchRoomPlaceDetail, shouldFetchRoomPlaceDetail]);
 
   useEffect(() => {
     if (isOpen && selectedPlaceId && !place && !isRoomPlaceDetailLoading) {
