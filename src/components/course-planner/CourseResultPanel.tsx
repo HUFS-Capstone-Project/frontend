@@ -24,7 +24,7 @@ export function CourseResultPanel({
         맞춤 데이트 코스 확인하기
       </h1>
       <p className="text-muted-foreground mt-1.5 text-[0.75rem] leading-snug">
-        마음에 드는 코스를 선택해서 장소 정보를 확인해보세요.
+        마음에 드는 코스를 선택해서 장소 정보를 확인해 보세요.
       </p>
 
       <div className="mt-6 grid gap-4 pb-1">

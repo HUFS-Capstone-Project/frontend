@@ -32,7 +32,7 @@ export const ERROR_TEXT = {
   ROOM_NOT_FOUND: ROOM_TEXT.toast.notFound,
   ROOM_PLACE_NOT_FOUND: "장소를 찾지 못했어요",
   DATE_COURSE_NOT_FOUND: "코스를 찾지 못했어요",
-  DATE_COURSE_NO_PLACES: COURSE_TEXT.toast.selectPlaces,
+  DATE_COURSE_NO_PLACES: COURSE_TEXT.toast.insufficientPlaces,
   DATE_COURSE_GENERATION_EMPTY: "만들 수 있는 코스가 없어요",
   LINK_NOT_FOUND: "링크를 찾지 못했어요",
   LINK_ANALYSIS_REQUEST_NOT_FOUND: "링크 분석 요청을 찾지 못했어요",

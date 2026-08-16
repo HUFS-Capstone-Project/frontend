@@ -312,7 +312,7 @@ export default function CoursePlannerPage() {
     const matchedSigungu = sigunguOptions.find((option) => option.name === draftDistrict);
     const nextSigunguCode = draftSigunguCode || matchedSigungu?.code || "";
     if (!nextSigunguCode) {
-      showToast(COURSE_TEXT.toast.selectSigungu, COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectRegion, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -457,7 +457,7 @@ export default function CoursePlannerPage() {
     }
 
     if (!canGenerateByRegion || effectiveSigunguCode.length === 0) {
-      showToast(COURSE_TEXT.toast.selectSigungu, COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectRegion, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -476,7 +476,7 @@ export default function CoursePlannerPage() {
       displayedCourseOrders.length > 5 ||
       !displayedCourseOrders.every((order) => order.category.trim().length > 0)
     ) {
-      showToast(COURSE_TEXT.toast.selectPlaces, COURSE_TOAST_DURATION_MS);
+      showToast(COURSE_TEXT.toast.selectPlaceType, COURSE_TOAST_DURATION_MS);
       return;
     }
 
@@ -736,7 +736,7 @@ export default function CoursePlannerPage() {
           }
           districtEmptyMessage={
             effectiveDraftSidoCode.length === 0
-              ? "시/도를 먼저 선택해주세요"
+              ? "시/도를 먼저 선택해 주세요"
               : dateCourseSigunguEmptyMessage
           }
           searchKeyword={regionSearchKeyword}

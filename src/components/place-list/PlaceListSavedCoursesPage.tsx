@@ -177,8 +177,8 @@ export function PlaceListSavedCoursesPage({
     roomDateCoursesQuery.isLoading && roomDateCoursesQuery.data == null;
   const emptyTitle =
     savedCourses.length === 0
-      ? "아직 저장한 데이트코스가 없어요"
-      : "조건에 맞는 데이트코스가 없어요";
+      ? "아직 저장한 데이트 코스가 없어요"
+      : "조건에 맞는 데이트 코스가 없어요";
   const emptyDescription =
     savedCourses.length === 0
       ? "코스를 만들면 이곳에 차곡차곡 모아둘게요"
@@ -541,8 +541,8 @@ export function PlaceListSavedCoursesPage({
             </div>
           ) : roomDateCoursesQuery.isError ? (
             <SavedCourseListState
-              title="데이트코스를 불러오지 못했어요"
-              description="잠시 뒤에 다시 확인해주세요"
+              title="데이트 코스를 불러오지 못했어요"
+              description="잠시 뒤에 다시 확인해 주세요"
             />
           ) : (
             <SavedCourseListState title={emptyTitle} description={emptyDescription} />

@@ -359,7 +359,7 @@ export default function PlaceListPage() {
       : "조건에 맞는 장소가 없어요";
   const emptyDescription =
     resolvedPlaces.length === 0 && !hasRegionFilter
-      ? "마음에 드는 장소를 저장해보세요!"
+      ? "마음에 드는 장소를 저장해 보세요!"
       : "필터를 바꾸면 저장해둔 다른 장소를 볼 수 있어요";
 
   const handleHeaderBack = () => {
@@ -621,7 +621,7 @@ export default function PlaceListPage() {
           ) : roomPlacesQuery.isError ? (
             <PlaceListState
               title="장소 목록을 불러오지 못했어요"
-              description="잠시 뒤에 다시 확인해주세요"
+              description="잠시 뒤에 다시 확인해 주세요"
             />
           ) : (
             <PlaceListState title={emptyTitle} description={emptyDescription} />

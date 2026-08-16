@@ -55,7 +55,7 @@ export default function ShareRoomSelectPage() {
     <RoomMainShell
       header={
         <RoomMainHeader
-          title="공유할 방을 선택해주세요"
+          title="공유할 방을 선택해 주세요"
           searchValue={roomSearchKeyword}
           onSearchValueChange={setRoomSearchKeyword}
           onSubmitSearch={() => setSubmittedKeyword(roomSearchKeyword)}

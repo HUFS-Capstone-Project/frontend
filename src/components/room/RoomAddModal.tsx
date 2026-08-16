@@ -22,7 +22,7 @@ import { CLIPBOARD_TEXT, INVITE_SHARE_TEXT } from "@/shared/config/text";
 import { shareRoomInvite } from "@/shared/lib/share-room-invite";
 
 const ROOM_NAME_MAX_LENGTH = 20;
-const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해주세요`;
+const ROOM_NAME_LIMIT_HINT = `최대 ${ROOM_NAME_MAX_LENGTH}자 이내로 입력해 주세요`;
 
 type FullScreenStep = "none" | "createName" | "createInvite" | "join";
 

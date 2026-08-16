@@ -65,7 +65,7 @@ export function SavedCourseSection({
         </div>
       ) : (
         <div className="border-border/60 bg-muted/15 mt-3 flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed px-4 text-center">
-          <p className="text-foreground text-xs font-semibold">아직 저장한 데이트코스가 없어요</p>
+          <p className="text-foreground text-xs font-semibold">아직 저장한 데이트 코스가 없어요</p>
           <p className="text-muted-foreground mt-1 text-[0.7rem] leading-relaxed font-medium">
             코스를 만들면 이곳에 차곡차곡 모아둘게요
           </p>

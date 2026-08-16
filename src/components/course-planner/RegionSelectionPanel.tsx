@@ -105,12 +105,12 @@ export function RegionSelectionPanel({
   return (
     <section className={cn("bg-background px-6 pt-8 pb-0", className)}>
       <div className="flex items-center justify-between">
-        <h1 className="text-foreground text-base font-bold">지역설정</h1>
+        <h1 className="text-foreground text-base font-bold">지역 설정</h1>
         <button
           type="button"
           onClick={onClose}
           className="text-muted-foreground hover:bg-muted/45 focus-visible:ring-ring/50 inline-flex size-8 items-center justify-center rounded-full transition-colors focus-visible:ring-3 focus-visible:outline-none"
-          aria-label="지역설정 닫기"
+          aria-label="지역 설정 닫기"
         >
           <X className="size-4" aria-hidden />
         </button>
@@ -171,7 +171,7 @@ export function RegionSelectionPanel({
 
         <div className="flex min-h-0 flex-col">
           <div className="border-border text-muted-foreground shrink-0 border-b py-2 text-center text-xs font-medium">
-            {sigunguOnly ? "시/군/구" : "시/구/군"}
+            시/군/구
           </div>
           <div className="scrollbar-hide grid min-h-0 overflow-y-auto">
             {!isDistrictLoading && districtErrorMessage ? (

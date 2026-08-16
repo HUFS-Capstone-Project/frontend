@@ -8,7 +8,7 @@ export function nicknameInputPlaceholder(maxLength: number): string {
 }
 
 export function nicknameLimitExceededMessage(maxLength: number): string {
-  return `최대 ${maxLength}자 이내로 닉네임을 입력해주세요`;
+  return `최대 ${maxLength}자 이내로 닉네임을 입력해 주세요`;
 }
 
 export function resolveNicknamePlaceholder(
